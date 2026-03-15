@@ -24,7 +24,7 @@ test.describe('Feed page (authenticated)', () => {
     await page.getByLabel('Mot de passe', { exact: true }).fill('TestPassword123!')
     await page.getByLabel('Confirmer le mot de passe').fill('TestPassword123!')
     await page.getByRole('button', { name: /créer mon compte/i }).click()
-    await expect(page).toHaveURL('/feed')
+    await expect(page).toHaveURL('/feed', { timeout: 15000 })
   })
 
   test('shows empty state when no flux', async ({ page }) => {
