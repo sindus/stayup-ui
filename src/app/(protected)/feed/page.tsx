@@ -42,7 +42,10 @@ export default async function FeedPage() {
 
   // Build provider_id → identifier maps from the stayup-api tables
   const changelogProviderMap = new Map<number, string>(
-    (repositories as unknown as ProviderRow[]).map((r) => [r.id, extractChangelogIdentifier(r.url)]),
+    (repositories as unknown as ProviderRow[]).map((r) => [
+      r.id,
+      extractChangelogIdentifier(r.url),
+    ]),
   )
   const youtubeProviderMap = new Map<number, string>(
     (profiles as unknown as ProviderRow[]).map((p) => [p.id, extractYoutubeIdentifier(p.url)]),

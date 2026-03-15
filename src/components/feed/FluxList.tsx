@@ -30,8 +30,12 @@ export function FluxList({ fluxes, changelogByIdentifier, youtubeByIdentifier }:
           <FluxCard
             key={flux.id}
             flux={flux}
-            changelogItems={flux.provider === 'changelog' ? (changelogByIdentifier[flux.identifier] ?? []) : []}
-            youtubeItems={flux.provider === 'youtube' ? (youtubeByIdentifier[flux.identifier] ?? []) : []}
+            changelogItems={
+              flux.provider === 'changelog' ? (changelogByIdentifier[flux.identifier] ?? []) : []
+            }
+            youtubeItems={
+              flux.provider === 'youtube' ? (youtubeByIdentifier[flux.identifier] ?? []) : []
+            }
           />
         ))}
       </div>
