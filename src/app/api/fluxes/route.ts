@@ -35,7 +35,10 @@ export async function POST(request: Request) {
   const body = await request.json()
   const parsed = createFluxSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Données invalides', details: parsed.error.issues }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Données invalides', details: parsed.error.issues },
+      { status: 400 },
+    )
   }
 
   const { provider, label } = parsed.data

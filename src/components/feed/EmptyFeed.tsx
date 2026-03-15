@@ -15,8 +15,7 @@ export function EmptyFeed() {
       </div>
       <h2 className="text-xl font-semibold mb-2">Votre flux est vide</h2>
       <p className="text-muted-foreground mb-6 max-w-sm">
-        Ajoutez votre premier flux pour commencer à suivre les mises à jour de vos projets
-        préférés.
+        Ajoutez votre premier flux pour commencer à suivre les mises à jour de vos projets préférés.
       </p>
       <Button onClick={() => setOpen(true)}>Ajouter mon premier flux</Button>
       <AddFluxDialog open={open} onOpenChange={setOpen} />

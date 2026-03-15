@@ -102,10 +102,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="provider">Provider</Label>
-              <Select
-                value={provider}
-                onValueChange={(v) => setValue('provider', v as Provider)}
-              >
+              <Select value={provider} onValueChange={(v) => setValue('provider', v as Provider)}>
                 <SelectTrigger id="provider">
                   <SelectValue />
                 </SelectTrigger>
@@ -135,14 +132,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
             <div className="space-y-2">
               <Label htmlFor="label">Nom affiché</Label>
-              <Input
-                id="label"
-                placeholder="ex: React, Fireship..."
-                {...register('label')}
-              />
-              {errors.label && (
-                <p className="text-sm text-destructive">{errors.label.message}</p>
-              )}
+              <Input id="label" placeholder="ex: React, Fireship..." {...register('label')} />
+              {errors.label && <p className="text-sm text-destructive">{errors.label.message}</p>}
             </div>
 
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}

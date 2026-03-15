@@ -6,6 +6,7 @@ import { GitBranch, Youtube, Trash2, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import type { ChangelogItem, UserFlux, YoutubeItem, YoutubeItemContent } from '@/types'
 import { formatDate } from '@/lib/utils'
 
@@ -55,9 +56,7 @@ export function FluxCard({ flux, changelogItems, youtubeItems }: FluxCardProps) 
       <CardContent>
         {flux.provider === 'changelog' ? (
           changelogItems.length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">
-              Aucune release disponible.
-            </p>
+            <p className="text-sm text-muted-foreground italic">Aucune release disponible.</p>
           ) : (
             <div className="space-y-3">
               {changelogItems.slice(0, 3).map((item) => (
@@ -66,9 +65,7 @@ export function FluxCard({ flux, changelogItems, youtubeItems }: FluxCardProps) 
             </div>
           )
         ) : youtubeItems.length === 0 ? (
-          <p className="text-sm text-muted-foreground italic">
-            Aucune vidéo disponible.
-          </p>
+          <p className="text-sm text-muted-foreground italic">Aucune vidéo disponible.</p>
         ) : (
           <div className="space-y-3">
             {youtubeItems.slice(0, 3).map((item) => (
@@ -94,7 +91,10 @@ function ChangelogEntry({ item }: { item: ChangelogItem }) {
       </div>
       {item.content && (
         <p className="text-sm text-muted-foreground line-clamp-2 whitespace-pre-line">
-          {item.content.replace(/#{1,6}\s/g, '').replace(/\r\n/g, ' ').slice(0, 200)}
+          {item.content
+            .replace(/#{1,6}\s/g, '')
+            .replace(/\r\n/g, ' ')
+            .slice(0, 200)}
         </p>
       )}
     </div>
@@ -112,10 +112,13 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
   return (
     <div className="flex gap-3">
       {parsed?.thumbnail && (
-        <img
+        <Image
           src={parsed.thumbnail}
           alt={parsed?.title ?? 'Thumbnail'}
-          className="w-24 h-14 object-cover rounded shrink-0"
+          width={96}
+          height={56}
+          className="object-cover rounded shrink-0"
+          unoptimized
         />
       )}
       <div className="space-y-1 min-w-0">

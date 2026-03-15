@@ -43,9 +43,7 @@ export function RegisterForm() {
     })
 
     if (result.error) {
-      setError(
-        result.error.message ?? "Une erreur est survenue lors de l'inscription.",
-      )
+      setError(result.error.message ?? "Une erreur est survenue lors de l'inscription.")
     } else {
       router.push('/feed')
       router.refresh()
@@ -56,12 +54,7 @@ export function RegisterForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nom</Label>
-        <Input
-          id="name"
-          placeholder="Votre nom"
-          autoComplete="name"
-          {...register('name')}
-        />
+        <Input id="name" placeholder="Votre nom" autoComplete="name" {...register('name')} />
         {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
       </div>
 

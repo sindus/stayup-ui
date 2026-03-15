@@ -5,10 +5,7 @@ import { db } from '@/lib/db'
 import { userFlux } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

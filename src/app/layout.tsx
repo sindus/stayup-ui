@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'StayUp — Restez à jour',
   description:
-    "Suivez les dernières mises à jour de vos projets GitHub et chaînes YouTube en un seul endroit.",
+    'Suivez les dernières mises à jour de vos projets GitHub et chaînes YouTube en un seul endroit.',
   openGraph: {
     title: 'StayUp',
     description: 'Agrégateur de mises à jour GitHub et YouTube',

@@ -1,90 +1,123 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { getConnector, validateFlux } from '@/lib/api-client'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
+// Build a fake JWT token with a far-future expiry
+function fakeToken() {
+  const payload = btoa(JSON.stringify({ exp: 9_999_999_999 }))
+  return `header.${payload}.sig`
+}
+
+// Mock the /auth/login call that getApiToken() makes
+function mockLogin() {
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ token: fakeToken() }),
+  })
+}
+
+// Reset modules before each test so _cachedToken is cleared
 beforeEach(() => {
+  vi.resetModules()
   mockFetch.mockReset()
 })
 
-describe('getConnector', () => {
+describe('getChangelogItems', () => {
   it('returns data array on success', async () => {
+    mockLogin()
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ connector: 'changelog', data: [{ repository: 'facebook/react' }] }),
+      json: async () => ({
+        connector: 'changelog',
+        data: [{ id: 1, provider_id: 1, content: 'fix: bug', version: 'v1.0.0' }],
+      }),
     })
 
-    const result = await getConnector('changelog')
-    expect(result).toEqual([{ repository: 'facebook/react' }])
+    const { getChangelogItems } = await import('@/lib/api-client')
+    const result = await getChangelogItems()
+    expect(result).toHaveLength(1)
+    expect(result[0].version).toBe('v1.0.0')
   })
 
-  it('returns null on 404', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      json: async () => ({}),
-    })
+  it('returns empty array when data fetch fails', async () => {
+    mockLogin()
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500 })
 
-    const result = await getConnector('unknown')
-    expect(result).toBeNull()
-  })
-
-  it('returns null on network error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
-    const result = await getConnector('changelog')
-    expect(result).toBeNull()
+    const { getChangelogItems } = await import('@/lib/api-client')
+    const result = await getChangelogItems()
+    expect(result).toEqual([])
   })
 })
 
-describe('validateFlux', () => {
-  it('returns true when identifier matches a changelog repository', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        connector: 'changelog',
-        data: [{ repository: 'facebook/react', version: 'v19.0.0' }],
-      }),
-    })
-
-    const valid = await validateFlux('changelog', 'facebook/react')
-    expect(valid).toBe(true)
-  })
-
-  it('returns false when identifier is not in the data', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        connector: 'changelog',
-        data: [{ repository: 'other/repo' }],
-      }),
-    })
-
-    const valid = await validateFlux('changelog', 'facebook/react')
-    expect(valid).toBe(false)
-  })
-
-  it('returns false when connector is not found', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      json: async () => ({}),
-    })
-
-    const valid = await validateFlux('changelog', 'facebook/react')
-    expect(valid).toBe(false)
-  })
-
-  it('returns true when youtube profile matches', async () => {
+describe('getYoutubeItems', () => {
+  it('returns youtube items on success', async () => {
+    mockLogin()
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
         connector: 'youtube',
-        data: [{ profile: 'fireship', title: 'Cool video' }],
+        data: [
+          {
+            id: 1,
+            provider_id: 1,
+            version: 'abc123',
+            content: '{"title":"Test","thumbnail":"","url":""}',
+          },
+        ],
       }),
     })
 
-    const valid = await validateFlux('youtube', 'fireship')
-    expect(valid).toBe(true)
+    const { getYoutubeItems } = await import('@/lib/api-client')
+    const result = await getYoutubeItems()
+    expect(result).toHaveLength(1)
+    expect(result[0].version).toBe('abc123')
+  })
+
+  it('returns empty array on network error', async () => {
+    mockLogin()
+    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+
+    const { getYoutubeItems } = await import('@/lib/api-client')
+    const result = await getYoutubeItems()
+    expect(result).toEqual([])
+  })
+})
+
+describe('validateFlux', () => {
+  // validateFlux calls the GitHub API directly — no JWT needed
+  it('returns valid:true when GitHub repo exists', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ name: 'react' }),
+    })
+
+    const { validateFlux } = await import('@/lib/api-client')
+    const result = await validateFlux('changelog', 'facebook/react')
+    expect(result.valid).toBe(true)
+  })
+
+  it('returns valid:false when GitHub repo does not exist', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 404 })
+
+    const { validateFlux } = await import('@/lib/api-client')
+    const result = await validateFlux('changelog', 'fake/nonexistent-repo-xyz')
+    expect(result.valid).toBe(false)
+    expect(result.reason).toContain('GitHub')
+  })
+
+  it('returns valid:true for youtube provider without API call', async () => {
+    const { validateFlux } = await import('@/lib/api-client')
+    const result = await validateFlux('youtube', 'fireship')
+    expect(result.valid).toBe(true)
+    // fetch should not have been called (no API check for youtube)
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
+
+  it('returns valid:false for unknown provider', async () => {
+    const { validateFlux } = await import('@/lib/api-client')
+    const result = await validateFlux('unknown', 'test')
+    expect(result.valid).toBe(false)
   })
 })

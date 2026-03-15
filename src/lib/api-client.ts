@@ -1,7 +1,6 @@
 import type { ChangelogItem, ConnectorData, YoutubeItem } from '@/types'
 
-const SERVER_BASE_URL =
-  process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
+const SERVER_BASE_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 // ─── JWT token cache (server-side only) ───────────────────────────────────────
 
@@ -60,9 +59,7 @@ export async function getChangelogItems(): Promise<ChangelogItem[]> {
 
 export async function getYoutubeItems(): Promise<YoutubeItem[]> {
   try {
-    const data = await apiFetch<{ connector: string; data: YoutubeItem[] }>(
-      '/connectors/youtube',
-    )
+    const data = await apiFetch<{ connector: string; data: YoutubeItem[] }>('/connectors/youtube')
     return data.data
   } catch {
     return []
