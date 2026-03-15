@@ -9,11 +9,11 @@ import type { ChangelogItem, UserFlux, YoutubeItem } from '@/types'
 
 interface FluxListProps {
   fluxes: UserFlux[]
-  changelogItems: ChangelogItem[]
-  youtubeItems: YoutubeItem[]
+  changelogByIdentifier: Record<string, ChangelogItem[]>
+  youtubeByIdentifier: Record<string, YoutubeItem[]>
 }
 
-export function FluxList({ fluxes, changelogItems, youtubeItems }: FluxListProps) {
+export function FluxList({ fluxes, changelogByIdentifier, youtubeByIdentifier }: FluxListProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -30,8 +30,8 @@ export function FluxList({ fluxes, changelogItems, youtubeItems }: FluxListProps
           <FluxCard
             key={flux.id}
             flux={flux}
-            changelogItems={flux.provider === 'changelog' ? changelogItems : []}
-            youtubeItems={flux.provider === 'youtube' ? youtubeItems : []}
+            changelogItems={flux.provider === 'changelog' ? (changelogByIdentifier[flux.identifier] ?? []) : []}
+            youtubeItems={flux.provider === 'youtube' ? (youtubeByIdentifier[flux.identifier] ?? []) : []}
           />
         ))}
       </div>
