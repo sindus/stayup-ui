@@ -28,6 +28,9 @@ function extractYoutubeIdentifier(url: string): string {
 export default async function FeedPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
+  console.log('[feed] STAYUP_API_URL:', process.env.STAYUP_API_URL ?? 'MISSING')
+  console.log('[feed] DATABASE_URL:', process.env.DATABASE_URL ? 'set' : 'MISSING')
+
   const [fluxes, changelogItems, youtubeItems, repositories, profiles] = await Promise.all([
     db
       .select()
@@ -39,6 +42,10 @@ export default async function FeedPage() {
     db.execute(sql`SELECT id, url FROM repository`),
     db.execute(sql`SELECT id, url FROM profile`),
   ])
+
+  console.log('[feed] changelogItems:', changelogItems.length, 'youtubeItems:', youtubeItems.length)
+  console.log('[feed] repositories:', JSON.stringify(repositories))
+  console.log('[feed] profiles:', JSON.stringify(profiles))
 
   // Build provider_id → identifier maps from the stayup-api tables
   const changelogProviderMap = new Map<number, string>(
