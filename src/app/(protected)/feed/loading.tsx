@@ -10,6 +10,7 @@ const templateFlux: UserFlux = {
   provider: 'changelog',
   identifier: 'owner/repository-name',
   label: 'Nom du flux en chargement...',
+  params: null,
   createdAt: new Date().toISOString(),
 }
 
@@ -59,6 +60,8 @@ export default function FeedLoading() {
               flux={templateFlux}
               changelogItems={templateChangelogs}
               youtubeItems={[]}
+              rssItems={[]}
+              scrapItems={[]}
             />
           </Shimmer>
         ))}

@@ -1,4 +1,4 @@
-export type Provider = 'changelog' | 'youtube'
+export type Provider = 'changelog' | 'youtube' | 'rss' | 'scrap'
 
 export interface UserFlux {
   id: string
@@ -6,6 +6,7 @@ export interface UserFlux {
   provider: Provider
   identifier: string
   label: string
+  params: string | null
   createdAt: string
 }
 
@@ -39,11 +40,45 @@ export interface YoutubeItem {
   success: boolean
 }
 
-export type ConnectorItem = ChangelogItem | YoutubeItem
+export interface RssItemContent {
+  version: string // entry id used as unique identifier
+  title: string
+  link: string
+  summary: string
+}
+
+export interface RssItem {
+  id: number
+  repository_id: number
+  content: string // JSON string of RssItemContent
+  datetime: string | null
+  executed_at: string
+  success: boolean
+}
+
+export interface ScrapItemParams {
+  url: string
+  articles_selector: string
+  content_selector: string
+  [key: string]: string
+}
+
+export interface ScrapItem {
+  id: number
+  repository_id: number
+  content: string // scraped text
+  params: ScrapItemParams | string // JSONB from DB
+  executed_at: string
+  success: boolean
+}
+
+export type ConnectorItem = ChangelogItem | YoutubeItem | RssItem | ScrapItem
 
 export interface ConnectorData {
   connectors: {
     changelog?: ChangelogItem[]
     youtube?: YoutubeItem[]
+    rss?: RssItem[]
+    scrap?: ScrapItem[]
   }
 }

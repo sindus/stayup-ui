@@ -6,8 +6,8 @@ import { userFlux } from '@/db/schema'
 import { eq, sql } from 'drizzle-orm'
 import { FluxList } from '@/components/feed/FluxList'
 import { EmptyFeed } from '@/components/feed/EmptyFeed'
-import { getChangelogItems, getYoutubeItems } from '@/lib/api-client'
-import type { ChangelogItem, YoutubeItem } from '@/types'
+import { getChangelogItems, getYoutubeItems, getRssItems, getScrapItems } from '@/lib/api-client'
+import type { ChangelogItem, YoutubeItem, RssItem, ScrapItem } from '@/types'
 
 export const metadata: Metadata = {
   title: 'Mon flux — StayUp',
@@ -28,24 +28,20 @@ function extractYoutubeIdentifier(url: string): string {
 export default async function FeedPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
-  console.log('[feed] STAYUP_API_URL:', process.env.STAYUP_API_URL ?? 'MISSING')
-  console.log('[feed] DATABASE_URL:', process.env.DATABASE_URL ? 'set' : 'MISSING')
-
-  const [fluxes, changelogItems, youtubeItems, repositories, profiles] = await Promise.all([
-    db
-      .select()
-      .from(userFlux)
-      .where(eq(userFlux.userId, session!.user.id))
-      .orderBy(userFlux.createdAt),
-    getChangelogItems(),
-    getYoutubeItems(),
-    db.execute(sql`SELECT id, url FROM repository`),
-    db.execute(sql`SELECT id, url FROM profile`),
-  ])
-
-  console.log('[feed] changelogItems:', changelogItems.length, 'youtubeItems:', youtubeItems.length)
-  console.log('[feed] repositories:', JSON.stringify(repositories))
-  console.log('[feed] profiles:', JSON.stringify(profiles))
+  const [fluxes, changelogItems, youtubeItems, rssItems, scrapItems, repositories, profiles] =
+    await Promise.all([
+      db
+        .select()
+        .from(userFlux)
+        .where(eq(userFlux.userId, session!.user.id))
+        .orderBy(userFlux.createdAt),
+      getChangelogItems(),
+      getYoutubeItems(),
+      getRssItems(),
+      getScrapItems(),
+      db.execute(sql`SELECT id, url FROM repository`),
+      db.execute(sql`SELECT id, url FROM profile`),
+    ])
 
   // Build provider_id → identifier maps from the stayup-api tables
   const changelogProviderMap = new Map<number, string>(
@@ -56,6 +52,13 @@ export default async function FeedPage() {
   )
   const youtubeProviderMap = new Map<number, string>(
     (profiles as unknown as ProviderRow[]).map((p) => [p.id, extractYoutubeIdentifier(p.url)]),
+  )
+  // rss and scrap use repository_id → url directly (no extraction needed)
+  const rssRepositoryMap = new Map<number, string>(
+    (repositories as unknown as ProviderRow[]).map((r) => [r.id, r.url]),
+  )
+  const scrapRepositoryMap = new Map<number, string>(
+    (repositories as unknown as ProviderRow[]).map((r) => [r.id, r.url]),
   )
 
   // Group items by identifier
@@ -75,9 +78,26 @@ export default async function FeedPage() {
     }
   }
 
+  const rssByIdentifier: Record<string, RssItem[]> = {}
+  for (const item of rssItems) {
+    const identifier = rssRepositoryMap.get(item.repository_id)
+    if (identifier) {
+      rssByIdentifier[identifier] = [...(rssByIdentifier[identifier] ?? []), item]
+    }
+  }
+
+  const scrapByIdentifier: Record<string, ScrapItem[]> = {}
+  for (const item of scrapItems) {
+    const identifier = scrapRepositoryMap.get(item.repository_id)
+    if (identifier) {
+      scrapByIdentifier[identifier] = [...(scrapByIdentifier[identifier] ?? []), item]
+    }
+  }
+
   const typedFluxes = fluxes.map((f) => ({
     ...f,
-    provider: f.provider as 'changelog' | 'youtube',
+    provider: f.provider as 'changelog' | 'youtube' | 'rss' | 'scrap',
+    params: f.params ?? null,
     createdAt: f.createdAt.toISOString(),
   }))
 
@@ -93,6 +113,8 @@ export default async function FeedPage() {
           fluxes={typedFluxes}
           changelogByIdentifier={changelogByIdentifier}
           youtubeByIdentifier={youtubeByIdentifier}
+          rssByIdentifier={rssByIdentifier}
+          scrapByIdentifier={scrapByIdentifier}
         />
       )}
     </div>

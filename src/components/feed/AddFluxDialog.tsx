@@ -25,11 +25,32 @@ import {
 } from '@/components/ui/select'
 import type { Provider } from '@/types'
 
-const schema = z.object({
-  provider: z.enum(['changelog', 'youtube']),
-  identifier: z.string().min(1, 'Ce champ est requis'),
-  label: z.string().min(1, 'Un nom est requis'),
-})
+const schema = z
+  .object({
+    provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
+    identifier: z.string().min(1, 'Ce champ est requis').max(200),
+    label: z.string().min(1, 'Un nom est requis').max(100),
+    articles_selector: z.string().optional(),
+    content_selector: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.provider === 'scrap') {
+      if (!data.articles_selector?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Ce champ est requis',
+          path: ['articles_selector'],
+        })
+      }
+      if (!data.content_selector?.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Ce champ est requis',
+          path: ['content_selector'],
+        })
+      }
+    }
+  })
 
 type FormData = z.infer<typeof schema>
 
@@ -38,9 +59,18 @@ interface AddFluxDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
+const IDENTIFIER_LABELS: Record<Provider, string> = {
+  changelog: 'Dépôt GitHub',
+  youtube: 'Chaîne YouTube',
+  rss: 'URL du flux RSS',
+  scrap: 'URL de la page à scraper',
+}
+
 const PLACEHOLDERS: Record<Provider, string> = {
   changelog: 'ex: facebook/react ou https://github.com/facebook/react',
   youtube: 'ex: fireship ou https://youtube.com/@fireship',
+  rss: 'ex: https://example.com/feed.xml',
+  scrap: 'ex: https://example.com/blog',
 }
 
 export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
@@ -109,6 +139,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                 <SelectContent>
                   <SelectItem value="changelog">GitHub Changelog</SelectItem>
                   <SelectItem value="youtube">YouTube</SelectItem>
+                  <SelectItem value="rss">RSS</SelectItem>
+                  <SelectItem value="scrap">Scraping web</SelectItem>
                 </SelectContent>
               </Select>
               {errors.provider && (
@@ -117,9 +149,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="identifier">
-                {provider === 'changelog' ? 'Dépôt GitHub' : 'Chaîne YouTube'}
-              </Label>
+              <Label htmlFor="identifier">{IDENTIFIER_LABELS[provider]}</Label>
               <Input
                 id="identifier"
                 placeholder={PLACEHOLDERS[provider]}
@@ -129,6 +159,34 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                 <p className="text-sm text-destructive">{errors.identifier.message}</p>
               )}
             </div>
+
+            {provider === 'scrap' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="articles_selector">Sélecteur CSS des articles</Label>
+                  <Input
+                    id="articles_selector"
+                    placeholder="ex: h2.post-title a"
+                    {...register('articles_selector')}
+                  />
+                  {errors.articles_selector && (
+                    <p className="text-sm text-destructive">{errors.articles_selector.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="content_selector">Sélecteur CSS du contenu</Label>
+                  <Input
+                    id="content_selector"
+                    placeholder="ex: article.post-content"
+                    {...register('content_selector')}
+                  />
+                  {errors.content_selector && (
+                    <p className="text-sm text-destructive">{errors.content_selector.message}</p>
+                  )}
+                </div>
+              </>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="label">Nom affiché</Label>

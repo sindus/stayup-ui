@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function normalizeIdentifier(value: string, provider: 'changelog' | 'youtube'): string {
+export function normalizeIdentifier(
+  value: string,
+  provider: 'changelog' | 'youtube' | 'rss' | 'scrap',
+): string {
   const trimmed = value.trim()
 
   if (provider === 'changelog') {
@@ -22,6 +25,7 @@ export function normalizeIdentifier(value: string, provider: 'changelog' | 'yout
     return trimmed.replace(/^@/, '')
   }
 
+  // rss and scrap use the URL as-is
   return trimmed
 }
 

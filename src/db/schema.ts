@@ -59,8 +59,9 @@ export const userFlux = pgTable('user_flux', {
   userId: text('user_id')
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
-  provider: text('provider').notNull(), // 'changelog' | 'youtube'
-  identifier: text('identifier').notNull(), // e.g. 'facebook/react' or 'fireship'
+  provider: text('provider').notNull(), // 'changelog' | 'youtube' | 'rss' | 'scrap'
+  identifier: text('identifier').notNull(), // e.g. 'facebook/react', 'fireship', or a URL
   label: text('label').notNull(), // display name
+  params: text('params'), // JSON string — used by 'scrap' to store articles_selector & content_selector
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })

@@ -53,5 +53,9 @@ CREATE TABLE IF NOT EXISTS "user_flux" (
   "provider" text NOT NULL,
   "identifier" text NOT NULL,
   "label" text NOT NULL,
+  "params" text,
   "created_at" timestamp NOT NULL DEFAULT now()
 );
+
+-- Migration: add params column if it doesn't exist (for existing databases)
+ALTER TABLE "user_flux" ADD COLUMN IF NOT EXISTS "params" text;

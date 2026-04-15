@@ -1,4 +1,4 @@
-import type { ChangelogItem, ConnectorData, YoutubeItem } from '@/types'
+import type { ChangelogItem, ConnectorData, RssItem, ScrapItem, YoutubeItem } from '@/types'
 
 const SERVER_BASE_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
@@ -66,6 +66,24 @@ export async function getYoutubeItems(): Promise<YoutubeItem[]> {
   }
 }
 
+export async function getRssItems(): Promise<RssItem[]> {
+  try {
+    const data = await apiFetch<{ connector: string; data: RssItem[] }>('/connectors/rss')
+    return data.data
+  } catch {
+    return []
+  }
+}
+
+export async function getScrapItems(): Promise<ScrapItem[]> {
+  try {
+    const data = await apiFetch<{ connector: string; data: ScrapItem[] }>('/connectors/scrap')
+    return data.data
+  } catch {
+    return []
+  }
+}
+
 // ─── Validation ────────────────────────────────────────────────────────────────
 
 /**
@@ -106,6 +124,25 @@ export async function validateFlux(
 
   if (provider === 'youtube') {
     return { valid: true }
+  }
+
+  if (provider === 'rss') {
+    // Accept any syntactically valid URL — we can't validate RSS content without fetching
+    try {
+      new URL(identifier)
+      return { valid: true }
+    } catch {
+      return { valid: false, reason: "L'URL du flux RSS n'est pas valide." }
+    }
+  }
+
+  if (provider === 'scrap') {
+    try {
+      new URL(identifier)
+      return { valid: true }
+    } catch {
+      return { valid: false, reason: "L'URL de la page à scraper n'est pas valide." }
+    }
   }
 
   return { valid: false, reason: 'Provider inconnu.' }
