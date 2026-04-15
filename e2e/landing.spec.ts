@@ -17,7 +17,7 @@ test.describe('Landing page', () => {
 
   test('has login and register buttons', async ({ page }) => {
     await expect(page.getByRole('link', { name: /se connecter/i }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: /s['']inscrire|commencer/i }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /inscrire|commencer/i }).first()).toBeVisible()
   })
 
   test('login button navigates to /login', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Landing page', () => {
 
   test('register button navigates to /register', async ({ page }) => {
     await page
-      .getByRole('link', { name: /s['']inscrire|commencer/i })
+      .getByRole('link', { name: /inscrire|commencer/i })
       .first()
       .click()
     await expect(page).toHaveURL('/register')

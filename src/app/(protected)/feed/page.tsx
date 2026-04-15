@@ -39,7 +39,7 @@ export default async function FeedPage() {
       getYoutubeItems(),
       getRssItems(),
       getScrapItems(),
-      db.execute(sql`SELECT id, url FROM repository`),
+      db.execute(sql`SELECT id, url FROM repository`).catch(() => []),
     ])
 
   // All connectors use repository_id → repository.url
