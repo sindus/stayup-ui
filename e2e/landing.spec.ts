@@ -11,8 +11,8 @@ test.describe('Landing page', () => {
   })
 
   test('shows changelog and youtube features', async ({ page }) => {
-    await expect(page.getByText('Changelog GitHub')).toBeVisible()
-    await expect(page.getByText('Chaînes YouTube')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Changelog GitHub' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Chaînes YouTube' })).toBeVisible()
   })
 
   test('has login and register buttons', async ({ page }) => {
