@@ -28,7 +28,7 @@ function extractYoutubeIdentifier(url: string): string {
 export default async function FeedPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
-  const [fluxes, changelogItems, youtubeItems, rssItems, scrapItems, repositories, profiles] =
+  const [fluxes, changelogItems, youtubeItems, rssItems, scrapItems, repositories] =
     await Promise.all([
       db
         .select()
@@ -40,57 +40,45 @@ export default async function FeedPage() {
       getRssItems(),
       getScrapItems(),
       db.execute(sql`SELECT id, url FROM repository`),
-      db.execute(sql`SELECT id, url FROM profile`),
     ])
 
-  // Build provider_id → identifier maps from the stayup-api tables
-  const changelogProviderMap = new Map<number, string>(
-    (repositories as unknown as ProviderRow[]).map((r) => [
-      r.id,
-      extractChangelogIdentifier(r.url),
-    ]),
-  )
-  const youtubeProviderMap = new Map<number, string>(
-    (profiles as unknown as ProviderRow[]).map((p) => [p.id, extractYoutubeIdentifier(p.url)]),
-  )
-  // rss and scrap use repository_id → url directly (no extraction needed)
-  const rssRepositoryMap = new Map<number, string>(
-    (repositories as unknown as ProviderRow[]).map((r) => [r.id, r.url]),
-  )
-  const scrapRepositoryMap = new Map<number, string>(
-    (repositories as unknown as ProviderRow[]).map((r) => [r.id, r.url]),
-  )
+  // All connectors use repository_id → repository.url
+  // changelog: extract "owner/repo" from the GitHub URL
+  // youtube:   extract the channel handle from the YouTube URL
+  // rss/scrap: use the URL as-is
+  const repoRows = repositories as unknown as ProviderRow[]
 
-  // Group items by identifier
   const changelogByIdentifier: Record<string, ChangelogItem[]> = {}
   for (const item of changelogItems) {
-    const identifier = changelogProviderMap.get(item.provider_id)
-    if (identifier) {
+    const row = repoRows.find((r) => r.id === item.repository_id)
+    if (row) {
+      const identifier = extractChangelogIdentifier(row.url)
       changelogByIdentifier[identifier] = [...(changelogByIdentifier[identifier] ?? []), item]
     }
   }
 
   const youtubeByIdentifier: Record<string, YoutubeItem[]> = {}
   for (const item of youtubeItems) {
-    const identifier = youtubeProviderMap.get(item.provider_id)
-    if (identifier) {
+    const row = repoRows.find((r) => r.id === item.repository_id)
+    if (row) {
+      const identifier = extractYoutubeIdentifier(row.url)
       youtubeByIdentifier[identifier] = [...(youtubeByIdentifier[identifier] ?? []), item]
     }
   }
 
   const rssByIdentifier: Record<string, RssItem[]> = {}
   for (const item of rssItems) {
-    const identifier = rssRepositoryMap.get(item.repository_id)
-    if (identifier) {
-      rssByIdentifier[identifier] = [...(rssByIdentifier[identifier] ?? []), item]
+    const row = repoRows.find((r) => r.id === item.repository_id)
+    if (row) {
+      rssByIdentifier[row.url] = [...(rssByIdentifier[row.url] ?? []), item]
     }
   }
 
   const scrapByIdentifier: Record<string, ScrapItem[]> = {}
   for (const item of scrapItems) {
-    const identifier = scrapRepositoryMap.get(item.repository_id)
-    if (identifier) {
-      scrapByIdentifier[identifier] = [...(scrapByIdentifier[identifier] ?? []), item]
+    const row = repoRows.find((r) => r.id === item.repository_id)
+    if (row) {
+      scrapByIdentifier[row.url] = [...(scrapByIdentifier[row.url] ?? []), item]
     }
   }
 

@@ -14,7 +14,7 @@ export interface UserFlux {
 
 export interface ChangelogItem {
   id: number
-  provider_id: number
+  repository_id: number
   content: string
   diff: string | null
   datetime: string | null
@@ -31,7 +31,7 @@ export interface YoutubeItemContent {
 
 export interface YoutubeItem {
   id: number
-  provider_id: number
+  repository_id: number
   version: string // video ID
   content: string // JSON string of YoutubeItemContent
   diff: string | null

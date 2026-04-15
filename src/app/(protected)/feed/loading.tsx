@@ -17,7 +17,7 @@ const templateFlux: UserFlux = {
 const templateChangelogs: ChangelogItem[] = [
   {
     id: 1,
-    provider_id: 0,
+    repository_id: 0,
     content: 'Chargement du contenu de la release...',
     diff: null,
     datetime: new Date().toISOString(),
@@ -27,7 +27,7 @@ const templateChangelogs: ChangelogItem[] = [
   },
   {
     id: 2,
-    provider_id: 0,
+    repository_id: 0,
     content: 'Chargement du contenu de la release...',
     diff: null,
     datetime: new Date().toISOString(),
@@ -37,7 +37,7 @@ const templateChangelogs: ChangelogItem[] = [
   },
   {
     id: 3,
-    provider_id: 0,
+    repository_id: 0,
     content: 'Chargement du contenu de la release...',
     diff: null,
     datetime: new Date().toISOString(),
