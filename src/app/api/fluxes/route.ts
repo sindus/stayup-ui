@@ -75,6 +75,6 @@ export async function POST(request: Request) {
     if (message.includes('abonné')) {
       return NextResponse.json({ error: message }, { status: 409 })
     }
-    throw err
+    return NextResponse.json({ error: message ?? 'Une erreur est survenue.' }, { status: 500 })
   }
 }

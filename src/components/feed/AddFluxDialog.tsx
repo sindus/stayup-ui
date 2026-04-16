@@ -99,8 +99,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     })
 
     if (!res.ok) {
-      const body = await res.json()
-      setServerError(body.error ?? 'Une erreur est survenue.')
+      const body = await res.json().catch(() => ({}))
+      setServerError((body as { error?: string }).error ?? 'Une erreur est survenue.')
       return
     }
 
