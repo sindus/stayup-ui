@@ -2,12 +2,13 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { userFlux } from '@/db/schema'
-import { eq } from 'drizzle-orm'
+import { userRepository } from '@/db/schema'
+import { sql } from 'drizzle-orm'
 import { validateFlux } from '@/lib/api-client'
-import { normalizeIdentifier } from '@/lib/utils'
+import { normalizeIdentifier, toRepositoryUrl, extractIdentifier } from '@/lib/utils'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
+import type { Provider } from '@/types'
 
 const createFluxSchema = z
   .object({
@@ -36,15 +37,48 @@ const createFluxSchema = z
     }
   })
 
+type RepoRow = {
+  id: string
+  userId: string
+  repositoryId: number
+  label: string
+  createdAt: Date
+  url: string
+  provider: string
+  config: Record<string, unknown>
+}
+
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const fluxes = await db
-    .select()
-    .from(userFlux)
-    .where(eq(userFlux.userId, session.user.id))
-    .orderBy(userFlux.createdAt)
+  const rows = (await db.execute(sql`
+    SELECT
+      ur.id,
+      ur.user_id       AS "userId",
+      ur.repository_id AS "repositoryId",
+      ur.label,
+      ur.created_at    AS "createdAt",
+      r.url,
+      r.type           AS provider,
+      r.config
+    FROM user_repository ur
+    JOIN repository r ON r.id = ur.repository_id
+    WHERE ur.user_id = ${session.user.id}
+    ORDER BY ur.created_at
+  `)) as unknown as RepoRow[]
+
+  const fluxes = rows.map((row) => ({
+    id: row.id,
+    userId: row.userId,
+    repositoryId: Number(row.repositoryId),
+    label: row.label,
+    provider: row.provider as Provider,
+    url: row.url,
+    identifier: extractIdentifier(row.url, row.provider as Provider),
+    config: row.config ?? {},
+    createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+  }))
 
   return NextResponse.json({ fluxes })
 }
@@ -70,18 +104,50 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: reason }, { status: 404 })
   }
 
-  const params =
+  const url = toRepositoryUrl(identifier, provider)
+  const config =
     provider === 'scrap'
-      ? JSON.stringify({
+      ? {
           articles_selector: articles_selector!,
           content_selector: content_selector!,
-        })
-      : null
+          max_scraps: 5,
+          retention_days: 15,
+        }
+      : { max_scraps: 5, retention_days: 15 }
 
+  // Upsert repository (shared across users — deduplicated by url)
+  const repoRows = (await db.execute(sql`
+    INSERT INTO repository (url, type, config)
+    VALUES (${url}, ${provider}, ${JSON.stringify(config)}::jsonb)
+    ON CONFLICT (url) DO UPDATE SET
+      type   = EXCLUDED.type,
+      config = EXCLUDED.config
+    RETURNING id
+  `)) as unknown as Array<{ id: number }>
+
+  const repositoryId = Number(repoRows[0].id)
+
+  // Link user to repository (ignore if already subscribed)
   const [created] = await db
-    .insert(userFlux)
-    .values({ id: randomUUID(), userId: session.user.id, provider, identifier, label, params })
+    .insert(userRepository)
+    .values({ id: randomUUID(), userId: session.user.id, repositoryId, label })
+    .onConflictDoNothing()
     .returning()
 
-  return NextResponse.json({ flux: created }, { status: 201 })
+  if (!created) {
+    return NextResponse.json({ error: 'Vous êtes déjà abonné à ce flux' }, { status: 409 })
+  }
+
+  return NextResponse.json(
+    {
+      flux: {
+        ...created,
+        provider,
+        url,
+        identifier,
+        config,
+      },
+    },
+    { status: 201 },
+  )
 }

@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, integer, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core'
 
 // ─── better-auth tables ───────────────────────────────────────────────────────
 
@@ -54,14 +54,18 @@ export const verification = pgTable('verification', {
 
 // ─── App tables ───────────────────────────────────────────────────────────────
 
-export const userFlux = pgTable('user_flux', {
-  id: text('id').primaryKey(),
-  userId: text('user_id')
-    .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  provider: text('provider').notNull(), // 'changelog' | 'youtube' | 'rss' | 'scrap'
-  identifier: text('identifier').notNull(), // e.g. 'facebook/react', 'fireship', or a URL
-  label: text('label').notNull(), // display name
-  params: text('params'), // JSON string — used by 'scrap' to store articles_selector & content_selector
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-})
+// user_repository links a UI user to a repository row (managed by the API).
+// repository.url is unique — multiple users can subscribe to the same repository.
+export const userRepository = pgTable(
+  'user_repository',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    repositoryId: integer('repository_id').notNull(),
+    label: text('label').notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (t) => [unique().on(t.userId, t.repositoryId)],
+)

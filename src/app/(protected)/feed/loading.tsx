@@ -2,15 +2,17 @@
 
 import { Shimmer } from '@shimmer-from-structure/react'
 import { FluxCard } from '@/components/feed/FluxCard'
-import type { ChangelogItem, UserFlux } from '@/types'
+import type { ChangelogItem, UserRepository } from '@/types'
 
-const templateFlux: UserFlux = {
+const templateFlux: UserRepository = {
   id: 'skeleton',
   userId: 'skeleton',
+  repositoryId: 0,
   provider: 'changelog',
+  url: 'https://github.com/owner/repository-name',
   identifier: 'owner/repository-name',
   label: 'Nom du flux en chargement...',
-  params: null,
+  config: {},
   createdAt: new Date().toISOString(),
 }
 

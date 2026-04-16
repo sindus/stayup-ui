@@ -1,12 +1,14 @@
 export type Provider = 'changelog' | 'youtube' | 'rss' | 'scrap'
 
-export interface UserFlux {
+export interface UserRepository {
   id: string
   userId: string
-  provider: Provider
-  identifier: string
+  repositoryId: number
   label: string
-  params: string | null
+  provider: Provider // from repository.type
+  url: string // from repository.url
+  identifier: string // short form derived from url (e.g. "vercel/next.js", "melvynxdev")
+  config: Record<string, unknown> // from repository.config (JSONB)
   createdAt: string
 }
 

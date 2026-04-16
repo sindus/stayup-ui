@@ -13,14 +13,14 @@ import type {
   RssItemContent,
   ScrapItem,
   ScrapItemParams,
-  UserFlux,
+  UserRepository,
   YoutubeItem,
   YoutubeItemContent,
 } from '@/types'
 import { formatDate } from '@/lib/utils'
 
 interface FluxCardProps {
-  flux: UserFlux
+  flux: UserRepository
   changelogItems: ChangelogItem[]
   youtubeItems: YoutubeItem[]
   rssItems: RssItem[]

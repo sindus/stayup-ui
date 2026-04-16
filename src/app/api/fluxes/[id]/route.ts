@@ -2,7 +2,7 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { userFlux } from '@/db/schema'
+import { userRepository } from '@/db/schema'
 import { and, eq } from 'drizzle-orm'
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -12,8 +12,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params
 
   const deleted = await db
-    .delete(userFlux)
-    .where(and(eq(userFlux.id, id), eq(userFlux.userId, session.user.id)))
+    .delete(userRepository)
+    .where(and(eq(userRepository.id, id), eq(userRepository.userId, session.user.id)))
     .returning()
 
   if (deleted.length === 0) {

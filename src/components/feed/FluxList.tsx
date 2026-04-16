@@ -5,22 +5,22 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FluxCard } from './FluxCard'
 import { AddFluxDialog } from './AddFluxDialog'
-import type { ChangelogItem, RssItem, ScrapItem, UserFlux, YoutubeItem } from '@/types'
+import type { ChangelogItem, RssItem, ScrapItem, UserRepository, YoutubeItem } from '@/types'
 
 interface FluxListProps {
-  fluxes: UserFlux[]
-  changelogByIdentifier: Record<string, ChangelogItem[]>
-  youtubeByIdentifier: Record<string, YoutubeItem[]>
-  rssByIdentifier: Record<string, RssItem[]>
-  scrapByIdentifier: Record<string, ScrapItem[]>
+  fluxes: UserRepository[]
+  changelogByRepoId: Record<number, ChangelogItem[]>
+  youtubeByRepoId: Record<number, YoutubeItem[]>
+  rssByRepoId: Record<number, RssItem[]>
+  scrapByRepoId: Record<number, ScrapItem[]>
 }
 
 export function FluxList({
   fluxes,
-  changelogByIdentifier,
-  youtubeByIdentifier,
-  rssByIdentifier,
-  scrapByIdentifier,
+  changelogByRepoId,
+  youtubeByRepoId,
+  rssByRepoId,
+  scrapByRepoId,
 }: FluxListProps) {
   const [open, setOpen] = useState(false)
 
@@ -39,13 +39,13 @@ export function FluxList({
             key={flux.id}
             flux={flux}
             changelogItems={
-              flux.provider === 'changelog' ? (changelogByIdentifier[flux.identifier] ?? []) : []
+              flux.provider === 'changelog' ? (changelogByRepoId[flux.repositoryId] ?? []) : []
             }
             youtubeItems={
-              flux.provider === 'youtube' ? (youtubeByIdentifier[flux.identifier] ?? []) : []
+              flux.provider === 'youtube' ? (youtubeByRepoId[flux.repositoryId] ?? []) : []
             }
-            rssItems={flux.provider === 'rss' ? (rssByIdentifier[flux.identifier] ?? []) : []}
-            scrapItems={flux.provider === 'scrap' ? (scrapByIdentifier[flux.identifier] ?? []) : []}
+            rssItems={flux.provider === 'rss' ? (rssByRepoId[flux.repositoryId] ?? []) : []}
+            scrapItems={flux.provider === 'scrap' ? (scrapByRepoId[flux.repositoryId] ?? []) : []}
           />
         ))}
       </div>
