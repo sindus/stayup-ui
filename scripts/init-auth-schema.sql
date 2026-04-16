@@ -1,5 +1,5 @@
--- StayUp UI auth schema
--- Crée les tables better-auth + user_flux sans toucher aux tables existantes
+-- StayUp UI — Better Auth tables only
+-- Business data (repository, connectors, user_repository) is managed by stayup-api
 
 CREATE TABLE IF NOT EXISTS "user" (
   "id" text PRIMARY KEY NOT NULL,
@@ -46,16 +46,3 @@ CREATE TABLE IF NOT EXISTS "verification" (
   "created_at" timestamp DEFAULT now(),
   "updated_at" timestamp DEFAULT now()
 );
-
-CREATE TABLE IF NOT EXISTS "user_flux" (
-  "id" text PRIMARY KEY NOT NULL,
-  "user_id" text NOT NULL REFERENCES "user"("id") ON DELETE CASCADE,
-  "provider" text NOT NULL,
-  "identifier" text NOT NULL,
-  "label" text NOT NULL,
-  "params" text,
-  "created_at" timestamp NOT NULL DEFAULT now()
-);
-
--- Migration: add params column if it doesn't exist (for existing databases)
-ALTER TABLE "user_flux" ADD COLUMN IF NOT EXISTS "params" text;
