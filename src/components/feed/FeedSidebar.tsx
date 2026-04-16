@@ -70,7 +70,13 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Mes flux
         </span>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setAddOpen(true)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={() => setAddOpen(true)}
+          aria-label="Ajouter un flux"
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </div>

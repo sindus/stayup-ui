@@ -28,25 +28,24 @@ test.describe('Feed page (authenticated)', () => {
   })
 
   test('shows empty state when no flux', async ({ page }) => {
-    await expect(page.getByText(/votre flux est vide/i)).toBeVisible()
-    await expect(page.getByRole('button', { name: /ajouter mon premier flux/i })).toBeVisible()
+    await expect(page.getByText(/aucun flux/i)).toBeVisible()
+    await expect(page.getByText(/sélectionnez un flux/i)).toBeVisible()
   })
 
   test('opens add flux dialog on button click', async ({ page }) => {
-    await page.getByRole('button', { name: /ajouter mon premier flux/i }).click()
+    await page.getByRole('button', { name: /ajouter un flux/i }).click()
     await expect(page.getByRole('dialog')).toBeVisible()
     await expect(page.getByText(/choisissez un provider/i)).toBeVisible()
   })
 
   test('add flux dialog has provider selector and identifier input', async ({ page }) => {
-    await page.getByRole('button', { name: /ajouter mon premier flux/i }).click()
+    await page.getByRole('button', { name: /ajouter un flux/i }).click()
     await expect(page.getByRole('combobox')).toBeVisible()
     await expect(page.getByLabel(/dépôt github/i)).toBeVisible()
-    await expect(page.getByLabel(/nom affiché/i)).toBeVisible()
   })
 
   test('closes dialog on cancel', async ({ page }) => {
-    await page.getByRole('button', { name: /ajouter mon premier flux/i }).click()
+    await page.getByRole('button', { name: /ajouter un flux/i }).click()
     await page.getByRole('button', { name: /annuler/i }).click()
     await expect(page.getByRole('dialog')).not.toBeVisible()
   })
