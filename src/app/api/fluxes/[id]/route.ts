@@ -1,9 +1,7 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { userRepository } from '@/db/schema'
-import { and, eq } from 'drizzle-orm'
+import { deleteUserRepository } from '@/lib/api-client'
 
 export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -11,14 +9,14 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const { id } = await params
 
-  const deleted = await db
-    .delete(userRepository)
-    .where(and(eq(userRepository.id, id), eq(userRepository.userId, session.user.id)))
-    .returning()
-
-  if (deleted.length === 0) {
-    return NextResponse.json({ error: 'Flux introuvable' }, { status: 404 })
+  try {
+    await deleteUserRepository(session.user.id, id)
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    const message = (err as Error).message
+    if (message.includes('introuvable')) {
+      return NextResponse.json({ error: message }, { status: 404 })
+    }
+    throw err
   }
-
-  return NextResponse.json({ success: true })
 }

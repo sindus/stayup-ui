@@ -30,17 +30,28 @@ async function getApiToken(): Promise<string> {
   return token
 }
 
-async function apiFetch<T>(path: string): Promise<T> {
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getApiToken()
+  const isGet = !init?.method || init.method === 'GET'
   const res = await fetch(`${SERVER_BASE_URL}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    next: { revalidate: 60 },
+    method: 'GET',
+    ...init,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init?.headers,
+    },
+    ...(isGet ? { next: { revalidate: 60 } } : { cache: 'no-store' }),
   })
-  if (!res.ok) throw new Error(`StayUp API error ${res.status}: ${path}`)
+
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new Error(body.error ?? `StayUp API error ${res.status}: ${path}`)
+  }
   return res.json() as Promise<T>
 }
 
-// ─── Public API functions ──────────────────────────────────────────────────────
+// ─── Connector data ────────────────────────────────────────────────────────────
 
 export async function getAllConnectors(): Promise<ConnectorData> {
   return apiFetch<ConnectorData>('/connectors')
@@ -84,11 +95,50 @@ export async function getScrapItems(): Promise<ScrapItem[]> {
   }
 }
 
+// ─── UI user feed (admin service account) ─────────────────────────────────────
+
+export interface UserRepositoryItem {
+  id: string
+  repository_id: number
+  label: string
+  created_at: string
+  url: string
+  provider: string
+  config: Record<string, unknown>
+}
+
+export interface UserFeedResponse {
+  repositories: UserRepositoryItem[]
+  connectors: {
+    changelog: ChangelogItem[]
+    youtube: YoutubeItem[]
+    rss: RssItem[]
+    scrap: ScrapItem[]
+  }
+}
+
+export async function getUserFeed(userId: string): Promise<UserFeedResponse> {
+  return apiFetch<UserFeedResponse>(`/ui/users/${userId}/feed`, { cache: 'no-store' })
+}
+
+export async function addUserRepository(
+  userId: string,
+  data: { provider: string; url: string; config: Record<string, unknown>; label: string },
+): Promise<{ repository: UserRepositoryItem }> {
+  return apiFetch<{ repository: UserRepositoryItem }>(`/ui/users/${userId}/repositories`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteUserRepository(userId: string, linkId: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/users/${userId}/repositories/${linkId}`, {
+    method: 'DELETE',
+  })
+}
+
 // ─── Validation ────────────────────────────────────────────────────────────────
 
-/**
- * Validates that a GitHub repo exists (uses public GitHub API, no token required).
- */
 export async function validateGithubRepo(identifier: string): Promise<boolean> {
   try {
     const res = await fetch(`https://api.github.com/repos/${identifier}`, {
@@ -99,15 +149,6 @@ export async function validateGithubRepo(identifier: string): Promise<boolean> {
   } catch {
     return false
   }
-}
-
-/**
- * Validates a YouTube handle by checking the channel page exists.
- */
-export async function validateYoutubeHandle(_handle: string): Promise<boolean> {
-  // YouTube requires an API key to validate channels server-side without scraping.
-  // We accept any non-empty handle and let the user know data appears when tracked.
-  return true
 }
 
 export async function validateFlux(
@@ -127,7 +168,6 @@ export async function validateFlux(
   }
 
   if (provider === 'rss') {
-    // Accept any syntactically valid URL — we can't validate RSS content without fetching
     try {
       new URL(identifier)
       return { valid: true }

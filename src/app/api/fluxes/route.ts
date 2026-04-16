@@ -1,14 +1,9 @@
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { userRepository } from '@/db/schema'
-import { sql } from 'drizzle-orm'
-import { validateFlux } from '@/lib/api-client'
-import { normalizeIdentifier, toRepositoryUrl, extractIdentifier } from '@/lib/utils'
+import { validateFlux, addUserRepository } from '@/lib/api-client'
+import { normalizeIdentifier, toRepositoryUrl } from '@/lib/utils'
 import { z } from 'zod'
-import { randomUUID } from 'crypto'
-import type { Provider } from '@/types'
 
 const createFluxSchema = z
   .object({
@@ -36,52 +31,6 @@ const createFluxSchema = z
       }
     }
   })
-
-type RepoRow = {
-  id: string
-  userId: string
-  repositoryId: number
-  label: string
-  createdAt: Date
-  url: string
-  provider: string
-  config: Record<string, unknown>
-}
-
-export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const rows = (await db.execute(sql`
-    SELECT
-      ur.id,
-      ur.user_id       AS "userId",
-      ur.repository_id AS "repositoryId",
-      ur.label,
-      ur.created_at    AS "createdAt",
-      r.url,
-      r.type           AS provider,
-      r.config
-    FROM user_repository ur
-    JOIN repository r ON r.id = ur.repository_id
-    WHERE ur.user_id = ${session.user.id}
-    ORDER BY ur.created_at
-  `)) as unknown as RepoRow[]
-
-  const fluxes = rows.map((row) => ({
-    id: row.id,
-    userId: row.userId,
-    repositoryId: Number(row.repositoryId),
-    label: row.label,
-    provider: row.provider as Provider,
-    url: row.url,
-    identifier: extractIdentifier(row.url, row.provider as Provider),
-    config: row.config ?? {},
-    createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
-  }))
-
-  return NextResponse.json({ fluxes })
-}
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -115,39 +64,19 @@ export async function POST(request: Request) {
         }
       : { max_scraps: 5, retention_days: 15 }
 
-  // Upsert repository (shared across users — deduplicated by url)
-  const repoRows = (await db.execute(sql`
-    INSERT INTO repository (url, type, config)
-    VALUES (${url}, ${provider}, ${JSON.stringify(config)}::jsonb)
-    ON CONFLICT (url) DO UPDATE SET
-      type   = EXCLUDED.type,
-      config = EXCLUDED.config
-    RETURNING id
-  `)) as unknown as Array<{ id: number }>
-
-  const repositoryId = Number(repoRows[0].id)
-
-  // Link user to repository (ignore if already subscribed)
-  const [created] = await db
-    .insert(userRepository)
-    .values({ id: randomUUID(), userId: session.user.id, repositoryId, label })
-    .onConflictDoNothing()
-    .returning()
-
-  if (!created) {
-    return NextResponse.json({ error: 'Vous êtes déjà abonné à ce flux' }, { status: 409 })
+  try {
+    const { repository } = await addUserRepository(session.user.id, {
+      provider,
+      url,
+      config,
+      label,
+    })
+    return NextResponse.json({ flux: { ...repository, identifier } }, { status: 201 })
+  } catch (err) {
+    const message = (err as Error).message
+    if (message.includes('abonné')) {
+      return NextResponse.json({ error: message }, { status: 409 })
+    }
+    throw err
   }
-
-  return NextResponse.json(
-    {
-      flux: {
-        ...created,
-        provider,
-        url,
-        identifier,
-        config,
-      },
-    },
-    { status: 201 },
-  )
 }
