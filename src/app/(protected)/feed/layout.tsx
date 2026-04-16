@@ -1,6 +1,6 @@
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
-import { getUserFeed } from '@/lib/api-client'
+import { getCachedUserFeed } from '@/lib/feed-cache'
 import { extractIdentifier } from '@/lib/utils'
 import { FeedSidebar } from '@/components/feed/FeedSidebar'
 import type { Provider, UserRepository } from '@/types'
@@ -8,7 +8,7 @@ import type { Provider, UserRepository } from '@/types'
 export default async function FeedLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() })
 
-  const feedData = await getUserFeed(session!.user.id).catch(() => ({
+  const feedData = await getCachedUserFeed(session!.user.id).catch(() => ({
     repositories: [],
     connectors: { changelog: [], youtube: [], rss: [], scrap: [] },
   }))

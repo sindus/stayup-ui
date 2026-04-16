@@ -1,7 +1,7 @@
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { getUserFeed } from '@/lib/api-client'
+import { getCachedUserFeed } from '@/lib/feed-cache'
 import { FeedItemList } from '@/components/feed/FeedItemList'
 import type { Provider } from '@/types'
 
@@ -21,7 +21,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
 
   const session = await auth.api.getSession({ headers: await headers() })
 
-  const feedData = await getUserFeed(session!.user.id).catch(() => ({
+  const feedData = await getCachedUserFeed(session!.user.id).catch(() => ({
     repositories: [],
     connectors: { changelog: [], youtube: [], rss: [], scrap: [] },
   }))

@@ -29,7 +29,7 @@ test.describe('Feed page (authenticated)', () => {
 
   test('shows empty state when no flux', async ({ page }) => {
     await expect(page.getByText(/aucun flux/i)).toBeVisible()
-    await expect(page.getByText(/sélectionnez un flux/i)).toBeVisible()
+    await expect(page.getByText(/aucun contenu disponible/i)).toBeVisible()
   })
 
   test('opens add flux dialog on button click', async ({ page }) => {
