@@ -4,7 +4,6 @@ export interface UserRepository {
   id: string
   userId: string
   repositoryId: number
-  label: string
   provider: Provider // from repository.type
   url: string // from repository.url
   identifier: string // short form derived from url (e.g. "vercel/next.js", "melvynxdev")

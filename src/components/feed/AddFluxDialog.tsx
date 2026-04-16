@@ -29,7 +29,6 @@ const schema = z
   .object({
     provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
     identifier: z.string().min(1, 'Ce champ est requis').max(200),
-    label: z.string().min(1, 'Un nom est requis').max(100),
     articles_selector: z.string().optional(),
     content_selector: z.string().optional(),
   })
@@ -187,12 +186,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                 </div>
               </>
             )}
-
-            <div className="space-y-2">
-              <Label htmlFor="label">Nom affiché</Label>
-              <Input id="label" placeholder="ex: React, Fireship..." {...register('label')} />
-              {errors.label && <p className="text-sm text-destructive">{errors.label.message}</p>}
-            </div>
 
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}
           </div>

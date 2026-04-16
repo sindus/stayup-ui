@@ -53,7 +53,7 @@ export function FluxCard({
   const Icon = PROVIDER_ICONS[flux.provider] ?? Globe
 
   async function handleDelete() {
-    if (!confirm(`Supprimer le flux "${flux.label}" ?`)) return
+    if (!confirm(`Supprimer le flux "${flux.identifier}" ?`)) return
     setDeleting(true)
     await fetch(`/api/fluxes/${flux.id}`, { method: 'DELETE' })
     router.refresh()
@@ -64,10 +64,7 @@ export function FluxCard({
       <CardHeader className="flex flex-row items-start justify-between pb-2">
         <div className="flex items-center gap-2 flex-wrap">
           <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-          <CardTitle className="text-base">{flux.label}</CardTitle>
-          <Badge variant="outline" className="text-xs font-mono">
-            {flux.identifier}
-          </Badge>
+          <CardTitle className="text-base font-mono">{flux.identifier}</CardTitle>
           <Badge variant="secondary" className="text-xs">
             {PROVIDER_LABELS[flux.provider] ?? flux.provider}
           </Badge>

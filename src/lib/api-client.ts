@@ -100,7 +100,6 @@ export async function getScrapItems(): Promise<ScrapItem[]> {
 export interface UserRepositoryItem {
   id: string
   repository_id: number
-  label: string
   created_at: string
   url: string
   provider: string
@@ -123,7 +122,7 @@ export async function getUserFeed(userId: string): Promise<UserFeedResponse> {
 
 export async function addUserRepository(
   userId: string,
-  data: { provider: string; url: string; config: Record<string, unknown>; label: string },
+  data: { provider: string; url: string; config: Record<string, unknown> },
 ): Promise<{ repository: UserRepositoryItem }> {
   return apiFetch<{ repository: UserRepositoryItem }>(`/ui/users/${userId}/repositories`, {
     method: 'POST',

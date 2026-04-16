@@ -53,7 +53,6 @@ export default async function FeedPage() {
     id: repo.id,
     userId: session!.user.id,
     repositoryId: repo.repository_id,
-    label: repo.label,
     provider: repo.provider as Provider,
     url: repo.url,
     identifier: extractIdentifier(repo.url, repo.provider as Provider),

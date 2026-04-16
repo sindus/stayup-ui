@@ -9,7 +9,6 @@ const createFluxSchema = z
   .object({
     provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
     identifier: z.string().min(1).max(200),
-    label: z.string().min(1).max(100),
     articles_selector: z.string().optional(),
     content_selector: z.string().optional(),
   })
@@ -45,7 +44,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const { provider, label, articles_selector, content_selector } = parsed.data
+  const { provider, articles_selector, content_selector } = parsed.data
   const identifier = normalizeIdentifier(parsed.data.identifier, provider)
 
   const { valid, reason } = await validateFlux(provider, identifier)
@@ -69,7 +68,6 @@ export async function POST(request: Request) {
       provider,
       url,
       config,
-      label,
     })
     return NextResponse.json({ flux: { ...repository, identifier } }, { status: 201 })
   } catch (err) {
