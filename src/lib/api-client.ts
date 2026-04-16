@@ -30,21 +30,30 @@ async function getApiToken(): Promise<string> {
   return token
 }
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+async function apiFetch<T>(path: string, init?: RequestInit, attempt = 0): Promise<T> {
   const token = await getApiToken()
   const isGet = !init?.method || init.method === 'GET'
-  const res = await fetch(`${SERVER_BASE_URL}${path}`, {
-    method: 'GET',
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
-      ...init?.headers,
-    },
-    ...(isGet ? { next: { revalidate: 60 } } : { cache: 'no-store' }),
-  })
+  let res: Response
+  try {
+    res = await fetch(`${SERVER_BASE_URL}${path}`, {
+      method: 'GET',
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+        ...init?.headers,
+      },
+      ...(isGet ? { next: { revalidate: 60 } } : { cache: 'no-store' }),
+    })
+  } catch (err) {
+    // Network error (cold start, timeout…): retry once
+    if (attempt === 0) return apiFetch<T>(path, init, 1)
+    throw err
+  }
 
   if (!res.ok) {
+    // 5xx: retry once in case of transient server error
+    if (res.status >= 500 && attempt === 0) return apiFetch<T>(path, init, 1)
     const body = (await res.json().catch(() => ({}))) as { error?: string }
     throw new Error(body.error ?? `StayUp API error ${res.status}: ${path}`)
   }

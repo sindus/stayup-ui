@@ -11,10 +11,16 @@ export const metadata: Metadata = {
 export default async function FeedPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
-  const feedData = await getCachedUserFeed(session!.user.id).catch(() => ({
-    repositories: [],
-    connectors: { changelog: [], youtube: [], rss: [], scrap: [] },
-  }))
+  let feedData
+  try {
+    feedData = await getCachedUserFeed(session!.user.id)
+  } catch {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+        <p className="text-sm">Impossible de charger les flux. Veuillez réessayer.</p>
+      </div>
+    )
+  }
 
   const { changelog, youtube, rss, scrap } = feedData.connectors
 
