@@ -1,7 +1,11 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
-export function HeroSection() {
+interface HeroSectionProps {
+  isLoggedIn?: boolean
+}
+
+export function HeroSection({ isLoggedIn }: HeroSectionProps) {
   return (
     <section className="py-24 text-center">
       <h1 className="text-5xl font-extrabold tracking-tight mb-6">
@@ -12,12 +16,20 @@ export function HeroSection() {
         flux personnalisé.
       </p>
       <div className="flex gap-4 justify-center">
-        <Button asChild size="lg">
-          <Link href="/register">Commencer gratuitement</Link>
-        </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/login">Se connecter</Link>
-        </Button>
+        {isLoggedIn ? (
+          <Button asChild size="lg">
+            <Link href="/feed">Mes flux</Link>
+          </Button>
+        ) : (
+          <>
+            <Button asChild size="lg">
+              <Link href="/register">Commencer gratuitement</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link href="/login">Se connecter</Link>
+            </Button>
+          </>
+        )}
       </div>
     </section>
   )
