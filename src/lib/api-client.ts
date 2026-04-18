@@ -133,6 +133,62 @@ export async function deleteUserRepository(
   })
 }
 
+// ─── Admin ─────────────────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id: string
+  name: string
+  email: string
+  created_at: string
+}
+
+export interface AdminRepository {
+  id: number
+  url: string
+  type: string
+  config: Record<string, unknown>
+  subscriber_count: string
+}
+
+export async function adminListUsers(token: string): Promise<AdminUser[]> {
+  const data = await apiFetch<{ users: AdminUser[] }>('/ui/users', token, {
+    cache: 'no-store',
+  })
+  return data.users
+}
+
+export async function adminGetUser(userId: string, token: string): Promise<AdminUser> {
+  const data = await apiFetch<{ user: AdminUser }>(`/ui/users/${userId}`, token, {
+    cache: 'no-store',
+  })
+  return data.user
+}
+
+export async function adminDeleteUser(userId: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/users/${userId}`, token, {
+    method: 'DELETE',
+  })
+}
+
+export async function adminListRepositories(token: string): Promise<AdminRepository[]> {
+  const data = await apiFetch<{ repositories: AdminRepository[] }>('/ui/repositories', token, {
+    cache: 'no-store',
+  })
+  return data.repositories
+}
+
+export async function adminDeleteRepository(repoId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/repositories/${repoId}`, token, {
+    method: 'DELETE',
+  })
+}
+
+export async function adminClearRepositoryData(repoId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/repositories/${repoId}/data`, token, {
+    method: 'DELETE',
+  })
+}
+
 // ─── Validation ────────────────────────────────────────────────────────────────
 
 export async function validateGithubRepo(identifier: string): Promise<boolean> {
