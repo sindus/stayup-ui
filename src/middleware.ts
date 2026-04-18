@@ -11,7 +11,13 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (pathname.startsWith('/admin')) {
-    if (!token) return NextResponse.redirect(new URL('/login', request.url))
+    if (pathname === '/admin/login') {
+      if (token && decodeJwtPayload(token).role === 'admin') {
+        return NextResponse.redirect(new URL('/admin', request.url))
+      }
+      return NextResponse.next()
+    }
+    if (!token) return NextResponse.redirect(new URL('/admin/login', request.url))
     const payload = decodeJwtPayload(token)
     if (payload.role !== 'admin') return NextResponse.redirect(new URL('/feed', request.url))
     return NextResponse.next()

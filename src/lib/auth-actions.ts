@@ -65,6 +65,26 @@ export async function registerAction(
   redirect('/feed')
 }
 
+export async function adminLoginAction(
+  username: string,
+  password: string,
+): Promise<{ error?: string }> {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+    cache: 'no-store',
+  })
+
+  if (!res.ok) {
+    return { error: 'Identifiants incorrects.' }
+  }
+
+  const { token } = (await res.json()) as { token: string }
+  await setTokenCookie(token)
+  redirect('/admin')
+}
+
 export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
