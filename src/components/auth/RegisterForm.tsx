@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { signUp } from '@/lib/auth-client'
+import { registerAction } from '@/lib/auth-actions'
 
 const schema = z
   .object({
@@ -25,7 +24,6 @@ const schema = z
 type FormData = z.infer<typeof schema>
 
 export function RegisterForm() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const {
     register,
@@ -35,18 +33,9 @@ export function RegisterForm() {
 
   async function onSubmit(data: FormData) {
     setError(null)
-    const result = await signUp.email({
-      name: data.name,
-      email: data.email,
-      password: data.password,
-      callbackURL: '/feed',
-    })
-
-    if (result.error) {
-      setError(result.error.message ?? "Une erreur est survenue lors de l'inscription.")
-    } else {
-      router.push('/feed')
-      router.refresh()
+    const result = await registerAction(data.name, data.email, data.password)
+    if (result?.error) {
+      setError(result.error)
     }
   }
 

@@ -2,36 +2,12 @@ import type { ChangelogItem, ConnectorData, RssItem, ScrapItem, YoutubeItem } fr
 
 const SERVER_BASE_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
-// ─── JWT token cache (server-side only) ───────────────────────────────────────
-
-let _cachedToken: { token: string; exp: number } | null = null
-
-async function getApiToken(): Promise<string> {
-  const now = Math.floor(Date.now() / 1000)
-  if (_cachedToken && _cachedToken.exp > now + 60) {
-    return _cachedToken.token
-  }
-
-  const res = await fetch(`${SERVER_BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: process.env.STAYUP_API_USERNAME,
-      password: process.env.STAYUP_API_PASSWORD,
-    }),
-    cache: 'no-store',
-  })
-
-  if (!res.ok) throw new Error('Failed to authenticate with StayUp API')
-
-  const { token } = (await res.json()) as { token: string }
-  const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
-  _cachedToken = { token, exp: payload.exp as number }
-  return token
-}
-
-async function apiFetch<T>(path: string, init?: RequestInit, attempt = 0): Promise<T> {
-  const token = await getApiToken()
+async function apiFetch<T>(
+  path: string,
+  token: string,
+  init?: RequestInit,
+  attempt = 0,
+): Promise<T> {
   const isGet = !init?.method || init.method === 'GET'
   let res: Response
   try {
@@ -46,14 +22,12 @@ async function apiFetch<T>(path: string, init?: RequestInit, attempt = 0): Promi
       ...(isGet ? { next: { revalidate: 60 } } : { cache: 'no-store' }),
     })
   } catch (err) {
-    // Network error (cold start, timeout…): retry once
-    if (attempt === 0) return apiFetch<T>(path, init, 1)
+    if (attempt === 0) return apiFetch<T>(path, token, init, 1)
     throw err
   }
 
   if (!res.ok) {
-    // 5xx: retry once in case of transient server error
-    if (res.status >= 500 && attempt === 0) return apiFetch<T>(path, init, 1)
+    if (res.status >= 500 && attempt === 0) return apiFetch<T>(path, token, init, 1)
     const body = (await res.json().catch(() => ({}))) as { error?: string }
     throw new Error(body.error ?? `StayUp API error ${res.status}: ${path}`)
   }
@@ -62,14 +36,15 @@ async function apiFetch<T>(path: string, init?: RequestInit, attempt = 0): Promi
 
 // ─── Connector data ────────────────────────────────────────────────────────────
 
-export async function getAllConnectors(): Promise<ConnectorData> {
-  return apiFetch<ConnectorData>('/connectors')
+export async function getAllConnectors(token: string): Promise<ConnectorData> {
+  return apiFetch<ConnectorData>('/connectors', token)
 }
 
-export async function getChangelogItems(): Promise<ChangelogItem[]> {
+export async function getChangelogItems(token: string): Promise<ChangelogItem[]> {
   try {
     const data = await apiFetch<{ connector: string; data: ChangelogItem[] }>(
       '/connectors/changelog',
+      token,
     )
     return data.data
   } catch {
@@ -77,34 +52,40 @@ export async function getChangelogItems(): Promise<ChangelogItem[]> {
   }
 }
 
-export async function getYoutubeItems(): Promise<YoutubeItem[]> {
+export async function getYoutubeItems(token: string): Promise<YoutubeItem[]> {
   try {
-    const data = await apiFetch<{ connector: string; data: YoutubeItem[] }>('/connectors/youtube')
+    const data = await apiFetch<{ connector: string; data: YoutubeItem[] }>(
+      '/connectors/youtube',
+      token,
+    )
     return data.data
   } catch {
     return []
   }
 }
 
-export async function getRssItems(): Promise<RssItem[]> {
+export async function getRssItems(token: string): Promise<RssItem[]> {
   try {
-    const data = await apiFetch<{ connector: string; data: RssItem[] }>('/connectors/rss')
+    const data = await apiFetch<{ connector: string; data: RssItem[] }>('/connectors/rss', token)
     return data.data
   } catch {
     return []
   }
 }
 
-export async function getScrapItems(): Promise<ScrapItem[]> {
+export async function getScrapItems(token: string): Promise<ScrapItem[]> {
   try {
-    const data = await apiFetch<{ connector: string; data: ScrapItem[] }>('/connectors/scrap')
+    const data = await apiFetch<{ connector: string; data: ScrapItem[] }>(
+      '/connectors/scrap',
+      token,
+    )
     return data.data
   } catch {
     return []
   }
 }
 
-// ─── UI user feed (admin service account) ─────────────────────────────────────
+// ─── UI user feed ──────────────────────────────────────────────────────────────
 
 export interface UserRepositoryItem {
   id: string
@@ -125,22 +106,29 @@ export interface UserFeedResponse {
   }
 }
 
-export async function getUserFeed(userId: string): Promise<UserFeedResponse> {
-  return apiFetch<UserFeedResponse>(`/ui/users/${userId}/feed`, { cache: 'no-store' })
+export async function getUserFeed(userId: string, token: string): Promise<UserFeedResponse> {
+  return apiFetch<UserFeedResponse>(`/ui/users/${userId}/feed`, token, {
+    cache: 'no-store',
+  })
 }
 
 export async function addUserRepository(
   userId: string,
+  token: string,
   data: { provider: string; url: string; config: Record<string, unknown> },
 ): Promise<{ repository: UserRepositoryItem }> {
-  return apiFetch<{ repository: UserRepositoryItem }>(`/ui/users/${userId}/repositories`, {
+  return apiFetch<{ repository: UserRepositoryItem }>(`/ui/users/${userId}/repositories`, token, {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
 
-export async function deleteUserRepository(userId: string, linkId: string): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/ui/users/${userId}/repositories/${linkId}`, {
+export async function deleteUserRepository(
+  userId: string,
+  linkId: string,
+  token: string,
+): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/users/${userId}/repositories/${linkId}`, token, {
     method: 'DELETE',
   })
 }

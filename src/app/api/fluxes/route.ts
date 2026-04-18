@@ -1,7 +1,7 @@
-import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
-import { validateFlux, addUserRepository } from '@/lib/api-client'
+import { addUserRepository, validateFlux } from '@/lib/api-client'
+import { COOKIE_NAME, decodeToken } from '@/lib/session'
 import { normalizeIdentifier, toRepositoryUrl } from '@/lib/utils'
 import { z } from 'zod'
 
@@ -32,8 +32,11 @@ const createFluxSchema = z
   })
 
 export async function POST(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const cookieStore = await cookies()
+  const token = cookieStore.get(COOKIE_NAME)?.value
+  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const session = decodeToken(token)
 
   const body = await request.json()
   const parsed = createFluxSchema.safeParse(body)
@@ -64,7 +67,7 @@ export async function POST(request: Request) {
       : { max_scraps: 5, retention_days: 15 }
 
   try {
-    const { repository } = await addUserRepository(session.user.id, {
+    const { repository } = await addUserRepository(session.userId, token, {
       provider,
       url,
       config,

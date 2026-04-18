@@ -1,7 +1,7 @@
-import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
-import { auth } from '@/lib/auth'
 import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getSession } from '@/lib/session'
 import { UnifiedFeedList } from '@/components/feed/UnifiedFeedList'
 
 export const metadata: Metadata = {
@@ -9,9 +9,11 @@ export const metadata: Metadata = {
 }
 
 export default async function FeedPage() {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getSession()
+  const cookieStore = await cookies()
+  const token = cookieStore.get('stayup_token')?.value ?? ''
 
-  const feedData = await getCachedUserFeed(session!.user.id).catch(() => ({
+  const feedData = await getCachedUserFeed(session!.userId, token).catch(() => ({
     repositories: [],
     connectors: { changelog: [], youtube: [], rss: [], scrap: [] },
   }))

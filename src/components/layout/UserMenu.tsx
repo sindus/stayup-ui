@@ -1,6 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -11,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { signOut } from '@/lib/auth-client'
+import { logoutAction } from '@/lib/auth-actions'
 
 interface UserMenuProps {
   user: {
@@ -22,14 +21,6 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  const router = useRouter()
-
-  async function handleSignOut() {
-    await signOut()
-    router.push('/')
-    router.refresh()
-  }
-
   const initials = user.name
     .split(' ')
     .map((n) => n[0])
@@ -61,7 +52,7 @@ export function UserMenu({ user }: UserMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive cursor-pointer"
-          onClick={handleSignOut}
+          onClick={() => logoutAction()}
         >
           Se déconnecter
         </DropdownMenuItem>

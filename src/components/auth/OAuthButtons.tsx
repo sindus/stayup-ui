@@ -1,49 +1,23 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { signIn } from '@/lib/auth-client'
+
+const API_URL = process.env.NEXT_PUBLIC_STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 export function OAuthButtons() {
-  const [loading, setLoading] = useState<'google' | 'github' | null>(null)
-
-  async function handleOAuth(provider: 'google' | 'github') {
-    setLoading(provider)
-    await signIn.social({ provider, callbackURL: '/feed' })
-    setLoading(null)
-  }
-
   return (
     <div className="flex flex-col gap-2">
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => handleOAuth('google')}
-        disabled={loading !== null}
-      >
-        {loading === 'google' ? (
-          'Redirection...'
-        ) : (
-          <>
-            <GoogleIcon className="mr-2 h-4 w-4" />
-            Continuer avec Google
-          </>
-        )}
+      <Button variant="outline" className="w-full" asChild>
+        <a href={`${API_URL}/auth/oauth/google`}>
+          <GoogleIcon className="mr-2 h-4 w-4" />
+          Continuer avec Google
+        </a>
       </Button>
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={() => handleOAuth('github')}
-        disabled={loading !== null}
-      >
-        {loading === 'github' ? (
-          'Redirection...'
-        ) : (
-          <>
-            <GithubIcon className="mr-2 h-4 w-4" />
-            Continuer avec GitHub
-          </>
-        )}
+      <Button variant="outline" className="w-full" asChild>
+        <a href={`${API_URL}/auth/oauth/github`}>
+          <GithubIcon className="mr-2 h-4 w-4" />
+          Continuer avec GitHub
+        </a>
       </Button>
     </div>
   )

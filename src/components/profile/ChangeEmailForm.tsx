@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { authClient } from '@/lib/auth-client'
+import { updateProfileAction } from '@/lib/auth-actions'
 
 const schema = z.object({
   email: z.string().email('Adresse e-mail invalide'),
@@ -17,7 +16,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
-  const router = useRouter()
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const {
@@ -32,14 +30,11 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
   async function onSubmit(data: FormData) {
     setError(null)
     setSuccess(false)
-
-    const result = await authClient.changeEmail({ newEmail: data.email, callbackURL: '/profile' })
-
+    const result = await updateProfileAction({ email: data.email })
     if (result.error) {
-      setError(result.error.message ?? "Erreur lors de la mise à jour de l'e-mail.")
+      setError(result.error)
     } else {
       setSuccess(true)
-      router.refresh()
     }
   }
 
@@ -51,11 +46,7 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && (
-        <p className="text-sm text-green-600">
-          Un e-mail de confirmation a été envoyé à votre nouvelle adresse.
-        </p>
-      )}
+      {success && <p className="text-sm text-green-600">Adresse e-mail mise à jour.</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? 'Mise à jour...' : "Mettre à jour l'e-mail"}
       </Button>

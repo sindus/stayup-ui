@@ -1,18 +1,20 @@
-import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { auth } from '@/lib/auth'
 import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getSession } from '@/lib/session'
 import { extractIdentifier } from '@/lib/utils'
 import { FeedItemList } from '@/components/feed/FeedItemList'
 import type { Provider } from '@/types'
 
 export default async function FluxPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getSession()
+  const cookieStore = await cookies()
+  const token = cookieStore.get('stayup_token')?.value ?? ''
 
   let feedData
   try {
-    feedData = await getCachedUserFeed(session!.user.id)
+    feedData = await getCachedUserFeed(session!.userId, token)
   } catch {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">

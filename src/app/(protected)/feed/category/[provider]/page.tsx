@@ -1,7 +1,7 @@
-import { headers } from 'next/headers'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { auth } from '@/lib/auth'
 import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getSession } from '@/lib/session'
 import { FeedItemList } from '@/components/feed/FeedItemList'
 import type { Provider } from '@/types'
 
@@ -19,11 +19,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
 
   if (!PROVIDERS.includes(provider as Provider)) notFound()
 
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getSession()
+  const cookieStore = await cookies()
+  const token = cookieStore.get('stayup_token')?.value ?? ''
 
   let feedData
   try {
-    feedData = await getCachedUserFeed(session!.user.id)
+    feedData = await getCachedUserFeed(session!.userId, token)
   } catch {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">

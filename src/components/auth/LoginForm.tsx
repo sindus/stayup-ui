@@ -1,14 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { signIn } from '@/lib/auth-client'
+import { loginAction } from '@/lib/auth-actions'
 
 const schema = z.object({
   email: z.string().email('Adresse e-mail invalide'),
@@ -18,7 +17,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>
 
 export function LoginForm() {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const {
     register,
@@ -28,17 +26,9 @@ export function LoginForm() {
 
   async function onSubmit(data: FormData) {
     setError(null)
-    const result = await signIn.email({
-      email: data.email,
-      password: data.password,
-      callbackURL: '/feed',
-    })
-
-    if (result.error) {
-      setError('Identifiants incorrects. Vérifiez votre e-mail et mot de passe.')
-    } else {
-      router.push('/feed')
-      router.refresh()
+    const result = await loginAction(data.email, data.password)
+    if (result?.error) {
+      setError(result.error)
     }
   }
 

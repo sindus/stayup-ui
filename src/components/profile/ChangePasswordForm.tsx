@@ -7,11 +7,10 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { authClient } from '@/lib/auth-client'
+import { updateProfileAction } from '@/lib/auth-actions'
 
 const schema = z
   .object({
-    currentPassword: z.string().min(1, 'Mot de passe actuel requis'),
     newPassword: z.string().min(8, 'Nouveau mot de passe trop court (min. 8 caractères)'),
     confirmPassword: z.string(),
   })
@@ -35,15 +34,9 @@ export function ChangePasswordForm() {
   async function onSubmit(data: FormData) {
     setError(null)
     setSuccess(false)
-
-    const result = await authClient.changePassword({
-      currentPassword: data.currentPassword,
-      newPassword: data.newPassword,
-      revokeOtherSessions: true,
-    })
-
+    const result = await updateProfileAction({ password: data.newPassword })
     if (result.error) {
-      setError(result.error.message ?? 'Erreur lors du changement de mot de passe.')
+      setError(result.error)
     } else {
       setSuccess(true)
       reset()
@@ -52,19 +45,6 @@ export function ChangePasswordForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-        <Input
-          id="currentPassword"
-          type="password"
-          autoComplete="current-password"
-          {...register('currentPassword')}
-        />
-        {errors.currentPassword && (
-          <p className="text-sm text-destructive">{errors.currentPassword.message}</p>
-        )}
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="newPassword">Nouveau mot de passe</Label>
         <Input

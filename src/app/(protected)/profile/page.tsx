@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
-import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import { ChangeEmailForm } from '@/components/profile/ChangeEmailForm'
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +10,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const session = await auth.api.getSession({ headers: await headers() })
+  const session = await getSession()
 
   return (
     <div className="max-w-xl mx-auto space-y-6">
@@ -23,7 +22,7 @@ export default async function ProfilePage() {
           <CardDescription>Modifiez l'adresse e-mail associée à votre compte.</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChangeEmailForm currentEmail={session!.user.email} />
+          <ChangeEmailForm currentEmail={session!.email} />
         </CardContent>
       </Card>
 
