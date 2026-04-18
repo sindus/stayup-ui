@@ -32,8 +32,7 @@ export async function loginAction(email: string, password: string): Promise<{ er
   })
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    return { error: body.error ?? 'Identifiants incorrects.' }
+    return { error: 'Identifiants incorrects.' }
   }
 
   const { token } = (await res.json()) as { token: string }

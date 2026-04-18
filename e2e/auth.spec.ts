@@ -5,8 +5,8 @@ test.describe('Authentication', () => {
     await page.goto('/login')
     await expect(page.getByLabel('E-mail')).toBeVisible()
     await expect(page.getByLabel('Mot de passe')).toBeVisible()
-    await expect(page.getByRole('button', { name: /google/i })).toBeVisible()
-    await expect(page.getByRole('button', { name: /github/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /google/i })).toBeVisible()
+    await expect(page.getByRole('link', { name: /github/i })).toBeVisible()
     await expect(page.getByRole('button', { name: /se connecter/i })).toBeVisible()
   })
 
