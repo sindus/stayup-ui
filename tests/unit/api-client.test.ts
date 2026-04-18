@@ -67,6 +67,144 @@ describe('getYoutubeItems', () => {
   })
 })
 
+describe('getRssItems', () => {
+  it('returns rss items on success', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        connector: 'rss',
+        data: [
+          {
+            id: 1,
+            repository_id: 1,
+            content: '{"title":"RSS Post"}',
+            datetime: null,
+            executed_at: '2024-01-01',
+            success: true,
+          },
+        ],
+      }),
+    })
+    const { getRssItems } = await import('@/lib/api-client')
+    const result = await getRssItems(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+  })
+
+  it('returns empty array on failure', async () => {
+    mockFetch.mockRejectedValueOnce(new Error('fail'))
+    const { getRssItems } = await import('@/lib/api-client')
+    expect(await getRssItems(TEST_TOKEN)).toEqual([])
+  })
+})
+
+describe('getScrapItems', () => {
+  it('returns scrap items on success', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        connector: 'scrap',
+        data: [
+          {
+            id: 1,
+            repository_id: 1,
+            content: 'scraped text',
+            params: {},
+            executed_at: '2024-01-01',
+            success: true,
+          },
+        ],
+      }),
+    })
+    const { getScrapItems } = await import('@/lib/api-client')
+    const result = await getScrapItems(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+  })
+
+  it('returns empty array on failure', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+    const { getScrapItems } = await import('@/lib/api-client')
+    expect(await getScrapItems(TEST_TOKEN)).toEqual([])
+  })
+})
+
+describe('admin API functions', () => {
+  it('adminListUsers returns users array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [{ id: '1', name: 'Alice', email: 'alice@example.com', created_at: '2024-01-01' }],
+      }),
+    })
+    const { adminListUsers } = await import('@/lib/api-client')
+    const result = await adminListUsers(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+    expect(result[0].email).toBe('alice@example.com')
+  })
+
+  it('adminGetUser returns single user', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        user: { id: '1', name: 'Alice', email: 'alice@example.com', created_at: '2024-01-01' },
+      }),
+    })
+    const { adminGetUser } = await import('@/lib/api-client')
+    const result = await adminGetUser('1', TEST_TOKEN)
+    expect(result.id).toBe('1')
+  })
+
+  it('adminDeleteUser calls DELETE endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminDeleteUser } = await import('@/lib/api-client')
+    await expect(adminDeleteUser('1', TEST_TOKEN)).resolves.toBeUndefined()
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/ui/users/1'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('adminListRepositories returns repositories array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        repositories: [
+          {
+            id: 1,
+            url: 'https://github.com/test/repo',
+            type: 'changelog',
+            config: {},
+            subscriber_count: '3',
+          },
+        ],
+      }),
+    })
+    const { adminListRepositories } = await import('@/lib/api-client')
+    const result = await adminListRepositories(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+    expect(result[0].subscriber_count).toBe('3')
+  })
+
+  it('adminDeleteRepository calls DELETE endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminDeleteRepository } = await import('@/lib/api-client')
+    await expect(adminDeleteRepository(42, TEST_TOKEN)).resolves.toBeUndefined()
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/ui/repositories/42'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('adminClearRepositoryData calls DELETE /data endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminClearRepositoryData } = await import('@/lib/api-client')
+    await expect(adminClearRepositoryData(42, TEST_TOKEN)).resolves.toBeUndefined()
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/ui/repositories/42/data'),
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+})
+
 describe('validateFlux', () => {
   // validateFlux calls the GitHub API directly — no JWT needed
   it('returns valid:true when GitHub repo exists', async () => {
