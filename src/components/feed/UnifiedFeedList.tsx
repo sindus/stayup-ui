@@ -156,10 +156,11 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
     </div>
   )
 
-  if (!parsed?.url) return inner
+  const videoUrl = parsed?.link ?? parsed?.url
+  if (!videoUrl) return inner
 
   return (
-    <a href={parsed.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+    <a href={videoUrl} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
       {inner}
     </a>
   )

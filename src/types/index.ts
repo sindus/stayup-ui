@@ -27,7 +27,8 @@ export interface ChangelogItem {
 export interface YoutubeItemContent {
   title: string
   thumbnail: string
-  url: string
+  url: string // channel URL
+  link?: string // video URL
 }
 
 export interface YoutubeItem {
