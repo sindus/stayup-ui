@@ -1,4 +1,4 @@
-import { ExternalLink, GitBranch, Youtube, Rss, Globe } from 'lucide-react'
+import { GitBranch, Youtube, Rss, Globe } from 'lucide-react'
 import Image from 'next/image'
 import type {
   ChangelogItem,
@@ -36,9 +36,16 @@ interface UnifiedFeedListProps {
   youtube: YoutubeItem[]
   rss: RssItem[]
   scrap: ScrapItem[]
+  repositories?: { repository_id: number; url: string }[]
 }
 
-export function UnifiedFeedList({ changelog, youtube, rss, scrap }: UnifiedFeedListProps) {
+export function UnifiedFeedList({
+  changelog,
+  youtube,
+  rss,
+  scrap,
+  repositories = [],
+}: UnifiedFeedListProps) {
   const all: TaggedItem[] = [
     ...changelog.map((item) => ({ provider: 'changelog' as const, item })),
     ...youtube.map((item) => ({ provider: 'youtube' as const, item })),
@@ -54,6 +61,8 @@ export function UnifiedFeedList({ changelog, youtube, rss, scrap }: UnifiedFeedL
     )
   }
 
+  const repoUrlMap = Object.fromEntries(repositories.map((r) => [r.repository_id, r.url]))
+
   const sorted = all.sort(
     (a, b) => new Date(getItemDate(b)).getTime() - new Date(getItemDate(a)).getTime(),
   )
@@ -68,7 +77,12 @@ export function UnifiedFeedList({ changelog, youtube, rss, scrap }: UnifiedFeedL
               <Icon className="h-3.5 w-3.5 text-muted-foreground" />
             </div>
             <div className="flex-1 min-w-0">
-              {tagged.provider === 'changelog' && <ChangelogEntry item={tagged.item} />}
+              {tagged.provider === 'changelog' && (
+                <ChangelogEntry
+                  item={tagged.item}
+                  repoUrl={repoUrlMap[tagged.item.repository_id] ?? ''}
+                />
+              )}
               {tagged.provider === 'youtube' && <YoutubeEntry item={tagged.item} />}
               {tagged.provider === 'rss' && <RssEntry item={tagged.item} />}
               {tagged.provider === 'scrap' && <ScrapEntry item={tagged.item} />}
@@ -80,8 +94,10 @@ export function UnifiedFeedList({ changelog, youtube, rss, scrap }: UnifiedFeedL
   )
 }
 
-function ChangelogEntry({ item }: { item: ChangelogItem }) {
-  return (
+function ChangelogEntry({ item, repoUrl }: { item: ChangelogItem; repoUrl: string }) {
+  const href = repoUrl ? `${repoUrl}/releases/tag/${item.version}` : undefined
+
+  const content = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm">{item.version}</span>
@@ -101,6 +117,14 @@ function ChangelogEntry({ item }: { item: ChangelogItem }) {
       )}
     </div>
   )
+
+  if (!href) return content
+
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {content}
+    </a>
+  )
 }
 
 function YoutubeEntry({ item }: { item: YoutubeItem }) {
@@ -111,7 +135,7 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
     /* ignore */
   }
 
-  return (
+  const inner = (
     <div className="flex gap-3">
       {parsed?.thumbnail && (
         <Image
@@ -128,18 +152,16 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
         <p className="text-xs text-muted-foreground">
           {formatDate(item.datetime ?? item.executed_at)}
         </p>
-        {parsed?.url && (
-          <a
-            href={parsed.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            Regarder <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
       </div>
     </div>
+  )
+
+  if (!parsed?.url) return inner
+
+  return (
+    <a href={parsed.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {inner}
+    </a>
   )
 }
 
@@ -151,7 +173,7 @@ function RssEntry({ item }: { item: RssItem }) {
     /* ignore */
   }
 
-  return (
+  const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm line-clamp-1">{parsed?.title ?? 'Sans titre'}</span>
@@ -164,17 +186,20 @@ function RssEntry({ item }: { item: RssItem }) {
       {parsed?.summary && (
         <p className="text-sm text-muted-foreground line-clamp-2">{parsed.summary}</p>
       )}
-      {parsed?.link && (
-        <a
-          href={parsed.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          Lire <ExternalLink className="h-3 w-3" />
-        </a>
-      )}
     </div>
+  )
+
+  if (!parsed?.link) return inner
+
+  return (
+    <a
+      href={parsed.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block cursor-pointer"
+    >
+      {inner}
+    </a>
   )
 }
 
@@ -190,7 +215,7 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
         })()
       : (item.params as ScrapItemParams | null)
 
-  return (
+  const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         {params?.url && (
@@ -203,16 +228,14 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
       {item.content && (
         <p className="text-sm text-muted-foreground line-clamp-2">{item.content.slice(0, 200)}</p>
       )}
-      {params?.url && (
-        <a
-          href={params.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          Voir <ExternalLink className="h-3 w-3" />
-        </a>
-      )}
     </div>
+  )
+
+  if (!params?.url) return inner
+
+  return (
+    <a href={params.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {inner}
+    </a>
   )
 }

@@ -34,7 +34,7 @@ export default async function FluxPage({ params }: { params: Promise<{ id: strin
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6 font-mono">{identifier}</h1>
-      <FeedItemList items={items} provider={provider} />
+      <FeedItemList items={items} provider={provider} repositories={feedData.repositories} />
     </div>
   )
 }

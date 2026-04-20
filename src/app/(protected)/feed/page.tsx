@@ -22,7 +22,13 @@ export default async function FeedPage() {
 
   return (
     <div>
-      <UnifiedFeedList changelog={changelog} youtube={youtube} rss={rss} scrap={scrap} />
+      <UnifiedFeedList
+        changelog={changelog}
+        youtube={youtube}
+        rss={rss}
+        scrap={scrap}
+        repositories={feedData.repositories}
+      />
     </div>
   )
 }

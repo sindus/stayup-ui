@@ -1,4 +1,3 @@
-import { ExternalLink } from 'lucide-react'
 import Image from 'next/image'
 import type {
   ChangelogItem,
@@ -22,9 +21,10 @@ function getItemDate(item: AnyItem): string {
 interface FeedItemListProps {
   items: AnyItem[]
   provider: Provider
+  repositories?: { repository_id: number; url: string }[]
 }
 
-export function FeedItemList({ items, provider }: FeedItemListProps) {
+export function FeedItemList({ items, provider, repositories = [] }: FeedItemListProps) {
   if (items.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic py-12 text-center">
@@ -33,6 +33,8 @@ export function FeedItemList({ items, provider }: FeedItemListProps) {
     )
   }
 
+  const repoUrlMap = Object.fromEntries(repositories.map((r) => [r.repository_id, r.url]))
+
   const sorted = [...items].sort(
     (a, b) => new Date(getItemDate(b)).getTime() - new Date(getItemDate(a)).getTime(),
   )
@@ -40,7 +42,13 @@ export function FeedItemList({ items, provider }: FeedItemListProps) {
   return (
     <div className="space-y-4">
       {provider === 'changelog' &&
-        (sorted as ChangelogItem[]).map((item) => <ChangelogEntry key={item.id} item={item} />)}
+        (sorted as ChangelogItem[]).map((item) => (
+          <ChangelogEntry
+            key={item.id}
+            item={item}
+            repoUrl={repoUrlMap[item.repository_id] ?? ''}
+          />
+        ))}
       {provider === 'youtube' &&
         (sorted as YoutubeItem[]).map((item) => <YoutubeEntry key={item.id} item={item} />)}
       {provider === 'rss' &&
@@ -51,8 +59,10 @@ export function FeedItemList({ items, provider }: FeedItemListProps) {
   )
 }
 
-function ChangelogEntry({ item }: { item: ChangelogItem }) {
-  return (
+function ChangelogEntry({ item, repoUrl }: { item: ChangelogItem; repoUrl: string }) {
+  const href = repoUrl ? `${repoUrl}/releases/tag/${item.version}` : undefined
+
+  const content = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm">{item.version}</span>
@@ -72,6 +82,14 @@ function ChangelogEntry({ item }: { item: ChangelogItem }) {
       )}
     </div>
   )
+
+  if (!href) return content
+
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {content}
+    </a>
+  )
 }
 
 function YoutubeEntry({ item }: { item: YoutubeItem }) {
@@ -82,7 +100,7 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
     // ignore
   }
 
-  return (
+  const inner = (
     <div className="flex gap-3">
       {parsed?.thumbnail && (
         <Image
@@ -99,18 +117,16 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
         <p className="text-xs text-muted-foreground">
           {formatDate(item.datetime ?? item.executed_at)}
         </p>
-        {parsed?.url && (
-          <a
-            href={parsed.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-          >
-            Regarder <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
       </div>
     </div>
+  )
+
+  if (!parsed?.url) return inner
+
+  return (
+    <a href={parsed.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {inner}
+    </a>
   )
 }
 
@@ -122,7 +138,7 @@ function RssEntry({ item }: { item: RssItem }) {
     // ignore
   }
 
-  return (
+  const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm line-clamp-1">{parsed?.title ?? 'Sans titre'}</span>
@@ -135,17 +151,20 @@ function RssEntry({ item }: { item: RssItem }) {
       {parsed?.summary && (
         <p className="text-sm text-muted-foreground line-clamp-2">{parsed.summary}</p>
       )}
-      {parsed?.link && (
-        <a
-          href={parsed.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          Lire <ExternalLink className="h-3 w-3" />
-        </a>
-      )}
     </div>
+  )
+
+  if (!parsed?.link) return inner
+
+  return (
+    <a
+      href={parsed.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block cursor-pointer"
+    >
+      {inner}
+    </a>
   )
 }
 
@@ -161,7 +180,7 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
         })()
       : (item.params as ScrapItemParams | null)
 
-  return (
+  const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         {params?.url && (
@@ -176,16 +195,14 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
           {item.content.slice(0, 400)}
         </p>
       )}
-      {params?.url && (
-        <a
-          href={params.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          Voir l'article <ExternalLink className="h-3 w-3" />
-        </a>
-      )}
     </div>
+  )
+
+  if (!params?.url) return inner
+
+  return (
+    <a href={params.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+      {inner}
+    </a>
   )
 }

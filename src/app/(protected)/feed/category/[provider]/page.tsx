@@ -39,7 +39,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">{PROVIDER_LABELS[provider as Provider]}</h1>
-      <FeedItemList items={items} provider={provider as Provider} />
+      <FeedItemList
+        items={items}
+        provider={provider as Provider}
+        repositories={feedData.repositories}
+      />
     </div>
   )
 }
