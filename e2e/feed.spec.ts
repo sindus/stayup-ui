@@ -51,10 +51,7 @@ test.describe('Feed page (authenticated)', () => {
   })
 
   test('user menu has sign out option', async ({ page }) => {
-    await page
-      .getByRole('button', { name: /[a-z]{1,2}/i })
-      .first()
-      .click()
+    await page.getByTestId('user-menu-trigger').click()
     await expect(page.getByText(/se déconnecter/i)).toBeVisible()
   })
 })

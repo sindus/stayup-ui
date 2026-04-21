@@ -33,7 +33,10 @@ export function UserMenu({ user }: UserMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        <button
+          data-testid="user-menu-trigger"
+          className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
           <Avatar className="h-8 w-8 cursor-pointer">
             {user.image && <AvatarImage src={user.image} alt={user.name} />}
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
