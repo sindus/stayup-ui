@@ -41,6 +41,42 @@ export const en: Translations = {
       winNote: '64-bit',
       linuxNote: 'AppImage',
       allVersions: 'View all releases',
+      installTitle: 'How to install',
+      uninstallTitle: 'Complete uninstall',
+      uninstallSubtitle:
+        'To completely remove StayUp, including locally stored data and preferences:',
+      platforms: {
+        mac: {
+          install: [
+            'Open the downloaded .dmg file',
+            'Drag StayUp to the Applications folder',
+            'First launch: right-click → "Open" if macOS blocks the app (Gatekeeper)',
+          ],
+          uninstall: ['Drag StayUp from Applications to the Trash', 'Delete data and preferences:'],
+          paths: [
+            '~/Library/Application Support/dev.r-sik.stayup-desktop',
+            '~/Library/Preferences/dev.r-sik.stayup-desktop.plist',
+          ],
+        },
+        windows: {
+          install: [
+            'Run the downloaded .exe file',
+            'Follow the installation wizard',
+            '"More info" → "Run anyway" if Windows Defender blocks the installer',
+          ],
+          uninstall: ['Settings → Apps → StayUp → Uninstall', 'Delete residual data:'],
+          paths: ['%APPDATA%\\dev.r-sik.stayup-desktop'],
+        },
+        linux: {
+          install: [
+            'Make the file executable: chmod +x StayUp*.AppImage',
+            'Run it: ./StayUp*.AppImage',
+            'Optional: move it to ~/Applications for easy access',
+          ],
+          uninstall: ['Delete the AppImage file', 'Delete data:'],
+          paths: ['~/.local/share/dev.r-sik.stayup-desktop', '~/.config/dev.r-sik.stayup-desktop'],
+        },
+      },
     },
   },
   nav: {

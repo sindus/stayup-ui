@@ -40,6 +40,48 @@ export const fr = {
       winNote: '64-bit',
       linuxNote: 'AppImage',
       allVersions: 'Voir toutes les versions',
+      installTitle: 'Comment installer',
+      uninstallTitle: 'Désinstallation complète',
+      uninstallSubtitle:
+        'Pour supprimer entièrement StayUp, y compris les données et préférences stockées localement :',
+      platforms: {
+        mac: {
+          install: [
+            'Ouvrez le fichier .dmg téléchargé',
+            'Glissez StayUp vers le dossier Applications',
+            "Premier lancement : clic droit → « Ouvrir » si macOS bloque l'application (Gatekeeper)",
+          ],
+          uninstall: [
+            'Glissez StayUp depuis Applications vers la Corbeille',
+            'Supprimez les données et préférences :',
+          ],
+          paths: [
+            '~/Library/Application Support/dev.r-sik.stayup-desktop',
+            '~/Library/Preferences/dev.r-sik.stayup-desktop.plist',
+          ],
+        },
+        windows: {
+          install: [
+            'Lancez le fichier .exe téléchargé',
+            "Suivez l'assistant d'installation",
+            "« Plus d'informations » → « Exécuter quand même » si Windows Defender bloque",
+          ],
+          uninstall: [
+            'Paramètres → Applications → StayUp → Désinstaller',
+            'Supprimez les données résiduelles :',
+          ],
+          paths: ['%APPDATA%\\dev.r-sik.stayup-desktop'],
+        },
+        linux: {
+          install: [
+            'Rendez le fichier exécutable : chmod +x StayUp*.AppImage',
+            'Lancez-le : ./StayUp*.AppImage',
+            'Optionnel : déplacez-le dans ~/Applications pour un accès facile',
+          ],
+          uninstall: ['Supprimez le fichier AppImage', 'Supprimez les données :'],
+          paths: ['~/.local/share/dev.r-sik.stayup-desktop', '~/.config/dev.r-sik.stayup-desktop'],
+        },
+      },
     },
   },
   nav: {
