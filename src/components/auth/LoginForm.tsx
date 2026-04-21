@@ -17,6 +17,8 @@ function makeSchema(t: { emailInvalid: string; passwordRequired: string }) {
   })
 }
 
+type FormValues = { email: string; password: string }
+
 export function LoginForm() {
   const { t } = useLanguage()
   const a = t.auth
@@ -25,7 +27,7 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(makeSchema(a)) })
+  } = useForm<FormValues>({ resolver: zodResolver(makeSchema(a)) })
 
   async function onSubmit(data: { email: string; password: string }) {
     setError(null)

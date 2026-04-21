@@ -37,7 +37,9 @@ export function RegisterForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm({ resolver: zodResolver(makeSchema(a)) })
+  } = useForm<{ name: string; email: string; password: string; confirmPassword: string }>({
+    resolver: zodResolver(makeSchema(a)),
+  })
 
   async function onSubmit(data: { name: string; email: string; password: string }) {
     setError(null)
