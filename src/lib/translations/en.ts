@@ -1,0 +1,78 @@
+import type { Translations } from './fr'
+
+export const en: Translations = {
+  landing: {
+    header: { signIn: 'Sign in' },
+    hero: {
+      title: 'Stay up to date,',
+      titleHighlight: 'effortlessly',
+      subtitle:
+        'StayUp aggregates the latest updates from your GitHub projects and YouTube channels into one personalized feed.',
+      ctaStart: 'Get started for free',
+      ctaSignIn: 'Sign in',
+      ctaFeed: 'My feed',
+    },
+    features: {
+      title: 'Two providers, one unified feed',
+      changelog: {
+        title: 'GitHub Changelog',
+        description:
+          'Follow releases from your favorite GitHub repositories. Receive release notes as soon as a new version is published.',
+      },
+      youtube: {
+        title: 'YouTube Channels',
+        description:
+          'Stay informed of the latest videos from your favorite creators. Find the title, description, and link at a glance.',
+      },
+    },
+    cta: {
+      title: 'Ready to centralize your watch?',
+      subtitleLoggedIn: 'Check your feeds and stay informed in real time.',
+      subtitleGuest: 'Create your free account and add your first feed in less than a minute.',
+      ctaStart: 'Sign up',
+      ctaSignIn: 'Sign in',
+      ctaFeed: 'My feed',
+    },
+    download: {
+      title: 'Desktop app',
+      subtitle:
+        'Install StayUp on your computer to access your feeds without a browser, with system notifications and a fast startup.',
+      macNote: 'Apple Silicon & Intel',
+      winNote: '64-bit',
+      linuxNote: 'AppImage',
+      allVersions: 'View all releases',
+    },
+  },
+  nav: {
+    myFeed: 'My feed',
+    profile: 'My profile',
+    signOut: 'Sign out',
+  },
+  auth: {
+    loginTitle: 'Sign in',
+    loginSubtitle: 'Sign in to your StayUp account',
+    registerTitle: 'Create an account',
+    registerSubtitle: 'Join StayUp to track your updates',
+    name: 'Name',
+    namePlaceholder: 'Your name',
+    email: 'Email',
+    emailPlaceholder: 'you@example.com',
+    password: 'Password',
+    confirmPassword: 'Confirm password',
+    signIn: 'Sign in',
+    signingIn: 'Signing in...',
+    createAccount: 'Create account',
+    creatingAccount: 'Creating account...',
+    noAccount: 'No account yet?',
+    alreadyAccount: 'Already have an account?',
+    signUp: 'Sign up',
+    or: 'or',
+    continueWithGoogle: 'Continue with Google',
+    continueWithGitHub: 'Continue with GitHub',
+    emailInvalid: 'Invalid email address',
+    passwordRequired: 'Password is required',
+    nameTooShort: 'Name too short (min. 2 characters)',
+    passwordTooShort: 'Password too short (min. 8 characters)',
+    passwordMismatch: 'Passwords do not match',
+  },
+}

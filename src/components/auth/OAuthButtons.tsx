@@ -1,22 +1,25 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 
 const API_URL = process.env.NEXT_PUBLIC_STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 export function OAuthButtons() {
+  const { t } = useLanguage()
+
   return (
     <div className="flex flex-col gap-2">
       <Button variant="outline" className="w-full" asChild>
         <a href={`${API_URL}/auth/oauth/google`}>
           <GoogleIcon className="mr-2 h-4 w-4" />
-          Continuer avec Google
+          {t.auth.continueWithGoogle}
         </a>
       </Button>
       <Button variant="outline" className="w-full" asChild>
         <a href={`${API_URL}/auth/oauth/github`}>
           <GithubIcon className="mr-2 h-4 w-4" />
-          Continuer avec GitHub
+          {t.auth.continueWithGitHub}
         </a>
       </Button>
     </div>

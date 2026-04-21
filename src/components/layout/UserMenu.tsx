@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { logoutAction } from '@/lib/auth-actions'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface UserMenuProps {
   user: {
@@ -21,6 +22,7 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ user }: UserMenuProps) {
+  const { t } = useLanguage()
   const initials = user.name
     .split(' ')
     .map((n) => n[0])
@@ -47,14 +49,14 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">Mon profil</Link>
+          <Link href="/profile">{t.nav.profile}</Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:text-destructive cursor-pointer"
           onClick={() => logoutAction()}
         >
-          Se déconnecter
+          {t.nav.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

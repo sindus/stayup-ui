@@ -8,59 +8,61 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { loginAction } from '@/lib/auth-actions'
+import { useLanguage } from '@/context/LanguageContext'
 
-const schema = z.object({
-  email: z.string().email('Adresse e-mail invalide'),
-  password: z.string().min(1, 'Mot de passe requis'),
-})
-
-type FormData = z.infer<typeof schema>
+function makeSchema(t: { emailInvalid: string; passwordRequired: string }) {
+  return z.object({
+    email: z.string().email(t.emailInvalid),
+    password: z.string().min(1, t.passwordRequired),
+  })
+}
 
 export function LoginForm() {
+  const { t } = useLanguage()
+  const a = t.auth
   const [error, setError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FormData>({ resolver: zodResolver(schema) })
+  } = useForm({ resolver: zodResolver(makeSchema(a)) })
 
-  async function onSubmit(data: FormData) {
+  async function onSubmit(data: { email: string; password: string }) {
     setError(null)
     const result = await loginAction(data.email, data.password)
-    if (result?.error) {
-      setError(result.error)
-    }
+    if (result?.error) setError(result.error)
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">E-mail</Label>
+        <Label htmlFor="email">{a.email}</Label>
         <Input
           id="email"
           type="email"
-          placeholder="vous@exemple.com"
+          placeholder={a.emailPlaceholder}
           autoComplete="email"
           {...register('email')}
         />
-        {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email.message as string}</p>
+        )}
       </div>
-
       <div className="space-y-2">
-        <Label htmlFor="password">Mot de passe</Label>
+        <Label htmlFor="password">{a.password}</Label>
         <Input
           id="password"
           type="password"
           autoComplete="current-password"
           {...register('password')}
         />
-        {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+        {errors.password && (
+          <p className="text-sm text-destructive">{errors.password.message as string}</p>
+        )}
       </div>
-
       {error && <p className="text-sm text-destructive">{error}</p>}
-
       <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? 'Connexion...' : 'Se connecter'}
+        {isSubmitting ? a.signingIn : a.signIn}
       </Button>
     </form>
   )

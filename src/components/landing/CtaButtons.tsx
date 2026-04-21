@@ -1,31 +1,35 @@
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface CtaButtonsProps {
   isLoggedIn?: boolean
 }
 
 export function CtaButtons({ isLoggedIn }: CtaButtonsProps) {
+  const { t } = useLanguage()
+  const c = t.landing.cta
+
   return (
     <section className="py-20 text-center">
-      <h2 className="text-2xl font-bold mb-4">Prêt à centraliser votre veille ?</h2>
+      <h2 className="text-2xl font-bold mb-4">{c.title}</h2>
       <p className="text-muted-foreground mb-8">
-        {isLoggedIn
-          ? 'Consultez vos flux et restez informé en temps réel.'
-          : "Créez votre compte gratuitement et ajoutez votre premier flux en moins d'une minute."}
+        {isLoggedIn ? c.subtitleLoggedIn : c.subtitleGuest}
       </p>
       <div className="flex gap-4 justify-center">
         {isLoggedIn ? (
           <Button asChild size="lg">
-            <Link href="/feed">Mes flux</Link>
+            <Link href="/feed">{c.ctaFeed}</Link>
           </Button>
         ) : (
           <>
             <Button asChild size="lg">
-              <Link href="/register">S'inscrire</Link>
+              <Link href="/register">{c.ctaStart}</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/login">Se connecter</Link>
+              <Link href="/login">{c.ctaSignIn}</Link>
             </Button>
           </>
         )}

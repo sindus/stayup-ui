@@ -1,5 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { cookies } from 'next/headers'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
+import { LanguageProvider } from '@/context/LanguageContext'
+import type { Language } from '@/lib/translations'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -15,10 +19,22 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const lang = (cookieStore.get('lang')?.value === 'en' ? 'en' : 'fr') as Language
+
   return (
-    <html lang="fr">
-      <body className={inter.className}>{children}</body>
+    <html lang={lang} suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
+        </ThemeProvider>
+      </body>
     </html>
   )
 }
