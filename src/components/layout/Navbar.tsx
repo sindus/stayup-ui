@@ -37,12 +37,6 @@ export function Navbar({ user }: NavbarProps) {
           >
             {t.nav.documentation}
           </Link>
-          <Link
-            href="/scrap"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t.nav.scrap}
-          </Link>
           <LanguageSwitcher />
           <ThemeToggle />
           <UserMenu user={user} />
