@@ -11,7 +11,7 @@ test.describe('Landing page', () => {
   })
 
   test('shows changelog and youtube features', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Changelog GitHub' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'GitHub Changelog' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Chaînes YouTube' })).toBeVisible()
   })
 
