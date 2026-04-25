@@ -1,14 +1,20 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { addUserRepository, validateFlux } from '@/lib/api-client'
+import { addUserRepository, subscribeScrap, validateFlux } from '@/lib/api-client'
 import { COOKIE_NAME, decodeToken } from '@/lib/session'
 import { normalizeIdentifier, toRepositoryUrl } from '@/lib/utils'
 import { z } from 'zod'
 
-const createFluxSchema = z.object({
-  provider: z.enum(['changelog', 'youtube', 'rss']),
-  identifier: z.string().min(1).max(200),
-})
+const createFluxSchema = z.discriminatedUnion('provider', [
+  z.object({
+    provider: z.enum(['changelog', 'youtube', 'rss']),
+    identifier: z.string().min(1).max(200),
+  }),
+  z.object({
+    provider: z.literal('scrap'),
+    scrapRepoId: z.number().int().positive(),
+  }),
+])
 
 export async function POST(request: Request) {
   const cookieStore = await cookies()
@@ -24,6 +30,19 @@ export async function POST(request: Request) {
       { error: 'Données invalides', details: parsed.error.issues },
       { status: 400 },
     )
+  }
+
+  if (parsed.data.provider === 'scrap') {
+    try {
+      await subscribeScrap(parsed.data.scrapRepoId, token)
+      return NextResponse.json({ success: true }, { status: 201 })
+    } catch (err) {
+      const message = (err as Error).message
+      if (message.toLowerCase().includes('already') || message.includes('abonné')) {
+        return NextResponse.json({ error: 'Vous êtes déjà abonné à ce flux.' }, { status: 409 })
+      }
+      return NextResponse.json({ error: message ?? 'Une erreur est survenue.' }, { status: 500 })
+    }
   }
 
   const { provider } = parsed.data
