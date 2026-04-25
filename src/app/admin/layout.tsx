@@ -29,6 +29,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               >
                 Flux
               </Link>
+              <Link
+                href="/admin/documentation"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Documentation
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">

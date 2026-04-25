@@ -1,4 +1,14 @@
-import type { ChangelogItem, ConnectorData, RssItem, ScrapItem, YoutubeItem } from '@/types'
+import type {
+  ChangelogItem,
+  ConnectorData,
+  DocContent,
+  DocRegistry,
+  DocVersion,
+  RssItem,
+  ScrapItem,
+  ScrapRepository,
+  YoutubeItem,
+} from '@/types'
 
 const SERVER_BASE_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
@@ -185,6 +195,124 @@ export async function adminDeleteRepository(repoId: number, token: string): Prom
 
 export async function adminClearRepositoryData(repoId: number, token: string): Promise<void> {
   await apiFetch<{ success: boolean }>(`/ui/repositories/${repoId}/data`, token, {
+    method: 'DELETE',
+  })
+}
+
+export interface AdminDocRegistry {
+  id: number
+  name: string
+  url: string
+  config: Record<string, unknown>
+  created_at: string
+  subscriber_count: string
+  current_version: number | null
+  last_scraped_at: string | null
+}
+
+export async function adminListDocRegistry(token: string): Promise<AdminDocRegistry[]> {
+  const data = await apiFetch<{ registries: AdminDocRegistry[] }>('/ui/doc-registry', token, {
+    cache: 'no-store',
+  })
+  return data.registries
+}
+
+export async function adminCreateDocRegistry(
+  body: { name: string; url: string; config: Record<string, unknown> },
+  token: string,
+): Promise<{ id: number }> {
+  return apiFetch<{ id: number }>('/ui/doc-registry', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminDeleteDocRegistry(docId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/doc-registry/${docId}`, token, {
+    method: 'DELETE',
+  })
+}
+
+// ─── Scrap ─────────────────────────────────────────────────────────────────────
+
+export async function getScrapRepos(token: string): Promise<ScrapRepository[]> {
+  const data = await apiFetch<{ repos: ScrapRepository[] }>('/scrap', token, {
+    cache: 'no-store',
+  })
+  return data.repos
+}
+
+export async function subscribeScrap(repoId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/scrap/${repoId}/subscribe`, token, {
+    method: 'POST',
+  })
+}
+
+export async function unsubscribeScrap(repoId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/scrap/${repoId}/subscribe`, token, {
+    method: 'DELETE',
+  })
+}
+
+export async function adminCreateRepository(
+  body: { url: string; type: string; config: Record<string, unknown> },
+  token: string,
+): Promise<{ id: number }> {
+  return apiFetch<{ id: number }>('/ui/repositories', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+// ─── Documentation ─────────────────────────────────────────────────────────────
+
+export async function getDocs(token: string): Promise<DocRegistry[]> {
+  const data = await apiFetch<{ docs: DocRegistry[] }>('/documentation', token, {
+    cache: 'no-store',
+  })
+  return data.docs
+}
+
+export async function getDocContent(
+  docId: number,
+  token: string,
+): Promise<{ doc: DocRegistry; current: DocContent | null }> {
+  return apiFetch<{ doc: DocRegistry; current: DocContent | null }>(
+    `/documentation/${docId}`,
+    token,
+    { cache: 'no-store' },
+  )
+}
+
+export async function getDocHistory(docId: number, token: string): Promise<DocVersion[]> {
+  const data = await apiFetch<{ versions: DocVersion[] }>(
+    `/documentation/${docId}/history`,
+    token,
+    { cache: 'no-store' },
+  )
+  return data.versions
+}
+
+export async function getDocDiff(
+  docId: number,
+  versionId: number,
+  token: string,
+): Promise<{ version: number; diff: string; scraped_at: string }> {
+  return apiFetch<{ version: number; diff: string; scraped_at: string }>(
+    `/documentation/${docId}/diff/${versionId}`,
+    token,
+    { cache: 'no-store' },
+  )
+}
+
+export async function subscribeDoc(docId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/documentation/${docId}/subscribe`, token, {
+    method: 'POST',
+  })
+}
+
+export async function unsubscribeDoc(docId: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/documentation/${docId}/subscribe`, token, {
     method: 'DELETE',
   })
 }

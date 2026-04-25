@@ -4,8 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { getToken } from './session'
 import {
   adminClearRepositoryData,
+  adminCreateRepository,
   adminDeleteRepository,
   adminDeleteUser,
+  adminCreateDocRegistry,
+  adminDeleteDocRegistry,
   deleteUserRepository,
 } from './api-client'
 
@@ -83,6 +86,50 @@ export async function adminClearRepositoryDataAction(repoId: number): Promise<{ 
   try {
     await adminClearRepositoryData(repoId, token)
     revalidatePath('/admin/repositories')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminCreateRepositoryAction(data: {
+  url: string
+  type: string
+  config: Record<string, unknown>
+}): Promise<{ error?: string }> {
+  const token = await getToken()
+  if (!token) return { error: 'Non authentifié' }
+  try {
+    await adminCreateRepository(data, token)
+    revalidatePath('/admin/repositories')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminCreateDocAction(data: {
+  name: string
+  url: string
+  config: Record<string, unknown>
+}): Promise<{ error?: string }> {
+  const token = await getToken()
+  if (!token) return { error: 'Non authentifié' }
+  try {
+    await adminCreateDocRegistry(data, token)
+    revalidatePath('/admin/documentation')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminDeleteDocAction(docId: number): Promise<{ error?: string }> {
+  const token = await getToken()
+  if (!token) return { error: 'Non authentifié' }
+  try {
+    await adminDeleteDocRegistry(docId, token)
+    revalidatePath('/admin/documentation')
     return {}
   } catch (err) {
     return { error: (err as Error).message }

@@ -23,33 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { Provider } from '@/types'
 
-const schema = z
-  .object({
-    provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
-    identifier: z.string().min(1, 'Ce champ est requis').max(200),
-    articles_selector: z.string().optional(),
-    content_selector: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.provider === 'scrap') {
-      if (!data.articles_selector?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Ce champ est requis',
-          path: ['articles_selector'],
-        })
-      }
-      if (!data.content_selector?.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Ce champ est requis',
-          path: ['content_selector'],
-        })
-      }
-    }
-  })
+const schema = z.object({
+  provider: z.enum(['changelog', 'youtube', 'rss']),
+  identifier: z.string().min(1, 'Ce champ est requis').max(200),
+})
 
 type FormData = z.infer<typeof schema>
 
@@ -58,18 +36,18 @@ interface AddFluxDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const IDENTIFIER_LABELS: Record<Provider, string> = {
+type FeedProvider = 'changelog' | 'youtube' | 'rss'
+
+const IDENTIFIER_LABELS: Record<FeedProvider, string> = {
   changelog: 'Dépôt GitHub',
   youtube: 'Chaîne YouTube',
   rss: 'URL du flux RSS',
-  scrap: 'URL de la page à scraper',
 }
 
-const PLACEHOLDERS: Record<Provider, string> = {
+const PLACEHOLDERS: Record<FeedProvider, string> = {
   changelog: 'ex: facebook/react ou https://github.com/facebook/react',
   youtube: 'ex: fireship ou https://youtube.com/@fireship',
   rss: 'ex: https://example.com/feed.xml',
-  scrap: 'ex: https://example.com/blog',
 }
 
 export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
@@ -88,14 +66,14 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     defaultValues: { provider: 'changelog' },
   })
 
-  const provider = watch('provider') as Provider
+  const provider = watch('provider') as FeedProvider
 
   async function onSubmit(data: FormData) {
     setServerError(null)
     const res = await fetch('/api/fluxes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data }),
     })
 
     if (!res.ok) {
@@ -131,7 +109,10 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="provider">Provider</Label>
-              <Select value={provider} onValueChange={(v) => setValue('provider', v as Provider)}>
+              <Select
+                value={provider}
+                onValueChange={(v) => setValue('provider', v as FeedProvider)}
+              >
                 <SelectTrigger id="provider">
                   <SelectValue />
                 </SelectTrigger>
@@ -139,7 +120,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                   <SelectItem value="changelog">GitHub Changelog</SelectItem>
                   <SelectItem value="youtube">YouTube</SelectItem>
                   <SelectItem value="rss">RSS</SelectItem>
-                  <SelectItem value="scrap">Scraping web</SelectItem>
                 </SelectContent>
               </Select>
               {errors.provider && (
@@ -158,34 +138,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                 <p className="text-sm text-destructive">{errors.identifier.message}</p>
               )}
             </div>
-
-            {provider === 'scrap' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="articles_selector">Sélecteur CSS des articles</Label>
-                  <Input
-                    id="articles_selector"
-                    placeholder="ex: h2.post-title a"
-                    {...register('articles_selector')}
-                  />
-                  {errors.articles_selector && (
-                    <p className="text-sm text-destructive">{errors.articles_selector.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="content_selector">Sélecteur CSS du contenu</Label>
-                  <Input
-                    id="content_selector"
-                    placeholder="ex: article.post-content"
-                    {...register('content_selector')}
-                  />
-                  {errors.content_selector && (
-                    <p className="text-sm text-destructive">{errors.content_selector.message}</p>
-                  )}
-                </div>
-              </>
-            )}
 
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}
           </div>
