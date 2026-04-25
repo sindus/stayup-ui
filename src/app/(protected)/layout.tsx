@@ -10,9 +10,12 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div
+      className="h-screen flex flex-col overflow-hidden"
+      style={{ background: 'hsl(var(--background))' }}
+    >
       <Navbar user={{ id: session.userId, name: session.name, email: session.email }} />
-      <main className="flex-1 container mx-auto px-4 py-8">{children}</main>
+      <main className="flex-1 flex overflow-hidden">{children}</main>
     </div>
   )
 }

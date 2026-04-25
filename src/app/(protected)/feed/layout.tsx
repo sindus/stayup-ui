@@ -27,9 +27,9 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
   }))
 
   return (
-    <div className="flex gap-6 min-h-0">
+    <div className="flex min-h-0 flex-1 overflow-hidden">
       <FeedSidebar fluxes={fluxes} />
-      <div className="flex-1 min-w-0">{children}</div>
+      <div className="flex-1 min-w-0 overflow-y-auto px-5 py-4">{children}</div>
     </div>
   )
 }

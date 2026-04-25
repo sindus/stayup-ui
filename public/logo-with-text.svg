@@ -1,0 +1,7 @@
+<svg width="140" height="40" viewBox="0 0 140 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  
+  <rect width="40" height="40" rx="9" fill="oklch(0.72 0.22 195)"></rect>
+  <path d="M20 7L28.5 18H23.5V33H16.5V18H11.5L20 7Z" fill="#09090b"></path>
+  
+  <text x="50" y="26" font-family="&#39;DM Sans&#39;, sans-serif" font-size="18" font-weight="600" fill="#fafafa" letter-spacing="-0.3">StayUp</text>
+</svg>

@@ -1,6 +1,5 @@
 import { HeroSection } from '@/components/landing/HeroSection'
 import { FeaturesSection } from '@/components/landing/FeaturesSection'
-import { CtaButtons } from '@/components/landing/CtaButtons'
 import { DownloadSection } from '@/components/landing/DownloadSection'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { getSession } from '@/lib/session'
@@ -10,14 +9,18 @@ export default async function LandingPage() {
   const isLoggedIn = !!session
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto px-4">
-        <LandingHeader />
-        <HeroSection isLoggedIn={isLoggedIn} />
-        <FeaturesSection />
-        <DownloadSection />
-        <CtaButtons isLoggedIn={isLoggedIn} />
-      </div>
-    </main>
+    <div
+      className="min-h-screen"
+      style={{
+        background: 'hsl(var(--background))',
+        backgroundImage:
+          'radial-gradient(ellipse 80% 40% at 50% -10%, oklch(0.72 0.22 195 / 0.08), transparent)',
+      }}
+    >
+      <LandingHeader />
+      <HeroSection isLoggedIn={isLoggedIn} />
+      <FeaturesSection />
+      <DownloadSection />
+    </div>
   )
 }

@@ -1,12 +1,21 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import { cookies } from 'next/headers'
-import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { Language } from '@/lib/translations'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  weight: ['300', '400', '500', '600', '700'],
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-mono',
+  weight: ['400', '500', '600'],
+})
 
 export const metadata: Metadata = {
   title: 'StayUp — Restez à jour',
@@ -24,16 +33,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const lang = (cookieStore.get('lang')?.value === 'en' ? 'en' : 'fr') as Language
 
   return (
-    <html lang={lang} suppressHydrationWarning>
-      <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
-        </ThemeProvider>
+    <html lang={lang} className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
+      <body className={dmSans.className}>
+        <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
       </body>
     </html>
   )
