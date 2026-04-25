@@ -39,6 +39,7 @@ export const fr = {
       macNote: 'Apple Silicon & Intel',
       winNote: '64-bit',
       linuxNote: 'AppImage',
+      linuxDebNote: 'Debian / Ubuntu',
       allVersions: 'Voir toutes les versions',
       installTitle: 'Comment installer',
       uninstallTitle: 'Désinstallation complète',
@@ -73,13 +74,33 @@ export const fr = {
           paths: ['%APPDATA%\\dev.r-sik.stayup-desktop'],
         },
         linux: {
-          install: [
-            'Rendez le fichier exécutable : chmod +x StayUp*.AppImage',
-            'Lancez-le : ./StayUp*.AppImage',
-            'Optionnel : déplacez-le dans ~/Applications pour un accès facile',
+          formats: [
+            {
+              label: '.deb — Debian / Ubuntu',
+              install: [
+                'Téléchargez le fichier .deb',
+                'Installez : sudo dpkg -i StayUp_0.2.0_amd64.deb',
+              ],
+              uninstall: ['Désinstallez : sudo dpkg --purge stay-up', 'Supprimez les données :'],
+              paths: [
+                '~/.local/share/dev.r-sik.stayup-desktop',
+                '~/.config/dev.r-sik.stayup-desktop',
+              ],
+            },
+            {
+              label: 'AppImage',
+              install: [
+                'Rendez le fichier exécutable : chmod +x StayUp*.AppImage',
+                'Lancez-le : ./StayUp*.AppImage',
+                'Optionnel : déplacez-le dans ~/Applications',
+              ],
+              uninstall: ['Supprimez le fichier AppImage', 'Supprimez les données :'],
+              paths: [
+                '~/.local/share/dev.r-sik.stayup-desktop',
+                '~/.config/dev.r-sik.stayup-desktop',
+              ],
+            },
           ],
-          uninstall: ['Supprimez le fichier AppImage', 'Supprimez les données :'],
-          paths: ['~/.local/share/dev.r-sik.stayup-desktop', '~/.config/dev.r-sik.stayup-desktop'],
         },
       },
     },
