@@ -4,8 +4,21 @@ import { DownloadSection } from '@/components/landing/DownloadSection'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { getSession } from '@/lib/session'
 
+async function getLatestVersion(): Promise<string> {
+  try {
+    const res = await fetch('https://api.github.com/repos/sindus/stayup-desktop/releases/latest', {
+      next: { revalidate: 3600 },
+    })
+    if (!res.ok) throw new Error()
+    const data = await res.json()
+    return (data.tag_name as string).replace(/^v/, '')
+  } catch {
+    return '0.3.8'
+  }
+}
+
 export default async function LandingPage() {
-  const session = await getSession()
+  const [session, version] = await Promise.all([getSession(), getLatestVersion()])
   const isLoggedIn = !!session
 
   return (
@@ -18,9 +31,9 @@ export default async function LandingPage() {
       }}
     >
       <LandingHeader />
-      <HeroSection isLoggedIn={isLoggedIn} />
+      <HeroSection isLoggedIn={isLoggedIn} version={version} />
       <FeaturesSection />
-      <DownloadSection />
+      <DownloadSection version={version} />
     </div>
   )
 }

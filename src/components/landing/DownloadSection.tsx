@@ -4,50 +4,52 @@ import { Download, Monitor, Apple, Terminal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 
-const BASE = 'https://github.com/sindus/stayup-desktop/releases/download/v0.2.0'
-
-const PLATFORMS = [
-  {
-    icon: Apple,
-    label: 'macOS (Apple Silicon)',
-    href: `${BASE}/StayUp_0.2.0_aarch64.dmg`,
-    noteKey: 'macNote' as const,
-  },
-  {
-    icon: Apple,
-    label: 'macOS (Intel)',
-    href: `${BASE}/StayUp_0.2.0_x64.dmg`,
-    noteKey: 'macNote' as const,
-  },
-  {
-    icon: Monitor,
-    label: 'Windows',
-    href: `${BASE}/StayUp_0.2.0_x64-setup.exe`,
-    noteKey: 'winNote' as const,
-  },
-  {
-    icon: Terminal,
-    label: 'Linux (.deb)',
-    href: `${BASE}/StayUp_0.2.0_amd64.deb`,
-    noteKey: 'linuxDebNote' as const,
-  },
-  {
-    icon: Terminal,
-    label: 'Linux (AppImage)',
-    href: `${BASE}/StayUp_0.2.0_amd64.AppImage`,
-    noteKey: 'linuxNote' as const,
-  },
-]
+function makePlatforms(version: string) {
+  const base = `https://github.com/sindus/stayup-desktop/releases/download/v${version}`
+  return [
+    {
+      icon: Apple,
+      label: 'macOS (Apple Silicon)',
+      href: `${base}/StayUp_${version}_aarch64.dmg`,
+      noteKey: 'macNote' as const,
+    },
+    {
+      icon: Apple,
+      label: 'macOS (Intel)',
+      href: `${base}/StayUp_${version}_x64.dmg`,
+      noteKey: 'macNote' as const,
+    },
+    {
+      icon: Monitor,
+      label: 'Windows',
+      href: `${base}/StayUp_${version}_x64-setup.exe`,
+      noteKey: 'winNote' as const,
+    },
+    {
+      icon: Terminal,
+      label: 'Linux (.deb)',
+      href: `${base}/StayUp_${version}_amd64.deb`,
+      noteKey: 'linuxDebNote' as const,
+    },
+    {
+      icon: Terminal,
+      label: 'Linux (AppImage)',
+      href: `${base}/StayUp_${version}_amd64.AppImage`,
+      noteKey: 'linuxNote' as const,
+    },
+  ]
+}
 
 const SIMPLE_GUIDES = [
   { key: 'mac' as const, icon: Apple, label: 'macOS' },
   { key: 'windows' as const, icon: Monitor, label: 'Windows' },
 ]
 
-export function DownloadSection() {
+export function DownloadSection({ version }: { version: string }) {
   const { t } = useLanguage()
   const d = t.landing.download
   const linux = d.platforms.linux
+  const PLATFORMS = makePlatforms(version)
 
   return (
     <section id="download" className="py-20" style={{ borderTop: '1px solid hsl(var(--border))' }}>
@@ -57,7 +59,7 @@ export function DownloadSection() {
           className="inline-block text-[11px] font-mono font-semibold px-3 py-1 rounded-full mb-4"
           style={{ background: 'var(--teal-dim)', color: 'var(--teal)' }}
         >
-          v0.2.0
+          v{version}
         </span>
         <div className="flex items-center justify-center gap-2 mb-3">
           <Download className="h-5 w-5 text-primary" />

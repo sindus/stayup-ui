@@ -79,7 +79,7 @@ export const fr = {
               label: '.deb — Debian / Ubuntu',
               install: [
                 'Téléchargez le fichier .deb',
-                'Installez : sudo dpkg -i StayUp_0.2.0_amd64.deb',
+                'Installez : sudo dpkg -i StayUp_*_amd64.deb',
               ],
               uninstall: ['Désinstallez : sudo dpkg --purge stay-up', 'Supprimez les données :'],
               paths: [

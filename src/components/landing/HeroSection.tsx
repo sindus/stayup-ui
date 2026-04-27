@@ -65,9 +65,10 @@ const PROVIDER_ICONS: Record<string, React.ReactNode> = {
 
 interface HeroSectionProps {
   isLoggedIn?: boolean
+  version?: string
 }
 
-export function HeroSection({ isLoggedIn }: HeroSectionProps) {
+export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps) {
   return (
     <section className="py-20">
       <div className="max-w-[1200px] mx-auto px-8">
@@ -82,8 +83,8 @@ export function HeroSection({ isLoggedIn }: HeroSectionProps) {
                 color: 'var(--teal)',
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--green)] animate-pulse" />
-              v0.2.0 — Disponible maintenant
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--green)] animate-pulse" />v
+              {version} — Disponible maintenant
             </div>
 
             <h1

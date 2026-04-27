@@ -72,7 +72,7 @@ export const en: Translations = {
           formats: [
             {
               label: '.deb — Debian / Ubuntu',
-              install: ['Download the .deb file', 'Install: sudo dpkg -i StayUp_0.2.0_amd64.deb'],
+              install: ['Download the .deb file', 'Install: sudo dpkg -i StayUp_*_amd64.deb'],
               uninstall: ['Uninstall: sudo dpkg --purge stay-up', 'Delete data:'],
               paths: [
                 '~/.local/share/dev.r-sik.stayup-desktop',
