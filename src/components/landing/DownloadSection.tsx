@@ -12,30 +12,49 @@ function makePlatforms(version: string) {
       label: 'macOS (Apple Silicon)',
       href: `${base}/StayUp_${version}_aarch64.dmg`,
       noteKey: 'macNote' as const,
+      command: null,
     },
     {
       icon: Apple,
       label: 'macOS (Intel)',
       href: `${base}/StayUp_${version}_x64.dmg`,
       noteKey: 'macNote' as const,
+      command: null,
+    },
+    {
+      icon: Apple,
+      label: 'Homebrew',
+      href: null,
+      noteKey: 'brewNote' as const,
+      command: 'brew install --cask sindus/tap/stayup',
     },
     {
       icon: Monitor,
       label: 'Windows',
       href: `${base}/StayUp_${version}_x64-setup.exe`,
       noteKey: 'winNote' as const,
+      command: null,
     },
     {
       icon: Terminal,
       label: 'Linux (.deb)',
       href: `${base}/StayUp_${version}_amd64.deb`,
       noteKey: 'linuxDebNote' as const,
+      command: null,
     },
     {
       icon: Terminal,
       label: 'Linux (AppImage)',
       href: `${base}/StayUp_${version}_amd64.AppImage`,
       noteKey: 'linuxNote' as const,
+      command: null,
+    },
+    {
+      icon: Terminal,
+      label: 'Snap',
+      href: null,
+      noteKey: 'snapNote' as const,
+      command: 'sudo snap install stayup',
     },
   ]
 }
@@ -74,9 +93,23 @@ export function DownloadSection({ version }: { version: string }) {
       <div className="flex flex-wrap gap-3 justify-center mb-4 max-w-[1200px] mx-auto px-8">
         {PLATFORMS.map((p) => {
           const Icon = p.icon
+          if (p.command) {
+            return (
+              <Button key={p.label} variant="outline" asChild>
+                <code
+                  className="cursor-pointer font-mono text-xs"
+                  onClick={() => navigator.clipboard.writeText(p.command!)}
+                  title="Copier"
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span>{p.command}</span>
+                </code>
+              </Button>
+            )
+          }
           return (
             <Button key={p.label} variant="outline" asChild>
-              <a href={p.href} target="_blank" rel="noopener noreferrer">
+              <a href={p.href!} target="_blank" rel="noopener noreferrer">
                 <Icon className="mr-2 h-4 w-4" />
                 <span>{p.label}</span>
                 <span className="ml-2 text-xs text-muted-foreground">{d[p.noteKey]}</span>

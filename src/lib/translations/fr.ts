@@ -40,6 +40,8 @@ export const fr = {
       winNote: '64-bit',
       linuxNote: 'AppImage',
       linuxDebNote: 'Debian / Ubuntu',
+      snapNote: 'Snap',
+      brewNote: 'Homebrew',
       allVersions: 'Voir toutes les versions',
       installTitle: 'Comment installer',
       uninstallTitle: 'Désinstallation complète',

@@ -41,6 +41,8 @@ export const en: Translations = {
       winNote: '64-bit',
       linuxNote: 'AppImage',
       linuxDebNote: 'Debian / Ubuntu',
+      snapNote: 'Snap',
+      brewNote: 'Homebrew',
       allVersions: 'View all releases',
       installTitle: 'How to install',
       uninstallTitle: 'Complete uninstall',
