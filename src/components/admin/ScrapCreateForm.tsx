@@ -15,22 +15,38 @@ export function ScrapCreateForm() {
     max_scraps: '5',
     retention_days: '15',
   })
+  const [exclude, setExclude] = useState<string[]>([])
+  const [excludeInput, setExcludeInput] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  function addExclude() {
+    const val = excludeInput.trim()
+    if (val && !exclude.includes(val)) {
+      setExclude((prev) => [...prev, val])
+    }
+    setExcludeInput('')
+  }
+
+  function removeExclude(selector: string) {
+    setExclude((prev) => prev.filter((s) => s !== selector))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setPending(true)
     setError(null)
+    const config: Record<string, unknown> = {
+      articles_selector: form.articles_selector,
+      content_selector: form.content_selector,
+      max_scraps: Number(form.max_scraps),
+      retention_days: Number(form.retention_days),
+    }
+    if (exclude.length > 0) config.exclude = exclude
     const result = await adminCreateRepositoryAction({
       url: form.url,
       type: 'scrap',
-      config: {
-        articles_selector: form.articles_selector,
-        content_selector: form.content_selector,
-        max_scraps: Number(form.max_scraps),
-        retention_days: Number(form.retention_days),
-      },
+      config,
     })
     setPending(false)
     if (result.error) {
@@ -43,6 +59,8 @@ export function ScrapCreateForm() {
         max_scraps: '5',
         retention_days: '15',
       })
+      setExclude([])
+      setExcludeInput('')
       setShow(false)
       router.refresh()
     }
@@ -94,6 +112,46 @@ export function ScrapCreateForm() {
                 className="w-full rounded-md border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring"
               />
             </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-medium">Exclusions DOM (optionnel)</label>
+            <div className="flex gap-2">
+              <input
+                value={excludeInput}
+                onChange={(e) => setExcludeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault()
+                    addExclude()
+                  }
+                }}
+                placeholder="ex: div.ads, .sidebar"
+                className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button type="button" size="sm" variant="outline" onClick={addExclude}>
+                Ajouter
+              </Button>
+            </div>
+            {exclude.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {exclude.map((selector) => (
+                  <span
+                    key={selector}
+                    className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs font-mono"
+                  >
+                    {selector}
+                    <button
+                      type="button"
+                      onClick={() => removeExclude(selector)}
+                      className="text-muted-foreground hover:text-foreground leading-none"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
