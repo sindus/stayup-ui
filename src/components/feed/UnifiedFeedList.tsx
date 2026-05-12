@@ -13,6 +13,26 @@ import type {
 } from '@/types'
 import { formatDate } from '@/lib/utils'
 
+function extractHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+function extractChannelName(url: string): string {
+  try {
+    const { pathname } = new URL(url)
+    const atMatch = pathname.match(/^\/@(.+)/)
+    if (atMatch) return `@${atMatch[1]}`
+    const segments = pathname.split('/').filter(Boolean)
+    return segments[segments.length - 1] ?? url
+  } catch {
+    return url
+  }
+}
+
 type TaggedItem =
   | { provider: 'changelog'; item: ChangelogItem }
   | { provider: 'youtube'; item: YoutubeItem }
@@ -148,8 +168,8 @@ export function UnifiedFeedList({
                 />
               )}
               {tagged.provider === 'youtube' && <YoutubeEntry item={tagged.item} color={color} />}
-              {tagged.provider === 'rss' && <RssEntry item={tagged.item} />}
-              {tagged.provider === 'scrap' && <ScrapEntry item={tagged.item} />}
+              {tagged.provider === 'rss' && <RssEntry item={tagged.item} color={color} />}
+              {tagged.provider === 'scrap' && <ScrapEntry item={tagged.item} color={color} />}
             </div>
           </div>
         )
@@ -185,11 +205,9 @@ function ChangelogEntry({
             {item.version}
           </span>
         </div>
-        {item.datetime && (
-          <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--dim)' }}>
-            {formatDate(item.datetime)}
-          </span>
-        )}
+        <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--dim)' }}>
+          {formatDate(item.datetime ?? item.executed_at)}
+        </span>
       </div>
       {item.content && (
         <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed">
@@ -250,12 +268,19 @@ function YoutubeEntry({ item, color }: { item: YoutubeItem; color: string }) {
         )}
       </div>
       <div className="space-y-1 min-w-0">
-        <p className="text-[13.5px] font-medium line-clamp-2 leading-snug">
+        <p className="text-[13.5px] font-medium line-clamp-2 leading-snug text-gray-100">
           {parsed?.title ?? 'Sans titre'}
         </p>
-        <p className="text-[11px] font-mono text-muted-foreground">
-          {formatDate(item.datetime ?? item.executed_at)}
-        </p>
+        <div className="flex items-center gap-2">
+          {parsed?.url && (
+            <span className="text-[11px] font-mono" style={{ color }}>
+              {extractChannelName(parsed.url)}
+            </span>
+          )}
+          <span className="text-[11px] font-mono text-gray-500">
+            {formatDate(item.datetime ?? item.executed_at)}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -270,7 +295,7 @@ function YoutubeEntry({ item, color }: { item: YoutubeItem; color: string }) {
   )
 }
 
-function RssEntry({ item }: { item: RssItem }) {
+function RssEntry({ item, color }: { item: RssItem; color: string }) {
   let parsed: RssItemContent | null = null
   try {
     parsed = JSON.parse(item.content) as RssItemContent
@@ -278,22 +303,25 @@ function RssEntry({ item }: { item: RssItem }) {
     /* ignore */
   }
 
+  const source = parsed?.link ? extractHostname(parsed.link) : null
+
   const inner = (
     <div className="pl-3 py-1" style={{ borderLeft: '2px solid hsl(var(--border))' }}>
       <div className="flex items-center justify-between gap-2 mb-1">
-        <span className="text-[13.5px] font-medium line-clamp-1">
+        <span className="text-[13.5px] font-medium line-clamp-1 text-gray-100">
           {parsed?.title ?? 'Sans titre'}
         </span>
-        {item.datetime && (
-          <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--dim)' }}>
-            {formatDate(item.datetime)}
-          </span>
-        )}
+        <span className="text-[11px] font-mono shrink-0 text-gray-500">
+          {formatDate(item.datetime ?? item.executed_at)}
+        </span>
       </div>
-      {parsed?.summary && (
-        <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed">
-          {parsed.summary}
+      {source && (
+        <p className="text-[11px] font-mono mb-1" style={{ color }}>
+          {source}
         </p>
+      )}
+      {parsed?.summary && (
+        <p className="text-[13px] text-gray-400 line-clamp-2 leading-relaxed">{parsed.summary}</p>
       )}
     </div>
   )
@@ -312,7 +340,7 @@ function RssEntry({ item }: { item: RssItem }) {
   )
 }
 
-function ScrapEntry({ item }: { item: ScrapItem }) {
+function ScrapEntry({ item, color }: { item: ScrapItem; color: string }) {
   const params: ScrapItemParams | null =
     typeof item.params === 'string'
       ? (() => {
@@ -328,16 +356,16 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
     <div className="pl-3 py-1" style={{ borderLeft: '2px solid hsl(var(--border))' }}>
       <div className="flex items-center justify-between gap-2 mb-1">
         {params?.url && (
-          <span className="text-[12px] font-mono text-muted-foreground line-clamp-1 truncate">
+          <span className="text-[12px] font-mono line-clamp-1 truncate" style={{ color }}>
             {params.url}
           </span>
         )}
-        <span className="text-[11px] font-mono shrink-0" style={{ color: 'var(--dim)' }}>
+        <span className="text-[11px] font-mono shrink-0 text-gray-500">
           {formatDate(item.executed_at)}
         </span>
       </div>
       {item.content && (
-        <p className="text-[13px] text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="text-[13px] text-gray-400 line-clamp-2 leading-relaxed">
           {item.content.slice(0, 200)}
         </p>
       )}

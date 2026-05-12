@@ -11,6 +11,26 @@ import type {
 } from '@/types'
 import { formatDate } from '@/lib/utils'
 
+function extractHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+function extractChannelName(url: string): string {
+  try {
+    const { pathname } = new URL(url)
+    const atMatch = pathname.match(/^\/@(.+)/)
+    if (atMatch) return `@${atMatch[1]}`
+    const segments = pathname.split('/').filter(Boolean)
+    return segments[segments.length - 1] ?? url
+  } catch {
+    return url
+  }
+}
+
 type AnyItem = ChangelogItem | YoutubeItem | RssItem | ScrapItem
 
 function getItemDate(item: AnyItem): string {
@@ -66,11 +86,9 @@ function ChangelogEntry({ item, repoUrl }: { item: ChangelogItem; repoUrl: strin
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm">{item.version}</span>
-        {item.datetime && (
-          <span className="text-xs text-muted-foreground shrink-0">
-            {formatDate(item.datetime)}
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground shrink-0">
+          {formatDate(item.datetime ?? item.executed_at)}
+        </span>
       </div>
       {item.content && (
         <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">
@@ -114,9 +132,16 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
       )}
       <div className="space-y-1 min-w-0">
         <p className="font-medium text-sm line-clamp-2">{parsed?.title ?? 'Sans titre'}</p>
-        <p className="text-xs text-muted-foreground">
-          {formatDate(item.datetime ?? item.executed_at)}
-        </p>
+        <div className="flex items-center gap-2">
+          {parsed?.url && (
+            <span className="text-xs font-mono text-muted-foreground">
+              {extractChannelName(parsed.url)}
+            </span>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {formatDate(item.datetime ?? item.executed_at)}
+          </span>
+        </div>
       </div>
     </div>
   )
@@ -139,16 +164,17 @@ function RssEntry({ item }: { item: RssItem }) {
     // ignore
   }
 
+  const source = parsed?.link ? extractHostname(parsed.link) : null
+
   const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <span className="font-medium text-sm line-clamp-1">{parsed?.title ?? 'Sans titre'}</span>
-        {item.datetime && (
-          <span className="text-xs text-muted-foreground shrink-0">
-            {formatDate(item.datetime)}
-          </span>
-        )}
+        <span className="text-xs text-muted-foreground shrink-0">
+          {formatDate(item.datetime ?? item.executed_at)}
+        </span>
       </div>
+      {source && <p className="text-xs font-mono text-muted-foreground">{source}</p>}
       {parsed?.summary && (
         <p className="text-sm text-muted-foreground line-clamp-2">{parsed.summary}</p>
       )}
