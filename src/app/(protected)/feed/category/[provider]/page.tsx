@@ -2,17 +2,10 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getCachedUserFeed } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
-import { FeedItemList } from '@/components/feed/FeedItemList'
-import type { Provider } from '@/types'
+import { FeedClientView } from '@/components/feed/FeedClientView'
+import type { Provider, TaggedItem } from '@/types'
 
 const PROVIDERS = ['changelog', 'youtube', 'rss', 'scrap'] as const
-
-const PROVIDER_LABELS: Record<Provider, string> = {
-  changelog: 'GitHub Changelog',
-  youtube: 'YouTube',
-  rss: 'RSS',
-  scrap: 'Scraping web',
-}
 
 export default async function CategoryPage({ params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params
@@ -34,16 +27,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
     )
   }
 
-  const items = feedData.connectors[provider as Provider] ?? []
+  const rawItems = feedData.connectors[provider as Provider] ?? []
+  const items = rawItems.map((item) => ({
+    provider: provider as Provider,
+    item,
+  })) as TaggedItem[]
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">{PROVIDER_LABELS[provider as Provider]}</h1>
-      <FeedItemList
-        items={items}
-        provider={provider as Provider}
-        repositories={feedData.repositories}
-      />
-    </div>
-  )
+  return <FeedClientView items={items} repositories={feedData.repositories} />
 }

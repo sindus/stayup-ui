@@ -2,9 +2,8 @@ import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { getCachedUserFeed } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
-import { extractIdentifier } from '@/lib/utils'
-import { FeedItemList } from '@/components/feed/FeedItemList'
-import type { Provider } from '@/types'
+import { FeedClientView } from '@/components/feed/FeedClientView'
+import type { Provider, TaggedItem } from '@/types'
 
 export default async function FluxPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -27,14 +26,10 @@ export default async function FluxPage({ params }: { params: Promise<{ id: strin
   if (!repo) notFound()
 
   const provider = repo.provider as Provider
-  const identifier = extractIdentifier(repo.url, provider)
   const allItems = feedData.connectors[provider] ?? []
-  const items = allItems.filter((item) => item.repository_id === repo.repository_id)
+  const items = allItems
+    .filter((item) => item.repository_id === repo.repository_id)
+    .map((item) => ({ provider, item })) as TaggedItem[]
 
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6 font-mono">{identifier}</h1>
-      <FeedItemList items={items} provider={provider} repositories={feedData.repositories} />
-    </div>
-  )
+  return <FeedClientView items={items} repositories={feedData.repositories} />
 }
