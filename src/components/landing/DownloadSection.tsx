@@ -59,17 +59,28 @@ function makePlatforms(version: string) {
   ]
 }
 
-const SIMPLE_GUIDES = [
-  { key: 'brew' as const, icon: Apple, label: 'macOS — Homebrew' },
-  { key: 'mac' as const, icon: Apple, label: 'macOS — .dmg' },
-  { key: 'windows' as const, icon: Monitor, label: 'Windows' },
-]
-
 export function DownloadSection({ version }: { version: string }) {
   const { t } = useLanguage()
   const d = t.landing.download
   const linux = d.platforms.linux
   const PLATFORMS = makePlatforms(version)
+
+  const macFormats = [
+    {
+      label: 'Homebrew',
+      mono: true,
+      install: d.platforms.brew.install,
+      uninstall: d.platforms.brew.uninstall,
+      paths: d.platforms.brew.paths,
+    },
+    {
+      label: '.dmg',
+      mono: false,
+      install: d.platforms.mac.install,
+      uninstall: d.platforms.mac.uninstall,
+      paths: d.platforms.mac.paths,
+    },
+  ]
 
   return (
     <section id="download" className="py-20" style={{ borderTop: '1px solid hsl(var(--border))' }}>
@@ -135,21 +146,21 @@ export function DownloadSection({ version }: { version: string }) {
       <div className="max-w-5xl mx-auto px-4">
         <h3 className="text-xl font-semibold text-center mb-8">{d.installTitle}</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {SIMPLE_GUIDES.map(({ key, icon: Icon, label }) => {
-            const steps = d.platforms[key].install
-            return (
-              <div
-                key={key}
-                className="rounded-[10px] p-5"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{label}</span>
-                </div>
+        {/* macOS */}
+        <div
+          className="rounded-[10px] p-5 mb-4"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <Apple className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">macOS</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {macFormats.map((fmt) => (
+              <div key={fmt.label}>
+                <p className="text-xs font-semibold text-foreground mb-3">{fmt.label}</p>
                 <ol className="space-y-3">
-                  {steps.map((step, i) => (
+                  {fmt.install.map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm">
                       <span
                         className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-mono font-medium mt-0.5"
@@ -157,13 +168,41 @@ export function DownloadSection({ version }: { version: string }) {
                       >
                         {i + 1}
                       </span>
-                      <span className="text-muted-foreground leading-relaxed">{step}</span>
+                      <span
+                        className={`text-muted-foreground leading-relaxed${fmt.mono ? ' font-mono text-xs break-all' : ''}`}
+                      >
+                        {step}
+                      </span>
                     </li>
                   ))}
                 </ol>
               </div>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Windows */}
+        <div
+          className="rounded-[10px] p-5 mb-4"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Monitor className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">Windows</span>
+          </div>
+          <ol className="space-y-3">
+            {d.platforms.windows.install.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm">
+                <span
+                  className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-mono font-medium mt-0.5"
+                  style={{ background: 'var(--teal-dim)', color: 'var(--teal)' }}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-muted-foreground leading-relaxed">{step}</span>
+              </li>
+            ))}
+          </ol>
         </div>
 
         {/* Linux */}
@@ -203,21 +242,21 @@ export function DownloadSection({ version }: { version: string }) {
         <h3 className="text-xl font-semibold text-center mb-3">{d.uninstallTitle}</h3>
         <p className="text-center text-sm text-muted-foreground mb-8">{d.uninstallSubtitle}</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          {SIMPLE_GUIDES.map(({ key, icon: Icon, label }) => {
-            const { uninstall: steps, paths } = d.platforms[key]
-            return (
-              <div
-                key={key}
-                className="rounded-[10px] p-5"
-                style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{label}</span>
-                </div>
+        {/* macOS uninstall */}
+        <div
+          className="rounded-[10px] p-5 mb-4"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex items-center gap-2 mb-5">
+            <Apple className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">macOS</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {macFormats.map((fmt) => (
+              <div key={fmt.label}>
+                <p className="text-xs font-semibold text-foreground mb-3">{fmt.label}</p>
                 <ol className="space-y-3">
-                  {steps.map((step, i) => (
+                  {fmt.uninstall.map((step, i) => (
                     <li key={i} className="flex gap-3 text-sm">
                       <span
                         className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-mono font-medium mt-0.5"
@@ -225,13 +264,17 @@ export function DownloadSection({ version }: { version: string }) {
                       >
                         {i + 1}
                       </span>
-                      <span className="text-muted-foreground leading-relaxed">{step}</span>
+                      <span
+                        className={`text-muted-foreground leading-relaxed${fmt.mono ? ' font-mono text-xs break-all' : ''}`}
+                      >
+                        {step}
+                      </span>
                     </li>
                   ))}
                 </ol>
-                {paths.length > 0 && (
+                {fmt.paths.length > 0 && (
                   <ul className="mt-3 space-y-1.5 pl-8">
-                    {paths.map((p) => (
+                    {fmt.paths.map((p) => (
                       <li key={p}>
                         <code
                           className="text-xs px-2 py-0.5 rounded font-mono text-foreground break-all"
@@ -244,8 +287,46 @@ export function DownloadSection({ version }: { version: string }) {
                   </ul>
                 )}
               </div>
-            )
-          })}
+            ))}
+          </div>
+        </div>
+
+        {/* Windows uninstall */}
+        <div
+          className="rounded-[10px] p-5 mb-4"
+          style={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Monitor className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium text-sm">Windows</span>
+          </div>
+          <ol className="space-y-3">
+            {d.platforms.windows.uninstall.map((step, i) => (
+              <li key={i} className="flex gap-3 text-sm">
+                <span
+                  className="flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-mono font-medium mt-0.5"
+                  style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}
+                >
+                  {i + 1}
+                </span>
+                <span className="text-muted-foreground leading-relaxed">{step}</span>
+              </li>
+            ))}
+          </ol>
+          {d.platforms.windows.paths.length > 0 && (
+            <ul className="mt-3 space-y-1.5 pl-8">
+              {d.platforms.windows.paths.map((p) => (
+                <li key={p}>
+                  <code
+                    className="text-xs px-2 py-0.5 rounded font-mono text-foreground break-all"
+                    style={{ background: 'var(--surface-2)' }}
+                  >
+                    {p}
+                  </code>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Linux uninstall */}
