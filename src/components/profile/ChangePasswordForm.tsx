@@ -8,20 +8,21 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { updateProfileAction } from '@/lib/auth-actions'
+import { useLanguage } from '@/context/LanguageContext'
 
-const schema = z
-  .object({
-    newPassword: z.string().min(8, 'Nouveau mot de passe trop court (min. 8 caractères)'),
-    confirmPassword: z.string(),
-  })
-  .refine((d) => d.newPassword === d.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
-  })
-
-type FormData = z.infer<typeof schema>
+type FormData = { newPassword: string; confirmPassword: string }
 
 export function ChangePasswordForm() {
+  const { t } = useLanguage()
+  const schema = z
+    .object({
+      newPassword: z.string().min(8, t.auth.passwordTooShort),
+      confirmPassword: z.string(),
+    })
+    .refine((d) => d.newPassword === d.confirmPassword, {
+      message: t.auth.passwordMismatch,
+      path: ['confirmPassword'],
+    })
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const {
@@ -46,7 +47,7 @@ export function ChangePasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+        <Label htmlFor="newPassword">{t.profile.newPassword}</Label>
         <Input
           id="newPassword"
           type="password"
@@ -59,7 +60,7 @@ export function ChangePasswordForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmer le nouveau mot de passe</Label>
+        <Label htmlFor="confirmPassword">{t.profile.confirmNewPassword}</Label>
         <Input
           id="confirmPassword"
           type="password"
@@ -72,10 +73,10 @@ export function ChangePasswordForm() {
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && <p className="text-sm text-green-600">Mot de passe modifié avec succès.</p>}
+      {success && <p className="text-sm text-green-600">{t.profile.passwordUpdated}</p>}
 
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Modification...' : 'Changer le mot de passe'}
+        {isSubmitting ? t.profile.updatingPassword : t.profile.updatePassword}
       </Button>
     </form>
   )

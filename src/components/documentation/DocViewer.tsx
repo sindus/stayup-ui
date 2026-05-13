@@ -1,3 +1,7 @@
+'use client'
+
+import { useLanguage } from '@/context/LanguageContext'
+
 interface DocViewerProps {
   content: string | null
   version: number | null
@@ -5,10 +9,13 @@ interface DocViewerProps {
 }
 
 export function DocViewer({ content, version, scrapedAt }: DocViewerProps) {
+  const { t, lang } = useLanguage()
+  const locale = lang === 'fr' ? 'fr-FR' : 'en-US'
+
   if (!content) {
     return (
       <p className="text-sm text-muted-foreground italic py-12 text-center">
-        Le contenu n&apos;a pas encore été scrappé.
+        {t.documentation.noContentScrapped}
       </p>
     )
   }
@@ -17,12 +24,12 @@ export function DocViewer({ content, version, scrapedAt }: DocViewerProps) {
     <div className="space-y-3">
       {version !== null && (
         <p className="text-xs text-muted-foreground">
-          Version {version}
+          {t.documentation.version} {version}
           {scrapedAt && (
             <>
               {' '}
               ·{' '}
-              {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(
+              {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
                 new Date(scrapedAt),
               )}
             </>

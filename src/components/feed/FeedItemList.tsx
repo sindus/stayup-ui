@@ -1,3 +1,5 @@
+'use client'
+
 import Image from 'next/image'
 import type {
   ChangelogItem,
@@ -10,6 +12,7 @@ import type {
   Provider,
 } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { useLanguage } from '@/context/LanguageContext'
 
 function extractHostname(url: string): string {
   try {
@@ -45,11 +48,11 @@ interface FeedItemListProps {
 }
 
 export function FeedItemList({ items, provider, repositories = [] }: FeedItemListProps) {
+  const { t } = useLanguage()
+
   if (items.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground italic py-12 text-center">
-        Aucun contenu disponible.
-      </p>
+      <p className="text-sm text-muted-foreground italic py-12 text-center">{t.feed.noContent}</p>
     )
   }
 
@@ -70,9 +73,13 @@ export function FeedItemList({ items, provider, repositories = [] }: FeedItemLis
           />
         ))}
       {provider === 'youtube' &&
-        (sorted as YoutubeItem[]).map((item) => <YoutubeEntry key={item.id} item={item} />)}
+        (sorted as YoutubeItem[]).map((item) => (
+          <YoutubeEntry key={item.id} item={item} noTitle={t.viewer.noTitle} />
+        ))}
       {provider === 'rss' &&
-        (sorted as RssItem[]).map((item) => <RssEntry key={item.id} item={item} />)}
+        (sorted as RssItem[]).map((item) => (
+          <RssEntry key={item.id} item={item} noTitle={t.viewer.noTitle} />
+        ))}
       {provider === 'scrap' &&
         (sorted as ScrapItem[]).map((item) => <ScrapEntry key={item.id} item={item} />)}
     </div>
@@ -110,7 +117,7 @@ function ChangelogEntry({ item, repoUrl }: { item: ChangelogItem; repoUrl: strin
   )
 }
 
-function YoutubeEntry({ item }: { item: YoutubeItem }) {
+function YoutubeEntry({ item, noTitle }: { item: YoutubeItem; noTitle: string }) {
   let parsed: YoutubeItemContent | null = null
   try {
     parsed = JSON.parse(item.content) as YoutubeItemContent
@@ -123,7 +130,7 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
       {parsed?.thumbnail && (
         <Image
           src={parsed.thumbnail}
-          alt={parsed?.title ?? 'Thumbnail'}
+          alt={parsed?.title ?? ''}
           width={120}
           height={68}
           className="object-cover rounded shrink-0"
@@ -131,7 +138,7 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
         />
       )}
       <div className="space-y-1 min-w-0">
-        <p className="font-medium text-sm line-clamp-2">{parsed?.title ?? 'Sans titre'}</p>
+        <p className="font-medium text-sm line-clamp-2">{parsed?.title ?? noTitle}</p>
         <div className="flex items-center gap-2">
           {parsed?.url && (
             <span className="text-xs font-mono text-muted-foreground">
@@ -156,7 +163,7 @@ function YoutubeEntry({ item }: { item: YoutubeItem }) {
   )
 }
 
-function RssEntry({ item }: { item: RssItem }) {
+function RssEntry({ item, noTitle }: { item: RssItem; noTitle: string }) {
   let parsed: RssItemContent | null = null
   try {
     parsed = JSON.parse(item.content) as RssItemContent
@@ -169,7 +176,7 @@ function RssEntry({ item }: { item: RssItem }) {
   const inner = (
     <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-medium text-sm line-clamp-1">{parsed?.title ?? 'Sans titre'}</span>
+        <span className="font-medium text-sm line-clamp-1">{parsed?.title ?? noTitle}</span>
         <span className="text-xs text-muted-foreground shrink-0">
           {formatDate(item.datetime ?? item.executed_at)}
         </span>

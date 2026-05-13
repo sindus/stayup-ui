@@ -9,6 +9,8 @@ import type {
   Provider,
 } from '@/types'
 import { formatDate } from '@/lib/utils'
+import { useLanguage } from '@/context/LanguageContext'
+import type { Translations } from '@/lib/translations'
 
 function extractHostname(url: string): string {
   try {
@@ -60,10 +62,12 @@ interface FeedContentViewerProps {
 }
 
 export function FeedContentViewer({ item, repositories }: FeedContentViewerProps) {
+  const { t } = useLanguage()
+
   if (!item) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-[13px] italic text-muted-foreground">Sélectionnez un élément.</p>
+        <p className="text-[13px] italic text-muted-foreground">{t.viewer.selectItem}</p>
       </div>
     )
   }
@@ -79,16 +83,17 @@ export function FeedContentViewer({ item, repositories }: FeedContentViewerProps
         repoUrl={repoUrlMap[item.item.repository_id] ?? ''}
         color={color}
         dimColor={dimColor}
+        t={t}
       />
     )
   }
   if (item.provider === 'youtube') {
-    return <YoutubeContent item={item.item} color={color} dimColor={dimColor} />
+    return <YoutubeContent item={item.item} color={color} dimColor={dimColor} t={t} />
   }
   if (item.provider === 'rss') {
-    return <RssContent item={item.item} color={color} dimColor={dimColor} />
+    return <RssContent item={item.item} color={color} dimColor={dimColor} t={t} />
   }
-  return <ScrapContent item={item.item} color={color} dimColor={dimColor} />
+  return <ScrapContent item={item.item} color={color} dimColor={dimColor} t={t} />
 }
 
 function ExternalLinkIcon() {
@@ -135,11 +140,13 @@ function ChangelogContent({
   repoUrl,
   color,
   dimColor,
+  t,
 }: {
   item: import('@/types').ChangelogItem
   repoUrl: string
   color: string
   dimColor: string
+  t: Translations
 }) {
   const href = repoUrl ? `${repoUrl}/releases/tag/${item.version}` : undefined
   const repoName = repoUrl.replace('https://github.com/', '') || 'repository'
@@ -168,7 +175,9 @@ function ChangelogContent({
         </div>
       )}
 
-      {href && <OpenButton href={href} label="Voir sur GitHub" color={color} dimColor={dimColor} />}
+      {href && (
+        <OpenButton href={href} label={t.viewer.openOnGithub} color={color} dimColor={dimColor} />
+      )}
     </div>
   )
 }
@@ -177,10 +186,12 @@ function YoutubeContent({
   item,
   color,
   dimColor,
+  t,
 }: {
   item: import('@/types').YoutubeItem
   color: string
   dimColor: string
+  t: Translations
 }) {
   let parsed: YoutubeItemContent | null = null
   try {
@@ -197,7 +208,7 @@ function YoutubeContent({
   return (
     <div className="p-6 max-w-2xl">
       <h2 className="text-[16px] font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-2">
-        {parsed?.title ?? 'Sans titre'}
+        {parsed?.title ?? t.viewer.noTitle}
       </h2>
 
       <div className="flex items-center gap-3 mb-5">
@@ -235,7 +246,12 @@ function YoutubeContent({
       </div>
 
       {videoUrl && (
-        <OpenButton href={videoUrl} label="Voir sur YouTube" color={color} dimColor={dimColor} />
+        <OpenButton
+          href={videoUrl}
+          label={t.viewer.watchOnYoutube}
+          color={color}
+          dimColor={dimColor}
+        />
       )}
     </div>
   )
@@ -258,10 +274,12 @@ function RssContent({
   item,
   color,
   dimColor,
+  t,
 }: {
   item: import('@/types').RssItem
   color: string
   dimColor: string
+  t: Translations
 }) {
   let parsed: RssItemContent | null = null
   try {
@@ -275,7 +293,7 @@ function RssContent({
   return (
     <div className="p-6 max-w-2xl">
       <h2 className="text-[16px] font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-2">
-        {parsed?.title ?? 'Sans titre'}
+        {parsed?.title ?? t.viewer.noTitle}
       </h2>
 
       <div className="flex items-center gap-3 mb-6">
@@ -297,7 +315,12 @@ function RssContent({
       )}
 
       {parsed?.link && (
-        <OpenButton href={parsed.link} label="Lire l'article" color={color} dimColor={dimColor} />
+        <OpenButton
+          href={parsed.link}
+          label={t.viewer.readArticle}
+          color={color}
+          dimColor={dimColor}
+        />
       )}
     </div>
   )
@@ -307,10 +330,12 @@ function ScrapContent({
   item,
   color,
   dimColor,
+  t,
 }: {
   item: import('@/types').ScrapItem
   color: string
   dimColor: string
+  t: Translations
 }) {
   const params: ScrapItemParams | null =
     typeof item.params === 'string'
@@ -343,7 +368,12 @@ function ScrapContent({
       )}
 
       {params?.url && (
-        <OpenButton href={params.url} label="Visiter le site" color={color} dimColor={dimColor} />
+        <OpenButton
+          href={params.url}
+          label={t.viewer.visitWebsite}
+          color={color}
+          dimColor={dimColor}
+        />
       )}
     </div>
   )

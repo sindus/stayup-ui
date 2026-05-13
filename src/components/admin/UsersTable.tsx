@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { adminDeleteUserAction } from '@/lib/admin-actions'
 import type { AdminUser } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   Table,
   TableBody,
@@ -18,6 +19,7 @@ import { EditUserDialog } from './EditUserDialog'
 
 export function UsersTable({ users }: { users: AdminUser[] }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -41,10 +43,10 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Créé le</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t.admin.name}</TableHead>
+            <TableHead>{t.admin.email}</TableHead>
+            <TableHead>{t.admin.createdOn}</TableHead>
+            <TableHead className="text-right">{t.admin.actions}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,7 +60,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/admin/users/${user.id}`}>Flux</Link>
+                    <Link href={`/admin/users/${user.id}`}>{t.admin.fluxLinks}</Link>
                   </Button>
                   <EditUserDialog user={user} onSuccess={() => router.refresh()} />
                   {confirmId === user.id ? (
@@ -69,10 +71,10 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                         disabled={pending === user.id}
                         onClick={() => handleDelete(user.id)}
                       >
-                        {pending === user.id ? '…' : 'Confirmer'}
+                        {pending === user.id ? '…' : t.admin.confirm}
                       </Button>
                       <Button variant="ghost" size="sm" onClick={() => setConfirmId(null)}>
-                        Annuler
+                        {t.admin.cancel}
                       </Button>
                     </div>
                   ) : (
@@ -82,7 +84,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
                       className="text-destructive hover:text-destructive"
                       onClick={() => setConfirmId(user.id)}
                     >
-                      Supprimer
+                      {t.admin.delete}
                     </Button>
                   )}
                 </div>
@@ -92,7 +94,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
           {users.length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                Aucun utilisateur
+                {t.admin.noUsers}
               </TableCell>
             </TableRow>
           )}

@@ -1,14 +1,20 @@
+'use client'
+
 import type { DocRegistry } from '@/types'
 import { DocCard } from './DocCard'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface DocListProps {
   docs: DocRegistry[]
   emptyMessage?: string
 }
 
-export function DocList({ docs, emptyMessage = 'Aucune documentation disponible.' }: DocListProps) {
+export function DocList({ docs, emptyMessage }: DocListProps) {
+  const { t } = useLanguage()
+  const message = emptyMessage ?? t.documentation.noContent
+
   if (docs.length === 0) {
-    return <p className="text-sm text-muted-foreground italic py-12 text-center">{emptyMessage}</p>
+    return <p className="text-sm text-muted-foreground italic py-12 text-center">{message}</p>
   }
 
   return (

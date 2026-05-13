@@ -23,37 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useLanguage } from '@/context/LanguageContext'
 
 type AllProvider = 'changelog' | 'youtube' | 'rss' | 'scrap'
 type FeedProvider = 'changelog' | 'youtube' | 'rss'
 
-const schema = z
-  .object({
-    provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
-    identifier: z.string().max(200),
-    scrapRepoId: z.string(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.provider === 'scrap') {
-      if (!data.scrapRepoId) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Sélectionnez un flux',
-          path: ['scrapRepoId'],
-        })
-      }
-    } else {
-      if (!data.identifier || data.identifier.length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Ce champ est requis',
-          path: ['identifier'],
-        })
-      }
-    }
-  })
-
-type FormData = z.infer<typeof schema>
+type FormData = {
+  provider: AllProvider
+  identifier: string
+  scrapRepoId: string
+}
 
 interface ScrapRepo {
   id: number
@@ -66,23 +45,50 @@ interface AddFluxDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-const IDENTIFIER_LABELS: Record<FeedProvider, string> = {
-  changelog: 'Dépôt GitHub',
-  youtube: 'Chaîne YouTube',
-  rss: 'URL du flux RSS',
-}
-
-const PLACEHOLDERS: Record<FeedProvider, string> = {
-  changelog: 'ex: facebook/react ou https://github.com/facebook/react',
-  youtube: 'ex: fireship ou https://youtube.com/@fireship',
-  rss: 'ex: https://example.com/feed.xml',
-}
-
 export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [serverError, setServerError] = useState<string | null>(null)
   const [scrapRepos, setScrapRepos] = useState<ScrapRepo[]>([])
   const [scrapLoading, setScrapLoading] = useState(false)
+
+  const schema = z
+    .object({
+      provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
+      identifier: z.string().max(200),
+      scrapRepoId: z.string(),
+    })
+    .superRefine((data, ctx) => {
+      if (data.provider === 'scrap') {
+        if (!data.scrapRepoId) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t.addFlux.selectError,
+            path: ['scrapRepoId'],
+          })
+        }
+      } else {
+        if (!data.identifier || data.identifier.length === 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: t.addFlux.requiredError,
+            path: ['identifier'],
+          })
+        }
+      }
+    })
+
+  const identifierLabels: Record<FeedProvider, string> = {
+    changelog: t.addFlux.identifierLabels.changelog,
+    youtube: t.addFlux.identifierLabels.youtube,
+    rss: t.addFlux.identifierLabels.rss,
+  }
+
+  const placeholders: Record<FeedProvider, string> = {
+    changelog: t.addFlux.placeholders.changelog,
+    youtube: t.addFlux.placeholders.youtube,
+    rss: t.addFlux.placeholders.rss,
+  }
 
   const {
     register,
@@ -123,7 +129,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
     if (!res.ok) {
       const resBody = await res.json().catch(() => ({}))
-      setServerError((resBody as { error?: string }).error ?? 'Une erreur est survenue.')
+      setServerError((resBody as { error?: string }).error ?? t.common.error)
       return
     }
 
@@ -147,10 +153,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>Ajouter un flux</DialogTitle>
-            <DialogDescription>
-              Choisissez un provider et renseignez l'identifiant du dépôt ou de la chaîne.
-            </DialogDescription>
+            <DialogTitle>{t.addFlux.title}</DialogTitle>
+            <DialogDescription>{t.addFlux.description}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -168,10 +172,12 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="changelog">GitHub Changelog</SelectItem>
-                  <SelectItem value="youtube">YouTube</SelectItem>
-                  <SelectItem value="rss">RSS</SelectItem>
-                  <SelectItem value="scrap">Scraping web</SelectItem>
+                  <SelectItem value="changelog">
+                    {t.feed.providers?.changelog ?? 'GitHub Changelog'}
+                  </SelectItem>
+                  <SelectItem value="youtube">{t.feed.providers?.youtube ?? 'YouTube'}</SelectItem>
+                  <SelectItem value="rss">{t.feed.providers?.rss ?? 'RSS'}</SelectItem>
+                  <SelectItem value="scrap">{t.feed.providers?.scrap ?? 'Scraping web'}</SelectItem>
                 </SelectContent>
               </Select>
               {errors.provider && (
@@ -181,21 +187,21 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
             {provider === 'scrap' ? (
               <div className="space-y-2">
-                <Label htmlFor="scrapRepoId">Flux disponible</Label>
+                <Label htmlFor="scrapRepoId">{t.addFlux.scrapRepo}</Label>
                 {scrapLoading ? (
-                  <p className="text-sm text-muted-foreground">Chargement…</p>
+                  <p className="text-sm text-muted-foreground">{t.addFlux.loading}</p>
                 ) : (
                   <Select
                     value={watch('scrapRepoId')}
                     onValueChange={(v) => setValue('scrapRepoId', v)}
                   >
                     <SelectTrigger id="scrapRepoId">
-                      <SelectValue placeholder="Sélectionner un flux" />
+                      <SelectValue placeholder={t.addFlux.selectScrapRepo} />
                     </SelectTrigger>
                     <SelectContent>
                       {availableScrapRepos.length === 0 ? (
                         <SelectItem value="_none" disabled>
-                          Aucun flux disponible
+                          {t.addFlux.noScrapRepos}
                         </SelectItem>
                       ) : (
                         availableScrapRepos.map((r) => (
@@ -213,10 +219,10 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="identifier">{IDENTIFIER_LABELS[provider as FeedProvider]}</Label>
+                <Label htmlFor="identifier">{identifierLabels[provider as FeedProvider]}</Label>
                 <Input
                   id="identifier"
-                  placeholder={PLACEHOLDERS[provider as FeedProvider]}
+                  placeholder={placeholders[provider as FeedProvider]}
                   {...register('identifier')}
                 />
                 {errors.identifier && (
@@ -230,10 +236,10 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
-              Annuler
+              {t.addFlux.cancel}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Vérification...' : 'Ajouter'}
+              {isSubmitting ? t.addFlux.adding : t.addFlux.add}
             </Button>
           </DialogFooter>
         </form>

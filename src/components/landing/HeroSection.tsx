@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 
 const MOCK_ITEMS = [
   { provider: 'changelog', repo: 'vercel/next.js', version: 'v15.3.0', time: '2h' },
@@ -69,6 +70,7 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps) {
+  const { t } = useLanguage()
   return (
     <section className="py-20">
       <div className="max-w-[1200px] mx-auto px-8">
@@ -84,14 +86,14 @@ export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps)
               }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--green)] animate-pulse" />v
-              {version} — Disponible maintenant
+              {version} — {t.landing.hero.tagline}
             </div>
 
             <h1
               className="text-[56px] font-bold leading-[1.05] mb-5"
               style={{ letterSpacing: '-0.04em' }}
             >
-              Restez à jour.{' '}
+              {t.landing.hero.titleMain}{' '}
               <span
                 style={{
                   background: 'linear-gradient(135deg, var(--teal), oklch(0.65 0.22 210))',
@@ -100,27 +102,26 @@ export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps)
                   backgroundClip: 'text',
                 }}
               >
-                Toujours.
+                {t.landing.hero.titleAccent}
               </span>
             </h1>
 
             <p className="text-[17px] text-muted-foreground leading-[1.65] max-w-[440px] mb-8">
-              StayUp agrège changelogs GitHub, vidéos YouTube, flux RSS et pages web en un seul feed
-              personnalisé.
+              {t.landing.hero.subtitleNew}
             </p>
 
             <div className="flex items-center gap-3 mb-10">
               {isLoggedIn ? (
                 <Button size="lg" asChild>
-                  <Link href="/feed">Mes flux →</Link>
+                  <Link href="/feed">{t.landing.hero.ctaFeedArrow}</Link>
                 </Button>
               ) : (
                 <>
                   <Button size="lg" asChild>
-                    <Link href="/register">Créer un compte gratuit</Link>
+                    <Link href="/register">{t.landing.hero.ctaRegister}</Link>
                   </Button>
                   <Button size="lg" variant="secondary" asChild>
-                    <Link href="/feed">Voir le feed →</Link>
+                    <Link href="/feed">{t.landing.hero.ctaFeedAnon}</Link>
                   </Button>
                 </>
               )}

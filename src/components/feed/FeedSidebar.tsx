@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid } from 'lucide-react'
 import { AddFluxDialog } from './AddFluxDialog'
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
 
 const PROVIDER_META: Record<
@@ -81,6 +82,7 @@ interface FeedSidebarProps {
 export function FeedSidebar({ fluxes }: FeedSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { t } = useLanguage()
   const [addOpen, setAddOpen] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -103,7 +105,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
   async function handleDelete(flux: UserRepository, e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (!confirm(`Supprimer "${flux.identifier}" ?`)) return
+    if (!confirm(t.feed.confirmDelete.replace('{id}', flux.identifier))) return
     setDeleting(flux.id)
     await fetch(`/api/fluxes/${flux.id}`, { method: 'DELETE' })
     setDeleting(null)
@@ -130,7 +132,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
           style={isAllActive ? { background: 'var(--surface-3)' } : undefined}
         >
           <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
-          <span>Tout le feed</span>
+          <span>{t.feed.allFeed}</span>
         </Link>
 
         {/* My feeds section */}
@@ -139,13 +141,13 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
             className="text-[10px] font-mono font-semibold uppercase tracking-widest"
             style={{ color: 'var(--dim)' }}
           >
-            Mes flux
+            {t.feed.myFeeds}
           </span>
           <button
             onClick={() => setAddOpen(true)}
             className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
             style={{ border: '1px solid hsl(var(--border))' }}
-            aria-label="Ajouter un flux"
+            aria-label={t.feed.add}
           >
             <Plus className="h-3 w-3" />
           </button>
@@ -153,13 +155,13 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
 
         {providers.length === 0 ? (
           <div className="py-6 text-center px-2">
-            <p className="text-[12px] text-muted-foreground mb-3">Aucun flux</p>
+            <p className="text-[12px] text-muted-foreground mb-3">{t.feed.noFlux}</p>
             <button
               onClick={() => setAddOpen(true)}
               className="text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors"
               style={{ background: 'var(--teal-dim)', color: 'var(--teal)' }}
             >
-              + Ajouter
+              {t.feed.addShort}
             </button>
           </div>
         ) : (
@@ -241,7 +243,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
                               onClick={(e) => handleDelete(flux, e)}
                               disabled={deleting === flux.id}
                               className="shrink-0 p-1 mr-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity disabled:opacity-50"
-                              aria-label="Supprimer ce flux"
+                              aria-label={t.feed.deleteAriaLabel}
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>

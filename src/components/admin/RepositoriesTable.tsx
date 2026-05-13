@@ -6,6 +6,7 @@ import { adminDeleteRepositoryAction, adminClearRepositoryDataAction } from '@/l
 import type { AdminRepository } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   Table,
   TableBody,
@@ -26,6 +27,7 @@ type ConfirmMode = 'data' | 'full'
 
 export function RepositoriesTable({ repositories }: { repositories: AdminRepository[] }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirm, setConfirm] = useState<{ id: number; mode: ConfirmMode } | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -56,10 +58,10 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>URL</TableHead>
-            <TableHead className="text-center">Abonnés</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t.admin.type}</TableHead>
+            <TableHead>{t.admin.url}</TableHead>
+            <TableHead className="text-center">{t.admin.subscribers}</TableHead>
+            <TableHead className="text-right">{t.admin.actions}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -76,7 +78,9 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
                 {confirm?.id === repo.id ? (
                   <div className="flex items-center justify-end gap-1">
                     <span className="text-xs text-muted-foreground mr-1">
-                      {confirm.mode === 'data' ? 'Supprimer les données ?' : 'Supprimer le flux ?'}
+                      {confirm.mode === 'data'
+                        ? t.admin.confirmClearData
+                        : t.admin.confirmDeleteFlux}
                     </span>
                     <Button
                       variant="destructive"
@@ -86,10 +90,10 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
                         confirm.mode === 'data' ? handleClearData(repo.id) : handleDelete(repo.id)
                       }
                     >
-                      {pending !== null ? '…' : 'Confirmer'}
+                      {pending !== null ? '…' : t.admin.confirm}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
-                      Annuler
+                      {t.admin.cancel}
                     </Button>
                   </div>
                 ) : (
@@ -99,7 +103,7 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
                       size="sm"
                       onClick={() => setConfirm({ id: repo.id, mode: 'data' })}
                     >
-                      Vider données
+                      {t.admin.clearData}
                     </Button>
                     <Button
                       variant="ghost"
@@ -107,7 +111,7 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
                       className="text-destructive hover:text-destructive"
                       onClick={() => setConfirm({ id: repo.id, mode: 'full' })}
                     >
-                      Supprimer
+                      {t.admin.delete}
                     </Button>
                   </div>
                 )}
@@ -117,7 +121,7 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
           {repositories.length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                Aucun flux
+                {t.admin.noFlux}
               </TableCell>
             </TableRow>
           )}

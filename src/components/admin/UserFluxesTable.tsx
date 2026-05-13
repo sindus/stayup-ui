@@ -6,6 +6,7 @@ import { adminDeleteUserFluxAction } from '@/lib/admin-actions'
 import type { UserRepositoryItem } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   Table,
   TableBody,
@@ -30,6 +31,7 @@ export function UserFluxesTable({
   repositories: UserRepositoryItem[]
 }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -53,10 +55,10 @@ export function UserFluxesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Type</TableHead>
-            <TableHead>URL</TableHead>
-            <TableHead>Ajouté le</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t.admin.type}</TableHead>
+            <TableHead>{t.admin.url}</TableHead>
+            <TableHead>{t.admin.addedOn}</TableHead>
+            <TableHead className="text-right">{t.admin.actions}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -80,10 +82,10 @@ export function UserFluxesTable({
                       disabled={pending === repo.id}
                       onClick={() => handleDelete(repo.id)}
                     >
-                      {pending === repo.id ? '…' : 'Confirmer'}
+                      {pending === repo.id ? '…' : t.admin.confirm}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setConfirmId(null)}>
-                      Annuler
+                      {t.admin.cancel}
                     </Button>
                   </div>
                 ) : (
@@ -93,7 +95,7 @@ export function UserFluxesTable({
                     className="text-destructive hover:text-destructive"
                     onClick={() => setConfirmId(repo.id)}
                   >
-                    Supprimer
+                    {t.admin.delete}
                   </Button>
                 )}
               </TableCell>
@@ -102,7 +104,7 @@ export function UserFluxesTable({
           {repositories.length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                Aucun flux configuré
+                {t.admin.noFluxConfigured}
               </TableCell>
             </TableRow>
           )}

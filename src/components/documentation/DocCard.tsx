@@ -1,13 +1,18 @@
+'use client'
+
 import Link from 'next/link'
 import type { DocRegistry } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { SubscribeButton } from './SubscribeButton'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface DocCardProps {
   doc: DocRegistry
 }
 
 export function DocCard({ doc }: DocCardProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-3 bg-card">
       <div className="flex items-start justify-between gap-2">
@@ -32,7 +37,7 @@ export function DocCard({ doc }: DocCardProps) {
             {doc.last_scraped_at && <span> · {formatDate(doc.last_scraped_at)}</span>}
           </p>
         ) : (
-          <p className="italic">Pas encore scrappé</p>
+          <p className="italic">{t.documentation.notScrappedYet}</p>
         )}
       </div>
 
@@ -41,7 +46,7 @@ export function DocCard({ doc }: DocCardProps) {
           href={`/documentation/${doc.id}`}
           className="text-sm text-primary hover:underline self-start"
         >
-          Voir le contenu →
+          {t.documentation.viewContent} →
         </Link>
       )}
     </div>

@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { updateProfileAction } from '@/lib/auth-actions'
+import { useLanguage } from '@/context/LanguageContext'
 
-const schema = z.object({
-  email: z.string().email('Adresse e-mail invalide'),
-})
-
-type FormData = z.infer<typeof schema>
+type FormData = { email: string }
 
 export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
+  const { t } = useLanguage()
+  const schema = z.object({
+    email: z.string().email(t.auth.emailInvalid),
+  })
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const {
@@ -41,14 +42,14 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Nouvelle adresse e-mail</Label>
+        <Label htmlFor="email">{t.profile.newEmail}</Label>
         <Input id="email" type="email" autoComplete="email" {...register('email')} />
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && <p className="text-sm text-green-600">Adresse e-mail mise à jour.</p>}
+      {success && <p className="text-sm text-green-600">{t.profile.emailUpdated}</p>}
       <Button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Mise à jour...' : "Mettre à jour l'e-mail"}
+        {isSubmitting ? t.profile.updatingEmail : t.profile.updateEmail}
       </Button>
     </form>
   )

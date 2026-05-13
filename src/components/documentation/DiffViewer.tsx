@@ -1,4 +1,7 @@
+'use client'
+
 import { cn } from '@/lib/utils'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface DiffViewerProps {
   diff: string
@@ -14,13 +17,15 @@ function classifyLine(line: string): 'added' | 'removed' | 'header' | 'context' 
 }
 
 export function DiffViewer({ diff, version, scrapedAt }: DiffViewerProps) {
+  const { t, lang } = useLanguage()
+  const locale = lang === 'fr' ? 'fr-FR' : 'en-US'
   const lines = diff.split('\n')
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        Version {version} ·{' '}
-        {new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }).format(
+        {t.documentation.version} {version} ·{' '}
+        {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(
           new Date(scrapedAt),
         )}
       </p>

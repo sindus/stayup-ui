@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { adminDeleteDocAction, adminCreateDocAction } from '@/lib/admin-actions'
 import type { AdminDocRegistry } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 import {
   Table,
   TableBody,
@@ -16,6 +17,7 @@ import {
 
 export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[] }) {
   const router = useRouter()
+  const { t } = useLanguage()
   const [pending, setPending] = useState<number | null>(null)
   const [confirm, setConfirm] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -43,7 +45,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
       try {
         config = JSON.parse(form.config)
       } catch {
-        setAddError('Configuration JSON invalide.')
+        setAddError(t.admin.invalidJson)
         setAddPending(false)
         return
       }
@@ -65,17 +67,17 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
 
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setShowAdd((v) => !v)}>
-          {showAdd ? 'Annuler' : '+ Ajouter un doc'}
+          {showAdd ? t.admin.cancel : t.admin.addDocBtn}
         </Button>
       </div>
 
       {showAdd && (
         <form onSubmit={handleAdd} className="rounded-lg border p-4 space-y-3 bg-muted/30">
-          <h3 className="text-sm font-medium">Nouveau doc</h3>
+          <h3 className="text-sm font-medium">{t.admin.newDoc}</h3>
           {addError && <p className="text-xs text-destructive">{addError}</p>}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs font-medium">Nom</label>
+              <label className="text-xs font-medium">{t.admin.name}</label>
               <input
                 required
                 value={form.name}
@@ -85,7 +87,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">URL</label>
+              <label className="text-xs font-medium">{t.admin.url}</label>
               <input
                 required
                 type="url"
@@ -97,9 +99,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-medium">
-              Config JSON <span className="text-muted-foreground font-normal">(optionnel)</span>
-            </label>
+            <label className="text-xs font-medium">{t.admin.configJsonOptional}</label>
             <textarea
               value={form.config}
               onChange={(e) => setForm((f) => ({ ...f, config: e.target.value }))}
@@ -110,7 +110,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
           </div>
           <div className="flex justify-end">
             <Button type="submit" size="sm" disabled={addPending}>
-              {addPending ? 'Enregistrement…' : 'Enregistrer'}
+              {addPending ? t.admin.saving : t.admin.save}
             </Button>
           </div>
         </form>
@@ -119,11 +119,11 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Nom</TableHead>
-            <TableHead>URL</TableHead>
-            <TableHead className="text-center">Version</TableHead>
-            <TableHead className="text-center">Abonnés</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead>{t.admin.name}</TableHead>
+            <TableHead>{t.admin.url}</TableHead>
+            <TableHead className="text-center">{t.admin.version}</TableHead>
+            <TableHead className="text-center">{t.admin.subscribers}</TableHead>
+            <TableHead className="text-right">{t.admin.actions}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -140,17 +140,19 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
               <TableCell className="text-right">
                 {confirm === doc.id ? (
                   <div className="flex items-center justify-end gap-1">
-                    <span className="text-xs text-muted-foreground mr-1">Supprimer ?</span>
+                    <span className="text-xs text-muted-foreground mr-1">
+                      {t.admin.confirmDelete}
+                    </span>
                     <Button
                       variant="destructive"
                       size="sm"
                       disabled={pending !== null}
                       onClick={() => handleDelete(doc.id)}
                     >
-                      {pending === doc.id ? '…' : 'Confirmer'}
+                      {pending === doc.id ? '…' : t.admin.confirm}
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setConfirm(null)}>
-                      Annuler
+                      {t.admin.cancel}
                     </Button>
                   </div>
                 ) : (
@@ -160,7 +162,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
                     className="text-destructive hover:text-destructive"
                     onClick={() => setConfirm(doc.id)}
                   >
-                    Supprimer
+                    {t.admin.delete}
                   </Button>
                 )}
               </TableCell>
@@ -169,7 +171,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
           {registries.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                Aucun doc enregistré
+                {t.admin.noDoc}
               </TableCell>
             </TableRow>
           )}

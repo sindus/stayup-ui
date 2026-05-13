@@ -1,7 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import type { DocVersion } from '@/types'
 import { formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
+import { useLanguage } from '@/context/LanguageContext'
 
 interface HistoryListProps {
   versions: DocVersion[]
@@ -9,10 +12,12 @@ interface HistoryListProps {
 }
 
 export function HistoryList({ versions, docId }: HistoryListProps) {
+  const { t } = useLanguage()
+
   if (versions.length === 0) {
     return (
       <p className="text-sm text-muted-foreground italic py-12 text-center">
-        Aucun historique disponible.
+        {t.documentation.noHistory}
       </p>
     )
   }
@@ -27,15 +32,21 @@ export function HistoryList({ versions, docId }: HistoryListProps) {
           <div className="flex items-center gap-3 min-w-0">
             <span className="font-mono text-sm font-semibold shrink-0">v{v.version}</span>
             <div className="text-xs text-muted-foreground min-w-0">
-              <p>Scrappé le {formatDate(v.scraped_at)}</p>
-              {v.archived_at && <p>Archivé le {formatDate(v.archived_at)}</p>}
+              <p>
+                {t.documentation.scrapedAt} {formatDate(v.scraped_at)}
+              </p>
+              {v.archived_at && (
+                <p>
+                  {t.documentation.archivedAt} {formatDate(v.archived_at)}
+                </p>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             {v.is_current && (
               <Badge variant="secondary" className="text-xs">
-                Actuel
+                {t.documentation.currentVersion}
               </Badge>
             )}
             {v.has_diff && !v.is_current && (
@@ -43,7 +54,7 @@ export function HistoryList({ versions, docId }: HistoryListProps) {
                 href={`/documentation/${docId}/diff/${v.id}`}
                 className="text-xs text-primary hover:underline"
               >
-                Voir les modifications
+                {t.documentation.viewHistory}
               </Link>
             )}
           </div>

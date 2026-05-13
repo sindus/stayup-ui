@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { adminCreateRepositoryAction } from '@/lib/admin-actions'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 
 export function ScrapCreateForm() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [show, setShow] = useState(false)
   const [form, setForm] = useState({
     url: '',
@@ -70,17 +72,17 @@ export function ScrapCreateForm() {
     <div className="space-y-3">
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setShow((v) => !v)}>
-          {show ? 'Annuler' : '+ Ajouter un flux scrap'}
+          {show ? t.admin.cancel : t.admin.addScrapBtn}
         </Button>
       </div>
 
       {show && (
         <form onSubmit={handleSubmit} className="rounded-lg border p-4 space-y-3 bg-muted/30">
-          <h3 className="text-sm font-medium">Nouveau flux scraping web</h3>
+          <h3 className="text-sm font-medium">{t.admin.scrapFormTitle}</h3>
           {error && <p className="text-xs text-destructive">{error}</p>}
 
           <div className="space-y-1">
-            <label className="text-xs font-medium">URL de la page</label>
+            <label className="text-xs font-medium">{t.admin.urlLabel}</label>
             <input
               required
               type="url"
@@ -93,7 +95,7 @@ export function ScrapCreateForm() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs font-medium">Sélecteur CSS des articles</label>
+              <label className="text-xs font-medium">{t.admin.articlesSelector}</label>
               <input
                 required
                 value={form.articles_selector}
@@ -103,7 +105,7 @@ export function ScrapCreateForm() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Sélecteur CSS du contenu</label>
+              <label className="text-xs font-medium">{t.admin.contentSelector}</label>
               <input
                 required
                 value={form.content_selector}
@@ -115,7 +117,7 @@ export function ScrapCreateForm() {
           </div>
 
           <div className="space-y-1">
-            <label className="text-xs font-medium">Exclusions DOM (optionnel)</label>
+            <label className="text-xs font-medium">{t.admin.domExclusions}</label>
             <div className="flex gap-2">
               <input
                 value={excludeInput}
@@ -130,7 +132,7 @@ export function ScrapCreateForm() {
                 className="flex-1 rounded-md border bg-background px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-1 focus:ring-ring"
               />
               <Button type="button" size="sm" variant="outline" onClick={addExclude}>
-                Ajouter
+                {t.common.add}
               </Button>
             </div>
             {exclude.length > 0 && (
@@ -156,7 +158,7 @@ export function ScrapCreateForm() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <label className="text-xs font-medium">Max scraps</label>
+              <label className="text-xs font-medium">{t.admin.maxScraps}</label>
               <input
                 type="number"
                 min="1"
@@ -166,7 +168,7 @@ export function ScrapCreateForm() {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-medium">Rétention (jours)</label>
+              <label className="text-xs font-medium">{t.admin.retention}</label>
               <input
                 type="number"
                 min="1"
@@ -179,7 +181,7 @@ export function ScrapCreateForm() {
 
           <div className="flex justify-end">
             <Button type="submit" size="sm" disabled={pending}>
-              {pending ? 'Enregistrement…' : 'Enregistrer'}
+              {pending ? t.admin.saving : t.admin.save}
             </Button>
           </div>
         </form>
