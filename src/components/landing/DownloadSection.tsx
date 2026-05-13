@@ -9,6 +9,13 @@ function makePlatforms(version: string) {
   return [
     {
       icon: Apple,
+      label: 'Homebrew',
+      href: null,
+      noteKey: 'brewNote' as const,
+      command: 'brew install --cask sindus/tap/stayup',
+    },
+    {
+      icon: Apple,
       label: 'macOS (Apple Silicon)',
       href: `${base}/StayUp_${version}_aarch64.dmg`,
       noteKey: 'macNote' as const,
@@ -22,18 +29,18 @@ function makePlatforms(version: string) {
       command: null,
     },
     {
-      icon: Apple,
-      label: 'Homebrew',
-      href: null,
-      noteKey: 'brewNote' as const,
-      command: 'brew install --cask sindus/tap/stayup',
-    },
-    {
       icon: Monitor,
       label: 'Windows',
       href: `${base}/StayUp_${version}_x64-setup.exe`,
       noteKey: 'winNote' as const,
       command: null,
+    },
+    {
+      icon: Terminal,
+      label: 'Snap',
+      href: null,
+      noteKey: 'snapNote' as const,
+      command: 'sudo snap install stayup',
     },
     {
       icon: Terminal,
@@ -49,18 +56,12 @@ function makePlatforms(version: string) {
       noteKey: 'linuxNote' as const,
       command: null,
     },
-    {
-      icon: Terminal,
-      label: 'Snap',
-      href: null,
-      noteKey: 'snapNote' as const,
-      command: 'sudo snap install stayup',
-    },
   ]
 }
 
 const SIMPLE_GUIDES = [
-  { key: 'mac' as const, icon: Apple, label: 'macOS' },
+  { key: 'brew' as const, icon: Apple, label: 'macOS — Homebrew' },
+  { key: 'mac' as const, icon: Apple, label: 'macOS — .dmg' },
   { key: 'windows' as const, icon: Monitor, label: 'Windows' },
 ]
 

@@ -70,8 +70,22 @@ export const en: Translations = {
           uninstall: ['Settings → Apps → StayUp → Uninstall', 'Delete residual data:'],
           paths: ['%APPDATA%\\dev.r-sik.stayup-desktop'],
         },
+        brew: {
+          install: ['brew install --cask sindus/tap/stayup'],
+          uninstall: ['brew uninstall --cask sindus/tap/stayup', 'Delete data:'],
+          paths: [
+            '~/Library/Application Support/dev.r-sik.stayup-desktop',
+            '~/Library/Preferences/dev.r-sik.stayup-desktop.plist',
+          ],
+        },
         linux: {
           formats: [
+            {
+              label: 'Snap',
+              install: ['sudo snap install stayup'],
+              uninstall: ['sudo snap remove stayup'],
+              paths: [],
+            },
             {
               label: '.deb — Debian / Ubuntu',
               install: ['Download the .deb file', 'Install: sudo dpkg -i StayUp_*_amd64.deb'],
