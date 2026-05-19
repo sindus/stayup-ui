@@ -7,6 +7,7 @@ import type {
   RssItem,
   ScrapItem,
   ScrapRepository,
+  ScrapRequest,
   YoutubeItem,
 } from '@/types'
 
@@ -251,6 +252,34 @@ export async function subscribeScrap(repoId: number, token: string): Promise<voi
 export async function unsubscribeScrap(repoId: number, token: string): Promise<void> {
   await apiFetch<{ success: boolean }>(`/scrap/${repoId}/subscribe`, token, {
     method: 'DELETE',
+  })
+}
+
+export async function createScrapRequest(
+  body: { url: string },
+  token: string,
+): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>('/scrap/requests', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminListScrapRequests(token: string): Promise<ScrapRequest[]> {
+  const data = await apiFetch<{ requests: ScrapRequest[] }>('/ui/scrap-requests', token, {
+    cache: 'no-store',
+  })
+  return data.requests
+}
+
+export async function adminApproveScrapRequest(
+  requestId: string,
+  body: { url: string; config: Record<string, unknown> },
+  token: string,
+): Promise<{ repository_id: number }> {
+  return apiFetch<{ repository_id: number }>(`/ui/scrap-requests/${requestId}/approve`, token, {
+    method: 'POST',
+    body: JSON.stringify(body),
   })
 }
 

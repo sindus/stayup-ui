@@ -9,8 +9,11 @@ import {
   adminDeleteUser,
   adminCreateDocRegistry,
   adminDeleteDocRegistry,
+  adminListScrapRequests,
+  adminApproveScrapRequest,
   deleteUserRepository,
 } from './api-client'
+import type { ScrapRequest } from '@/types'
 
 const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
@@ -131,6 +134,28 @@ export async function adminDeleteDocAction(docId: number): Promise<{ error?: str
     await adminDeleteDocRegistry(docId, token)
     revalidatePath('/admin/documentation')
     return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminListScrapRequestsAction(): Promise<ScrapRequest[]> {
+  const token = await getToken()
+  if (!token) return []
+  return adminListScrapRequests(token).catch(() => [])
+}
+
+export async function adminApproveScrapRequestAction(
+  requestId: string,
+  data: { url: string; config: Record<string, unknown> },
+): Promise<{ error?: string; repository_id?: number }> {
+  const token = await getToken()
+  if (!token) return { error: 'Non authentifié' }
+  try {
+    const result = await adminApproveScrapRequest(requestId, data, token)
+    revalidatePath('/admin/scrap-requests')
+    revalidatePath('/admin/repositories')
+    return { repository_id: result.repository_id }
   } catch (err) {
     return { error: (err as Error).message }
   }

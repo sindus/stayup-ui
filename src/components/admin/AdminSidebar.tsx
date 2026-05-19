@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, GitBranch, BookOpen } from 'lucide-react'
+import { Users, GitBranch, BookOpen, Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { label: 'Utilisateurs', href: '/admin/users', icon: Users },
   { label: 'Flux', href: '/admin/repositories', icon: GitBranch },
   { label: 'Documentation', href: '/admin/documentation', icon: BookOpen },
+  { label: 'Demandes', href: '/admin/scrap-requests', icon: Inbox },
 ]
 
 export function AdminSidebar() {
