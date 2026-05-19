@@ -114,6 +114,15 @@ export interface ScrapRequest {
   created_at: string
 }
 
+export interface DocRequest {
+  id: string
+  user_id: string
+  user_email: string
+  url: string
+  status: 'pending' | 'approved' | 'rejected'
+  created_at: string
+}
+
 // ─── Documentation ─────────────────────────────────────────────────────────────
 
 export interface DocRegistry {

@@ -199,6 +199,7 @@ export const en: Translations = {
       youtube: 'YouTube',
       rss: 'RSS',
       scrap: 'Web scraping',
+      documentation: 'Documentation',
     },
   },
   addFlux: {
@@ -233,6 +234,11 @@ export const en: Translations = {
     requestSentDescription: 'Your request has been sent. An administrator will process it shortly.',
     requestUrlError: 'The URL is not valid',
     requestDuplicate: 'You already have a pending request for this URL',
+    docRegistry: 'Available documentation',
+    selectDocRegistry: 'Select documentation',
+    noDocRegistries: 'No documentation available',
+    docRequestUrl: 'Documentation URL',
+    docRequestUrlPlaceholder: 'https://docs.example.com',
   },
   viewer: {
     noTitle: 'Untitled',
@@ -300,6 +306,10 @@ export const en: Translations = {
     maxScraps: 'Max scraps',
     retention: 'Retention (days)',
     configJsonOptional: 'Config JSON (optional)',
+    docRequests: 'Documentation requests',
+    noDocRequests: 'No requests',
+    approveDocFormTitle: 'Approve documentation request',
+    docNameLabel: 'Documentation name',
   },
   common: {
     cancel: 'Cancel',

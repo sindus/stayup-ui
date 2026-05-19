@@ -3,6 +3,7 @@ import type {
   ConnectorData,
   DocContent,
   DocRegistry,
+  DocRequest,
   DocVersion,
   RssItem,
   ScrapItem,
@@ -288,6 +289,34 @@ export async function adminCreateRepository(
   token: string,
 ): Promise<{ id: number }> {
   return apiFetch<{ id: number }>('/ui/repositories', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function createDocRequest(
+  body: { url: string },
+  token: string,
+): Promise<{ id: string }> {
+  return apiFetch<{ id: string }>('/doc/requests', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminListDocRequests(token: string): Promise<DocRequest[]> {
+  const data = await apiFetch<{ requests: DocRequest[] }>('/ui/doc-requests', token, {
+    cache: 'no-store',
+  })
+  return data.requests
+}
+
+export async function adminApproveDocRequest(
+  requestId: string,
+  body: { name: string; url: string; config: Record<string, unknown> },
+  token: string,
+): Promise<{ doc_registry_id: number }> {
+  return apiFetch<{ doc_registry_id: number }>(`/ui/doc-requests/${requestId}/approve`, token, {
     method: 'POST',
     body: JSON.stringify(body),
   })

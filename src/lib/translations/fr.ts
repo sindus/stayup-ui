@@ -207,6 +207,7 @@ export const fr = {
       youtube: 'YouTube',
       rss: 'RSS',
       scrap: 'Scraping web',
+      documentation: 'Documentation',
     },
   },
   addFlux: {
@@ -242,6 +243,11 @@ export const fr = {
       'Votre demande a bien été envoyée. Un administrateur la traitera prochainement.',
     requestUrlError: "L'URL n'est pas valide",
     requestDuplicate: 'Vous avez déjà une demande en cours pour cette URL',
+    docRegistry: 'Documentation disponible',
+    selectDocRegistry: 'Sélectionner une documentation',
+    noDocRegistries: 'Aucune documentation disponible',
+    docRequestUrl: 'URL de la documentation',
+    docRequestUrlPlaceholder: 'https://docs.example.com',
   },
   viewer: {
     noTitle: 'Sans titre',
@@ -309,6 +315,10 @@ export const fr = {
     maxScraps: 'Max scraps',
     retention: 'Rétention (jours)',
     configJsonOptional: 'Config JSON (optionnel)',
+    docRequests: 'Demandes de documentation',
+    noDocRequests: 'Aucune demande',
+    approveDocFormTitle: 'Valider la demande de documentation',
+    docNameLabel: 'Nom de la documentation',
   },
   common: {
     cancel: 'Annuler',

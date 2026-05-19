@@ -11,9 +11,11 @@ import {
   adminDeleteDocRegistry,
   adminListScrapRequests,
   adminApproveScrapRequest,
+  adminListDocRequests,
+  adminApproveDocRequest,
   deleteUserRepository,
 } from './api-client'
-import type { ScrapRequest } from '@/types'
+import type { DocRequest, ScrapRequest } from '@/types'
 
 const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
@@ -156,6 +158,28 @@ export async function adminApproveScrapRequestAction(
     revalidatePath('/admin/scrap-requests')
     revalidatePath('/admin/repositories')
     return { repository_id: result.repository_id }
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminListDocRequestsAction(): Promise<DocRequest[]> {
+  const token = await getToken()
+  if (!token) return []
+  return adminListDocRequests(token).catch(() => [])
+}
+
+export async function adminApproveDocRequestAction(
+  requestId: string,
+  data: { name: string; url: string; config: Record<string, unknown> },
+): Promise<{ error?: string; doc_registry_id?: number }> {
+  const token = await getToken()
+  if (!token) return { error: 'Non authentifié' }
+  try {
+    const result = await adminApproveDocRequest(requestId, data, token)
+    revalidatePath('/admin/doc-requests')
+    revalidatePath('/admin/documentation')
+    return { doc_registry_id: result.doc_registry_id }
   } catch (err) {
     return { error: (err as Error).message }
   }
