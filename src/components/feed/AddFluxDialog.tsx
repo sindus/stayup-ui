@@ -322,7 +322,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => handleClose(false)}>
-              {t.addFlux.cancel}
+              {requestSuccess ? t.addFlux.close : t.addFlux.cancel}
             </Button>
             {!requestSuccess && (
               <Button type="submit" disabled={isSubmitting}>

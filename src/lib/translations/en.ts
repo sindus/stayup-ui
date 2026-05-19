@@ -219,6 +219,7 @@ export const en: Translations = {
     selectScrapRepo: 'Select a feed',
     noScrapRepos: 'No feeds available',
     cancel: 'Cancel',
+    close: 'Close',
     add: 'Add',
     adding: 'Checking...',
     loading: 'Loading…',

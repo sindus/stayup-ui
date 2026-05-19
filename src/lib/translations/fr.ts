@@ -227,6 +227,7 @@ export const fr = {
     selectScrapRepo: 'Sélectionner un flux',
     noScrapRepos: 'Aucun flux disponible',
     cancel: 'Annuler',
+    close: 'Fermer',
     add: 'Ajouter',
     adding: 'Vérification...',
     loading: 'Chargement…',
