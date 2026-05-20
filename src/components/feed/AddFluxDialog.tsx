@@ -454,7 +454,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                       </div>
                     )}
                   </div>
-                ) : provider !== 'documentation' ? (
+                ) : (
                   <div className="space-y-2">
                     <Label htmlFor="identifier">{identifierLabels[provider as FeedProvider]}</Label>
                     <Input
@@ -466,7 +466,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                       <p className="text-sm text-destructive">{errors.identifier.message}</p>
                     )}
                   </div>
-                ) : null}
+                )}
 
                 {serverError && <p className="text-sm text-destructive">{serverError}</p>}
               </>
