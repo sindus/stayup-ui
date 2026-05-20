@@ -2,8 +2,8 @@ import { cookies } from 'next/headers'
 import { getCachedUserFeed } from '@/lib/feed-cache'
 import { extractIdentifier } from '@/lib/utils'
 import { getSession } from '@/lib/session'
-import { FeedSidebar } from '@/components/feed/FeedSidebar'
-import type { Provider, UserRepository } from '@/types'
+import { FeedClientLayout } from '@/components/feed/FeedClientLayout'
+import type { Provider, UserRepository, TaggedItem } from '@/types'
 
 export default async function FeedLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -26,10 +26,17 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
     createdAt: repo.created_at,
   }))
 
+  const { changelog = [], youtube = [], rss = [], scrap = [] } = feedData.connectors ?? {}
+  const allItems: TaggedItem[] = [
+    ...changelog.map((item) => ({ provider: 'changelog' as const, item })),
+    ...youtube.map((item) => ({ provider: 'youtube' as const, item })),
+    ...rss.map((item) => ({ provider: 'rss' as const, item })),
+    ...scrap.map((item) => ({ provider: 'scrap' as const, item })),
+  ]
+
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden">
-      <FeedSidebar fluxes={fluxes} />
-      <div className="flex-1 min-w-0 overflow-hidden flex flex-col">{children}</div>
-    </div>
+    <FeedClientLayout fluxes={fluxes} allItems={allItems}>
+      {children}
+    </FeedClientLayout>
   )
 }

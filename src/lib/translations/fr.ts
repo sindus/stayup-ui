@@ -202,6 +202,9 @@ export const fr = {
     deleteAriaLabel: 'Supprimer ce flux',
     confirmDelete: 'Supprimer "{id}" ?',
     noContent: 'Aucun contenu disponible.',
+    filterAll: 'Tous',
+    filterUnread: 'Non lu',
+    markAllRead: 'Tout marquer lu',
     providers: {
       changelog: 'GitHub Changelog',
       youtube: 'YouTube',

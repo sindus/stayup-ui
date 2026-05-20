@@ -77,9 +77,10 @@ const PROVIDER_META: Record<
 
 interface FeedSidebarProps {
   fluxes: UserRepository[]
+  unreadCountByRepoId?: Record<number, number>
 }
 
-export function FeedSidebar({ fluxes }: FeedSidebarProps) {
+export function FeedSidebar({ fluxes, unreadCountByRepoId = {} }: FeedSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useLanguage()
@@ -124,7 +125,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
         <Link
           href="/feed"
           className={cn(
-            'flex items-center gap-2 px-2 py-1.5 rounded-md text-[13px] transition-colors mb-3',
+            'flex items-center gap-2 px-2 py-1.5 rounded-md text-[15px] transition-colors mb-3',
             isAllActive
               ? 'text-foreground font-medium'
               : 'text-muted-foreground hover:text-foreground',
@@ -138,7 +139,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
         {/* My feeds section */}
         <div className="flex items-center justify-between mb-2 px-2">
           <span
-            className="text-[10px] font-mono font-semibold uppercase tracking-widest"
+            className="text-[12px] font-mono font-semibold uppercase tracking-widest"
             style={{ color: 'var(--dim)' }}
           >
             {t.feed.myFeeds}
@@ -155,10 +156,10 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
 
         {providers.length === 0 ? (
           <div className="py-6 text-center px-2">
-            <p className="text-[12px] text-muted-foreground mb-3">{t.feed.noFlux}</p>
+            <p className="text-[14px] text-muted-foreground mb-3">{t.feed.noFlux}</p>
             <button
               onClick={() => setAddOpen(true)}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors"
+              className="text-[13px] font-medium px-3 py-1.5 rounded-md transition-colors"
               style={{ background: 'var(--teal-dim)', color: 'var(--teal)' }}
             >
               {t.feed.addShort}
@@ -171,7 +172,11 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
               const categoryHref = `/feed/category/${provider}`
               const isCategoryActive = pathname === categoryHref
               const open = isExpanded(provider)
-              const count = byProvider[provider]?.length ?? 0
+              const providerFluxes = byProvider[provider] ?? []
+              const totalUnread = providerFluxes.reduce(
+                (sum, flux) => sum + (unreadCountByRepoId[flux.repositoryId] ?? 0),
+                0,
+              )
 
               return (
                 <div key={provider}>
@@ -189,7 +194,7 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
                     <Link
                       href={categoryHref}
                       className={cn(
-                        'flex flex-1 items-center gap-2 px-2 py-1.5 text-[13px] rounded-md transition-colors',
+                        'flex flex-1 items-center gap-2 px-2 py-1.5 text-[15px] rounded-md transition-colors',
                         isCategoryActive
                           ? 'text-foreground font-medium'
                           : 'text-muted-foreground hover:text-foreground',
@@ -198,20 +203,23 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
                     >
                       <span style={{ color: meta.color }}>{meta.icon}</span>
                       <span className="truncate flex-1">{meta.label}</span>
-                      <span
-                        className="text-[10px] font-mono px-1.5 py-0.5 rounded-full shrink-0"
-                        style={{ background: meta.dimColor, color: meta.color }}
-                      >
-                        {count}
-                      </span>
+                      {totalUnread > 0 && (
+                        <span
+                          className="text-[12px] font-mono px-1.5 py-0.5 rounded-full shrink-0"
+                          style={{ background: meta.dimColor, color: meta.color }}
+                        >
+                          {totalUnread}
+                        </span>
+                      )}
                     </Link>
                   </div>
 
                   {open && (
                     <div className="ml-7 mt-0.5 space-y-0.5 mb-1">
-                      {(byProvider[provider] ?? []).map((flux) => {
+                      {providerFluxes.map((flux) => {
                         const fluxHref = `/feed/flux/${flux.id}`
                         const isActive = pathname === fluxHref
+                        const fluxUnread = unreadCountByRepoId[flux.repositoryId] ?? 0
 
                         return (
                           <div
@@ -231,13 +239,21 @@ export function FeedSidebar({ fluxes }: FeedSidebarProps) {
                             <Link
                               href={fluxHref}
                               className={cn(
-                                'flex-1 truncate px-2 py-1 text-[12px] font-mono',
+                                'flex flex-1 items-center gap-1 px-2 py-1 text-[14px] font-mono min-w-0',
                                 isActive
                                   ? 'text-foreground font-medium'
                                   : 'text-muted-foreground hover:text-foreground',
                               )}
                             >
-                              {flux.identifier}
+                              <span className="truncate">{flux.identifier}</span>
+                              {fluxUnread > 0 && (
+                                <span
+                                  className="text-[12px] font-mono px-1 rounded shrink-0"
+                                  style={{ background: meta.dimColor, color: meta.color }}
+                                >
+                                  {fluxUnread}
+                                </span>
+                              )}
                             </Link>
                             <button
                               onClick={(e) => handleDelete(flux, e)}

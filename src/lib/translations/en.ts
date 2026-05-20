@@ -194,6 +194,9 @@ export const en: Translations = {
     deleteAriaLabel: 'Delete this feed',
     confirmDelete: 'Delete "{id}"?',
     noContent: 'No content available.',
+    filterAll: 'All',
+    filterUnread: 'Unread',
+    markAllRead: 'Mark all read',
     providers: {
       changelog: 'GitHub Changelog',
       youtube: 'YouTube',
