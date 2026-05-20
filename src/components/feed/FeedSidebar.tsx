@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid } from 'lucide-react'
 import { AddFluxDialog } from './AddFluxDialog'
-import { cn } from '@/lib/utils'
+import { cn, stripUrlScheme } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
 
@@ -245,7 +245,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {} }: FeedSidebarPro
                                   : 'text-muted-foreground hover:text-foreground',
                               )}
                             >
-                              <span className="truncate">{flux.identifier}</span>
+                              <span className="truncate">{stripUrlScheme(flux.identifier)}</span>
                               {fluxUnread > 0 && (
                                 <span
                                   className="text-[12px] font-mono px-1 rounded shrink-0"

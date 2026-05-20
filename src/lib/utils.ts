@@ -55,6 +55,10 @@ export function extractIdentifier(url: string, provider: Provider): string {
   return url
 }
 
+export function stripUrlScheme(url: string): string {
+  return url.replace(/^https?:\/\/(www\.)?/, '').replace(/^www\./, '')
+}
+
 export function formatDate(date: string | Date): string {
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'medium',
