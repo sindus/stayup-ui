@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import type { TaggedItem } from '@/types'
 import { UnifiedFeedList } from './UnifiedFeedList'
 import { FeedContentViewer } from './FeedContentViewer'
@@ -27,6 +27,10 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
     }
     return items
   }, [items, readIds, filterMode])
+
+  // Keep a ref so the mark-as-read effect can read current items without depending on them
+  const filteredItemsRef = useRef(filteredItems)
+  filteredItemsRef.current = filteredItems
 
   useEffect(() => {
     setSelectedIndex(null)
@@ -62,12 +66,13 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [filteredItems.length])
 
-  // Mark selected item as read
+  // Mark selected item as read — depends only on selectedIndex, not filteredItems,
+  // to prevent a cascade when filteredItems shrinks in "unread" mode.
   useEffect(() => {
     if (selectedIndex === null) return
-    const item = filteredItems[selectedIndex]
+    const item = filteredItemsRef.current[selectedIndex]
     if (item) markRead(item)
-  }, [selectedIndex, filteredItems, markRead])
+  }, [selectedIndex, markRead])
 
   const unreadCount = useMemo(
     () => items.filter((item) => !readIds.has(`${item.provider}:${item.item.id}`)).length,
