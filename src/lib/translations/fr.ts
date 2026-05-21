@@ -165,6 +165,13 @@ export const fr = {
     diffTitle: 'Modifications — version',
     notScrappedYet: 'Pas encore scrappé',
     noHistory: 'Aucun historique disponible.',
+    requestBtn: 'Faire une demande',
+    requestTitle: 'Demande de documentation',
+    requestUrlLabel: 'URL de la documentation',
+    requestUrlPlaceholder: 'https://docs.example.com',
+    requestSubmit: 'Envoyer la demande',
+    requestSuccess: 'Demande envoyée',
+    requestSuccessDesc: 'Votre demande sera traitée par un administrateur.',
   },
   auth: {
     loginTitle: 'Connexion',
@@ -325,6 +332,7 @@ export const fr = {
   },
   common: {
     cancel: 'Annuler',
+    close: 'Fermer',
     add: 'Ajouter',
     save: 'Enregistrer',
     error: 'Une erreur est survenue.',

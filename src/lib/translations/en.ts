@@ -157,6 +157,13 @@ export const en: Translations = {
     diffTitle: 'Changes — version',
     notScrappedYet: 'Not scraped yet',
     noHistory: 'No history available.',
+    requestBtn: 'Make a request',
+    requestTitle: 'Documentation request',
+    requestUrlLabel: 'Documentation URL',
+    requestUrlPlaceholder: 'https://docs.example.com',
+    requestSubmit: 'Submit request',
+    requestSuccess: 'Request sent',
+    requestSuccessDesc: 'Your request will be reviewed by an administrator.',
   },
   auth: {
     loginTitle: 'Sign in',
@@ -316,6 +323,7 @@ export const en: Translations = {
   },
   common: {
     cancel: 'Cancel',
+    close: 'Close',
     add: 'Add',
     save: 'Save',
     error: 'An error occurred.',
