@@ -1,5 +1,6 @@
 'use client'
 
+import ReactMarkdown from 'react-markdown'
 import { useLanguage } from '@/context/LanguageContext'
 
 interface DocViewerProps {
@@ -36,9 +37,9 @@ export function DocViewer({ content, version, scrapedAt }: DocViewerProps) {
           )}
         </p>
       )}
-      <pre className="text-sm whitespace-pre-wrap font-mono bg-muted/40 rounded-lg p-4 overflow-auto max-h-[70vh] leading-relaxed">
-        {content}
-      </pre>
+      <div className="prose prose-sm max-w-none bg-muted/40 rounded-lg p-4 overflow-auto max-h-[70vh] [&_img]:max-w-full [&_img]:rounded [&_pre]:overflow-x-auto [&_code]:text-xs">
+        <ReactMarkdown>{content}</ReactMarkdown>
+      </div>
     </div>
   )
 }
