@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { CheckCheck } from 'lucide-react'
 import type { TaggedItem } from '@/types'
 import { UnifiedFeedList } from './UnifiedFeedList'
 import { FeedContentViewer } from './FeedContentViewer'
@@ -184,9 +185,10 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
           {unreadCount > 0 && (
             <button
               onClick={() => markAllRead(items)}
-              className="text-[13px] font-mono text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded hover:bg-accent"
+              title={t.feed.markAllRead}
+              className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
             >
-              {t.feed.markAllRead}
+              <CheckCheck size={16} />
             </button>
           )}
         </div>
