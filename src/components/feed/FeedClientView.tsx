@@ -8,6 +8,39 @@ import { useReadContext } from '@/context/FeedReadContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { cn } from '@/lib/utils'
 
+function useDragResize(initial: number, min: number, max: number) {
+  const [width, setWidth] = useState(initial)
+  const widthRef = useRef(initial)
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      const startX = e.clientX
+      const startW = widthRef.current
+      document.body.style.cursor = 'col-resize'
+      document.body.style.userSelect = 'none'
+      const onMove = (ev: MouseEvent) => {
+        const next = Math.max(min, Math.min(max, startW + (ev.clientX - startX)))
+        widthRef.current = next
+        setWidth(next)
+      }
+      const onUp = () => {
+        document.body.style.cursor = ''
+        document.body.style.userSelect = ''
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('mouseup', onUp)
+      }
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', onUp)
+    },
+    [min, max],
+  )
+  return { width, handleMouseDown }
+}
+
+function getItemId(item: TaggedItem): string {
+  return `${item.provider}:${item.item.id}`
+}
+
 interface FeedClientViewProps {
   items: TaggedItem[]
   repositories: { repository_id: number; url: string }[]
@@ -18,29 +51,50 @@ type FilterMode = 'all' | 'unread'
 export function FeedClientView({ items, repositories }: FeedClientViewProps) {
   const { readIds, markRead, markAllRead } = useReadContext()
   const { t } = useLanguage()
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
+  const { width: listWidth, handleMouseDown: handleListDrag } = useDragResize(380, 260, 600)
+  // Track open item by ID so it stays stable when filteredItems changes
+  const [openItemId, setOpenItemId] = useState<string | null>(null)
 
+  // In "unread" mode: show unread items + the currently open item so it doesn't
+  // vanish while the user is reading it. It disappears only when another item is opened.
   const filteredItems = useMemo(() => {
     if (filterMode === 'unread') {
-      return items.filter((item) => !readIds.has(`${item.provider}:${item.item.id}`))
+      return items.filter((item) => !readIds.has(getItemId(item)) || getItemId(item) === openItemId)
     }
     return items
-  }, [items, readIds, filterMode])
+  }, [items, readIds, filterMode, openItemId])
 
-  // Keep a ref so the mark-as-read effect can read current items without depending on them
+  // Refs so the keyboard handler always reads current values without re-registering
   const filteredItemsRef = useRef(filteredItems)
   filteredItemsRef.current = filteredItems
+  const openItemIdRef = useRef(openItemId)
+  openItemIdRef.current = openItemId
 
+  // Derive selectedIndex from openItemId — stable even when list shrinks
+  const selectedIndex = useMemo(() => {
+    if (openItemId === null) return null
+    const idx = filteredItems.findIndex((i) => getItemId(i) === openItemId)
+    return idx === -1 ? null : idx
+  }, [filteredItems, openItemId])
+
+  const selected = useMemo(
+    () =>
+      openItemId !== null ? (filteredItems.find((i) => getItemId(i) === openItemId) ?? null) : null,
+    [filteredItems, openItemId],
+  )
+
+  // Reset open item when switching filter mode
   useEffect(() => {
-    setSelectedIndex(null)
+    setOpenItemId(null)
   }, [filterMode])
 
   const handleSelect = useCallback(
     (index: number) => {
-      setSelectedIndex(index)
       const item = filteredItems[index]
-      if (item) markRead(item)
+      if (!item) return
+      setOpenItemId(getItemId(item))
+      markRead(item)
     },
     [filteredItems, markRead],
   )
@@ -48,45 +102,40 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      const current = filteredItemsRef.current
+      const currentId = openItemIdRef.current
+      const currentIdx =
+        currentId !== null ? current.findIndex((i) => getItemId(i) === currentId) : -1
+
+      let nextIdx: number | null = null
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        setSelectedIndex((prev) => {
-          if (prev === null) return 0
-          return Math.min(prev + 1, filteredItems.length - 1)
-        })
+        nextIdx = currentIdx === -1 ? 0 : Math.min(currentIdx + 1, current.length - 1)
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
-        setSelectedIndex((prev) => {
-          if (prev === null) return 0
-          return Math.max(prev - 1, 0)
-        })
+        nextIdx = currentIdx === -1 ? 0 : Math.max(currentIdx - 1, 0)
+      }
+
+      if (nextIdx !== null) {
+        const nextItem = current[nextIdx]
+        if (nextItem) {
+          setOpenItemId(getItemId(nextItem))
+          markRead(nextItem)
+        }
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [filteredItems.length])
-
-  // Mark selected item as read — depends only on selectedIndex, not filteredItems,
-  // to prevent a cascade when filteredItems shrinks in "unread" mode.
-  useEffect(() => {
-    if (selectedIndex === null) return
-    const item = filteredItemsRef.current[selectedIndex]
-    if (item) markRead(item)
-  }, [selectedIndex, markRead])
+  }, [markRead])
 
   const unreadCount = useMemo(
-    () => items.filter((item) => !readIds.has(`${item.provider}:${item.item.id}`)).length,
+    () => items.filter((item) => !readIds.has(getItemId(item))).length,
     [items, readIds],
   )
 
-  const selected = selectedIndex !== null ? (filteredItems[selectedIndex] ?? null) : null
-
   return (
     <div className="flex flex-1 min-h-0">
-      <div
-        className="w-[380px] shrink-0 flex flex-col"
-        style={{ borderRight: '1px solid hsl(var(--border))' }}
-      >
+      <div className="shrink-0 flex flex-col" style={{ width: listWidth }}>
         {/* Filter bar */}
         <div
           className="flex items-center gap-1 px-3 py-2 shrink-0"
@@ -151,6 +200,11 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
           />
         </div>
       </div>
+      <div
+        className="w-[4px] shrink-0 cursor-col-resize hover:bg-accent transition-colors"
+        style={{ borderRight: '1px solid hsl(var(--border))' }}
+        onMouseDown={handleListDrag}
+      />
       <div className="flex-1 overflow-y-auto">
         <FeedContentViewer item={selected} repositories={repositories} />
       </div>

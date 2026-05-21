@@ -78,9 +78,10 @@ const PROVIDER_META: Record<
 interface FeedSidebarProps {
   fluxes: UserRepository[]
   unreadCountByRepoId?: Record<number, number>
+  width?: number
 }
 
-export function FeedSidebar({ fluxes, unreadCountByRepoId = {} }: FeedSidebarProps) {
+export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: FeedSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useLanguage()
@@ -116,10 +117,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {} }: FeedSidebarPro
   const isAllActive = pathname === '/feed'
 
   return (
-    <aside
-      className="w-[220px] shrink-0 overflow-y-auto"
-      style={{ borderRight: '1px solid hsl(var(--border))' }}
-    >
+    <aside className="shrink-0 overflow-y-auto" style={{ width, minWidth: 120, maxWidth: 500 }}>
       <div className="pr-3 pt-1">
         {/* All feed link */}
         <Link
