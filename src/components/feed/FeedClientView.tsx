@@ -84,20 +84,22 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
     [filteredItems, openItemId],
   )
 
-  // Reset open item when switching filter mode
-  useEffect(() => {
-    setOpenItemId(null)
-  }, [filterMode])
-
   const handleSelect = useCallback(
     (index: number) => {
       const item = filteredItems[index]
       if (!item) return
       setOpenItemId(getItemId(item))
-      markRead(item)
     },
-    [filteredItems, markRead],
+    [filteredItems],
   )
+
+  // Mark the open item as read after openItemId is committed, so the filter
+  // keeps it visible during the same render cycle (readIds updates after).
+  useEffect(() => {
+    if (openItemId === null) return
+    const item = items.find((i) => getItemId(i) === openItemId)
+    if (item) markRead(item)
+  }, [openItemId, items, markRead])
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -120,13 +122,12 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
         const nextItem = current[nextIdx]
         if (nextItem) {
           setOpenItemId(getItemId(nextItem))
-          markRead(nextItem)
         }
       }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [markRead])
+  }, [])
 
   const unreadCount = useMemo(
     () => items.filter((item) => !readIds.has(getItemId(item))).length,
