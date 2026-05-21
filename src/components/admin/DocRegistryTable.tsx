@@ -2,7 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { adminDeleteDocAction, adminCreateDocAction } from '@/lib/admin-actions'
+import {
+  adminDeleteDocAction,
+  adminCreateDocAction,
+  adminUpdateDocAction,
+} from '@/lib/admin-actions'
 import type { AdminDocRegistry } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
@@ -14,6 +18,112 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
+function EditDocDialog({ doc, onClose }: { doc: AdminDocRegistry; onClose: () => void }) {
+  const router = useRouter()
+  const { t } = useLanguage()
+  const [name, setName] = useState(doc.name)
+  const [url, setUrl] = useState(doc.url)
+  const [configRaw, setConfigRaw] = useState(JSON.stringify(doc.config, null, 2))
+  const [configError, setConfigError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setConfigError(null)
+
+    let config: Record<string, unknown> = {}
+    try {
+      config = JSON.parse(configRaw) as Record<string, unknown>
+    } catch {
+      setConfigError(t.admin.invalidJson)
+      return
+    }
+
+    setPending(true)
+    const result = await adminUpdateDocAction(doc.id, { name, url, config })
+    setPending(false)
+
+    if (result.error) {
+      setError(result.error)
+    } else {
+      onClose()
+      router.refresh()
+    }
+  }
+
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
+      <DialogContent className="sm:max-w-2xl">
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>{t.admin.editDoc}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-4">
+            {error && <p className="text-xs text-destructive">{error}</p>}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1">
+                <label className="text-xs font-medium">{t.admin.name}</label>
+                <input
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-medium">{t.admin.url}</label>
+                <input
+                  required
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-medium">{t.admin.configJson}</label>
+              <textarea
+                value={configRaw}
+                onChange={(e) => setConfigRaw(e.target.value)}
+                rows={12}
+                className="w-full rounded-md border bg-background px-3 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              {configError && <p className="text-xs text-destructive">{configError}</p>}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t.admin.cancel}
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? t.admin.saving : t.admin.save}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[] }) {
   const router = useRouter()
@@ -25,6 +135,7 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
   const [form, setForm] = useState({ name: '', url: '', config: '' })
   const [addPending, setAddPending] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
+  const [editTarget, setEditTarget] = useState<AdminDocRegistry | null>(null)
 
   async function handleDelete(docId: number) {
     setPending(docId)
@@ -156,14 +267,19 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setConfirm(doc.id)}
-                  >
-                    {t.admin.delete}
-                  </Button>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => setEditTarget(doc)}>
+                      {t.admin.editConfig}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setConfirm(doc.id)}
+                    >
+                      {t.admin.delete}
+                    </Button>
+                  </div>
                 )}
               </TableCell>
             </TableRow>
@@ -177,6 +293,8 @@ export function DocRegistryTable({ registries }: { registries: AdminDocRegistry[
           )}
         </TableBody>
       </Table>
+
+      {editTarget && <EditDocDialog doc={editTarget} onClose={() => setEditTarget(null)} />}
     </div>
   )
 }

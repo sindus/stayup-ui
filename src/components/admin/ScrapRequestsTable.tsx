@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
@@ -13,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { ScrapRequestApproveDialog } from './ScrapRequestApproveDialog'
+import { adminRejectScrapRequestAction } from '@/lib/admin-actions'
 import type { ScrapRequest } from '@/types'
 
 function StatusBadge({ status }: { status: ScrapRequest['status'] }) {
@@ -30,12 +32,28 @@ function StatusBadge({ status }: { status: ScrapRequest['status'] }) {
       </Badge>
     )
   }
+  if (status === 'rejected') {
+    return (
+      <Badge className="bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400">
+        Refusé
+      </Badge>
+    )
+  }
   return <Badge variant="secondary">{status}</Badge>
 }
 
 export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
+  const router = useRouter()
   const { t } = useLanguage()
   const [approveTarget, setApproveTarget] = useState<ScrapRequest | null>(null)
+  const [rejectPending, setRejectPending] = useState<string | null>(null)
+
+  async function handleReject(requestId: string) {
+    setRejectPending(requestId)
+    await adminRejectScrapRequestAction(requestId)
+    setRejectPending(null)
+    router.refresh()
+  }
 
   if (requests.length === 0) {
     return <p className="text-sm text-muted-foreground py-4">{t.admin.noScrapRequests}</p>
@@ -66,9 +84,20 @@ export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
               </TableCell>
               <TableCell>
                 {req.status === 'pending' && (
-                  <Button size="sm" onClick={() => setApproveTarget(req)}>
-                    {t.admin.approveRequest}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button size="sm" onClick={() => setApproveTarget(req)}>
+                      {t.admin.approveRequest}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      disabled={rejectPending === req.id}
+                      onClick={() => handleReject(req.id)}
+                    >
+                      {rejectPending === req.id ? '…' : t.admin.rejectRequest}
+                    </Button>
+                  </div>
                 )}
               </TableCell>
             </TableRow>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, GitBranch, BookOpen, Inbox, FileQuestion } from 'lucide-react'
+import { Users, GitBranch, BookOpen, Inbox } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { label: 'Flux', href: '/admin/repositories', icon: GitBranch },
   { label: 'Documentation', href: '/admin/documentation', icon: BookOpen },
   { label: 'Demandes scrap', href: '/admin/scrap-requests', icon: Inbox },
-  { label: 'Demandes doc', href: '/admin/doc-requests', icon: FileQuestion },
 ]
 
 export function AdminSidebar() {

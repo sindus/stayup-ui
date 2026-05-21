@@ -235,6 +235,29 @@ export async function adminDeleteDocRegistry(docId: number, token: string): Prom
   })
 }
 
+export async function adminUpdateDocRegistry(
+  docId: number,
+  body: { name: string; url: string; config: Record<string, unknown> },
+  token: string,
+): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/doc-registry/${docId}`, token, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminRejectDocRequest(requestId: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/doc-requests/${requestId}/reject`, token, {
+    method: 'POST',
+  })
+}
+
+export async function adminRejectScrapRequest(requestId: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/scrap-requests/${requestId}/reject`, token, {
+    method: 'POST',
+  })
+}
+
 // ─── Scrap ─────────────────────────────────────────────────────────────────────
 
 export async function getScrapRepos(token: string): Promise<ScrapRepository[]> {
