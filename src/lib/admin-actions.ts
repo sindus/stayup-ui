@@ -7,18 +7,12 @@ import {
   adminCreateRepository,
   adminDeleteRepository,
   adminDeleteUser,
-  adminCreateDocRegistry,
-  adminDeleteDocRegistry,
-  adminUpdateDocRegistry,
   adminListScrapRequests,
   adminApproveScrapRequest,
   adminRejectScrapRequest,
-  adminListDocRequests,
-  adminApproveDocRequest,
-  adminRejectDocRequest,
   deleteUserRepository,
 } from './api-client'
-import type { DocRequest, ScrapRequest } from '@/types'
+import type { ScrapRequest } from '@/types'
 
 const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
@@ -116,49 +110,6 @@ export async function adminCreateRepositoryAction(data: {
   }
 }
 
-export async function adminCreateDocAction(data: {
-  name: string
-  url: string
-  config: Record<string, unknown>
-}): Promise<{ error?: string }> {
-  const token = await getToken()
-  if (!token) return { error: 'Non authentifié' }
-  try {
-    await adminCreateDocRegistry(data, token)
-    revalidatePath('/admin/documentation')
-    return {}
-  } catch (err) {
-    return { error: (err as Error).message }
-  }
-}
-
-export async function adminUpdateDocAction(
-  docId: number,
-  data: { name: string; url: string; config: Record<string, unknown> },
-): Promise<{ error?: string }> {
-  const token = await getToken()
-  if (!token) return { error: 'Non authentifié' }
-  try {
-    await adminUpdateDocRegistry(docId, data, token)
-    revalidatePath('/admin/documentation')
-    return {}
-  } catch (err) {
-    return { error: (err as Error).message }
-  }
-}
-
-export async function adminDeleteDocAction(docId: number): Promise<{ error?: string }> {
-  const token = await getToken()
-  if (!token) return { error: 'Non authentifié' }
-  try {
-    await adminDeleteDocRegistry(docId, token)
-    revalidatePath('/admin/documentation')
-    return {}
-  } catch (err) {
-    return { error: (err as Error).message }
-  }
-}
-
 export async function adminListScrapRequestsAction(): Promise<ScrapRequest[]> {
   const token = await getToken()
   if (!token) return []
@@ -190,41 +141,6 @@ export async function adminApproveScrapRequestAction(
     revalidatePath('/admin/scrap-requests')
     revalidatePath('/admin/repositories')
     return { repository_id: result.repository_id }
-  } catch (err) {
-    return { error: (err as Error).message }
-  }
-}
-
-export async function adminListDocRequestsAction(): Promise<DocRequest[]> {
-  const token = await getToken()
-  if (!token) return []
-  return adminListDocRequests(token).catch(() => [])
-}
-
-export async function adminRejectDocRequestAction(requestId: string): Promise<{ error?: string }> {
-  const token = await getToken()
-  if (!token) return { error: 'Non authentifié' }
-  try {
-    await adminRejectDocRequest(requestId, token)
-    revalidatePath('/admin/documentation')
-    revalidatePath('/admin/doc-requests')
-    return {}
-  } catch (err) {
-    return { error: (err as Error).message }
-  }
-}
-
-export async function adminApproveDocRequestAction(
-  requestId: string,
-  data: { name: string; url: string; config: Record<string, unknown> },
-): Promise<{ error?: string; doc_registry_id?: number }> {
-  const token = await getToken()
-  if (!token) return { error: 'Non authentifié' }
-  try {
-    const result = await adminApproveDocRequest(requestId, data, token)
-    revalidatePath('/admin/doc-requests')
-    revalidatePath('/admin/documentation')
-    return { doc_registry_id: result.doc_registry_id }
   } catch (err) {
     return { error: (err as Error).message }
   }

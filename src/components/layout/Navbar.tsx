@@ -20,10 +20,7 @@ export function Navbar({ user }: NavbarProps) {
   const { t } = useLanguage()
   const pathname = usePathname()
 
-  const tabs = [
-    { label: t.nav.myFeed, href: '/feed' },
-    { label: t.nav.documentation, href: '/documentation' },
-  ]
+  const tabs = [{ label: t.nav.myFeed, href: '/feed' }]
 
   const initial = user.name?.charAt(0)?.toUpperCase() ?? '?'
 

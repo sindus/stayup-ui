@@ -25,25 +25,18 @@ import {
 } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
 
-type AllProvider = 'changelog' | 'youtube' | 'rss' | 'scrap' | 'documentation'
+type AllProvider = 'changelog' | 'youtube' | 'rss' | 'scrap'
 type FeedProvider = 'changelog' | 'youtube' | 'rss'
 
 type FormData = {
   provider: AllProvider
   identifier: string
   scrapRepoId: string
-  docId: string
 }
 
 interface ScrapRepo {
   id: number
   url: string
-  is_subscribed: boolean
-}
-
-interface DocRegistryItem {
-  id: number
-  name: string
   is_subscribed: boolean
 }
 
@@ -61,17 +54,12 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   const [scrapMode, setScrapMode] = useState<'select' | 'request'>('select')
   const [requestUrl, setRequestUrl] = useState('')
   const [requestSuccess, setRequestSuccess] = useState(false)
-  const [docMode, setDocMode] = useState<'select' | 'request'>('select')
-  const [docs, setDocs] = useState<DocRegistryItem[]>([])
-  const [docsLoading, setDocsLoading] = useState(false)
-  const [docRequestUrl, setDocRequestUrl] = useState('')
 
   const schema = z
     .object({
-      provider: z.enum(['changelog', 'youtube', 'rss', 'scrap', 'documentation']),
+      provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
       identifier: z.string().max(200),
       scrapRepoId: z.string(),
-      docId: z.string(),
     })
     .superRefine((data, ctx) => {
       if (data.provider === 'scrap') {
@@ -80,14 +68,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
             code: z.ZodIssueCode.custom,
             message: t.addFlux.selectError,
             path: ['scrapRepoId'],
-          })
-        }
-      } else if (data.provider === 'documentation') {
-        if (docMode === 'select' && !data.docId) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: t.addFlux.selectError,
-            path: ['docId'],
           })
         }
       } else {
@@ -122,7 +102,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { provider: 'changelog', identifier: '', scrapRepoId: '', docId: '' },
+    defaultValues: { provider: 'changelog', identifier: '', scrapRepoId: '' },
   })
 
   const provider = watch('provider') as AllProvider
@@ -135,16 +115,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
       .then((data) => setScrapRepos((data.repos as ScrapRepo[]) ?? []))
       .catch(() => setScrapRepos([]))
       .finally(() => setScrapLoading(false))
-  }, [provider])
-
-  useEffect(() => {
-    if (provider !== 'documentation') return
-    setDocsLoading(true)
-    fetch('/api/documentation')
-      .then((r) => r.json())
-      .then((data) => setDocs((data.docs as DocRegistryItem[]) ?? []))
-      .catch(() => setDocs([]))
-      .finally(() => setDocsLoading(false))
   }, [provider])
 
   async function onSubmit(data: FormData) {
@@ -172,48 +142,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
         return
       }
       setRequestSuccess(true)
-      return
-    }
-
-    if (data.provider === 'documentation' && docMode === 'request') {
-      if (!docRequestUrl.trim()) {
-        setServerError(t.addFlux.requiredError)
-        return
-      }
-      try {
-        new URL(docRequestUrl)
-      } catch {
-        setServerError(t.addFlux.requestUrlError)
-        return
-      }
-      const res = await fetch('/api/doc/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: docRequestUrl }),
-      })
-      if (!res.ok) {
-        const resBody = await res.json().catch(() => ({}))
-        setServerError((resBody as { error?: string }).error ?? t.common.error)
-        return
-      }
-      setRequestSuccess(true)
-      return
-    }
-
-    if (data.provider === 'documentation' && docMode === 'select') {
-      const res = await fetch('/api/doc/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ docId: Number(data.docId) }),
-      })
-      if (!res.ok) {
-        const resBody = await res.json().catch(() => ({}))
-        setServerError((resBody as { error?: string }).error ?? t.common.error)
-        return
-      }
-      reset()
-      onOpenChange(false)
-      router.refresh()
       return
     }
 
@@ -246,15 +174,11 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
       setScrapMode('select')
       setRequestUrl('')
       setRequestSuccess(false)
-      setDocMode('select')
-      setDocRequestUrl('')
-      setDocs([])
     }
     onOpenChange(value)
   }
 
   const availableScrapRepos = scrapRepos.filter((r) => !r.is_subscribed)
-  const availableDocs = docs.filter((d) => !d.is_subscribed)
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -281,9 +205,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                       setValue('provider', v as AllProvider)
                       setValue('identifier', '')
                       setValue('scrapRepoId', '')
-                      setValue('docId', '')
                       setScrapMode('select')
-                      setDocMode('select')
                     }}
                   >
                     <SelectTrigger id="provider">
@@ -300,9 +222,6 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                       <SelectItem value="scrap">
                         {t.feed.providers?.scrap ?? 'Scraping web'}
                       </SelectItem>
-                      <SelectItem value="documentation">
-                        {t.feed.providers?.documentation ?? 'Documentation'}
-                      </SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.provider && (
@@ -310,79 +229,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                   )}
                 </div>
 
-                {provider === 'documentation' ? (
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setDocMode('select')}
-                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                          docMode === 'select'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {t.addFlux.chooseExisting}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDocMode('request')}
-                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                          docMode === 'request'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {t.addFlux.makeRequest}
-                      </button>
-                    </div>
-
-                    {docMode === 'select' ? (
-                      <div className="space-y-2">
-                        <Label htmlFor="docId">{t.addFlux.docRegistry}</Label>
-                        {docsLoading ? (
-                          <p className="text-sm text-muted-foreground">{t.addFlux.loading}</p>
-                        ) : (
-                          <Select
-                            value={watch('docId')}
-                            onValueChange={(v) => setValue('docId', v)}
-                          >
-                            <SelectTrigger id="docId">
-                              <SelectValue placeholder={t.addFlux.selectDocRegistry} />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableDocs.length === 0 ? (
-                                <SelectItem value="_none" disabled>
-                                  {t.addFlux.noDocRegistries}
-                                </SelectItem>
-                              ) : (
-                                availableDocs.map((d) => (
-                                  <SelectItem key={d.id} value={String(d.id)}>
-                                    {d.name}
-                                  </SelectItem>
-                                ))
-                              )}
-                            </SelectContent>
-                          </Select>
-                        )}
-                        {errors.docId && (
-                          <p className="text-sm text-destructive">{errors.docId.message}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="docRequestUrl">{t.addFlux.docRequestUrl}</Label>
-                        <Input
-                          id="docRequestUrl"
-                          type="url"
-                          placeholder={t.addFlux.docRequestUrlPlaceholder}
-                          value={docRequestUrl}
-                          onChange={(e) => setDocRequestUrl(e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : provider === 'scrap' ? (
+                {provider === 'scrap' ? (
                   <div className="space-y-3">
                     <div className="flex gap-2">
                       <button

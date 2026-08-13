@@ -43,7 +43,6 @@ export function LandingHeader() {
         <nav className="hidden md:flex items-center gap-6">
           {[
             { label: 'Feed', href: '/feed' },
-            { label: 'Docs', href: '/documentation' },
             { label: 'Download', href: '#download' },
           ].map(({ label, href }) => (
             <Link
