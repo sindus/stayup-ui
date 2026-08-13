@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { normalizeIdentifier, cn } from '@/lib/utils'
+import {
+  cn,
+  normalizeIdentifier,
+  toRepositoryUrl,
+  extractIdentifier,
+  stripUrlScheme,
+  formatDate,
+} from '@/lib/utils'
 
 describe('normalizeIdentifier', () => {
   describe('changelog provider', () => {
@@ -19,8 +26,22 @@ describe('normalizeIdentifier', () => {
       )
     })
 
+    it('strips a trailing slash from the matched path', () => {
+      expect(normalizeIdentifier('https://github.com/facebook/react/', 'changelog')).toBe(
+        'facebook/react',
+      )
+    })
+
     it('trims whitespace', () => {
       expect(normalizeIdentifier('  facebook/react  ', 'changelog')).toBe('facebook/react')
+    })
+
+    it('strips the http:// github prefix when the path has no second segment', () => {
+      expect(normalizeIdentifier('http://github.com/facebook', 'changelog')).toBe('facebook')
+    })
+
+    it('strips .git from a bare owner/repo value', () => {
+      expect(normalizeIdentifier('facebook/react.git', 'changelog')).toBe('facebook/react')
     })
   })
 
@@ -40,6 +61,108 @@ describe('normalizeIdentifier', () => {
     it('extracts handle from youtube.com/user/ URL', () => {
       expect(normalizeIdentifier('https://youtube.com/user/fireship', 'youtube')).toBe('fireship')
     })
+
+    it('extracts the id from a youtube.com/channel/ URL', () => {
+      expect(normalizeIdentifier('https://youtube.com/channel/UC123abc', 'youtube')).toBe(
+        'UC123abc',
+      )
+    })
+
+    it('ignores query parameters after the handle', () => {
+      expect(normalizeIdentifier('https://youtube.com/@fireship?sub=1', 'youtube')).toBe('fireship')
+    })
+  })
+
+  describe('rss and scrap providers', () => {
+    it('returns the trimmed URL unchanged for rss', () => {
+      expect(normalizeIdentifier('  https://example.com/feed.xml ', 'rss')).toBe(
+        'https://example.com/feed.xml',
+      )
+    })
+
+    it('returns the trimmed URL unchanged for scrap', () => {
+      expect(normalizeIdentifier(' https://example.com/blog ', 'scrap')).toBe(
+        'https://example.com/blog',
+      )
+    })
+  })
+})
+
+describe('toRepositoryUrl', () => {
+  it('builds a GitHub URL for changelog', () => {
+    expect(toRepositoryUrl('facebook/react', 'changelog')).toBe(
+      'https://github.com/facebook/react/',
+    )
+  })
+
+  it('builds a YouTube handle URL for youtube', () => {
+    expect(toRepositoryUrl('fireship', 'youtube')).toBe('https://www.youtube.com/@fireship')
+  })
+
+  it('returns the identifier unchanged for rss', () => {
+    expect(toRepositoryUrl('https://example.com/feed.xml', 'rss')).toBe(
+      'https://example.com/feed.xml',
+    )
+  })
+
+  it('returns the identifier unchanged for scrap', () => {
+    expect(toRepositoryUrl('https://example.com/blog', 'scrap')).toBe('https://example.com/blog')
+  })
+})
+
+describe('extractIdentifier', () => {
+  it('extracts owner/repo from a GitHub URL', () => {
+    expect(extractIdentifier('https://github.com/facebook/react/', 'changelog')).toBe(
+      'facebook/react',
+    )
+  })
+
+  it('returns the URL unchanged when it is not a GitHub URL', () => {
+    expect(extractIdentifier('https://example.com/thing', 'changelog')).toBe(
+      'https://example.com/thing',
+    )
+  })
+
+  it('extracts the handle from a YouTube URL', () => {
+    expect(extractIdentifier('https://www.youtube.com/@fireship', 'youtube')).toBe('fireship')
+  })
+
+  it('extracts the id from a YouTube channel URL', () => {
+    expect(extractIdentifier('https://www.youtube.com/channel/UC123', 'youtube')).toBe('UC123')
+  })
+
+  it('returns the URL unchanged when it is not a YouTube URL', () => {
+    expect(extractIdentifier('https://example.com/chan', 'youtube')).toBe(
+      'https://example.com/chan',
+    )
+  })
+
+  it('returns the URL unchanged for rss', () => {
+    expect(extractIdentifier('https://example.com/feed.xml', 'rss')).toBe(
+      'https://example.com/feed.xml',
+    )
+  })
+})
+
+describe('stripUrlScheme', () => {
+  it('strips https://', () => {
+    expect(stripUrlScheme('https://example.com/a')).toBe('example.com/a')
+  })
+
+  it('strips http://', () => {
+    expect(stripUrlScheme('http://example.com')).toBe('example.com')
+  })
+
+  it('strips https:// together with www.', () => {
+    expect(stripUrlScheme('https://www.example.com')).toBe('example.com')
+  })
+
+  it('strips a leading www. with no scheme', () => {
+    expect(stripUrlScheme('www.example.com')).toBe('example.com')
+  })
+
+  it('leaves a bare host untouched', () => {
+    expect(stripUrlScheme('example.com')).toBe('example.com')
   })
 })
 
@@ -54,5 +177,19 @@ describe('cn', () => {
 
   it('handles conditional classes', () => {
     expect(cn('base', false && 'hidden', 'visible')).toBe('base visible')
+  })
+})
+
+describe('formatDate', () => {
+  it('formats an ISO string using the fr-FR locale', () => {
+    const result = formatDate('2026-03-14T15:09:00.000Z')
+    expect(result).toMatch(/2026/)
+    expect(result).toMatch(/mars/)
+  })
+
+  it('accepts a Date instance', () => {
+    const result = formatDate(new Date('2026-01-02T03:04:00.000Z'))
+    expect(result).toMatch(/2026/)
+    expect(result).toMatch(/janv/)
   })
 })

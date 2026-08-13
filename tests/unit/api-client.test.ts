@@ -242,3 +242,250 @@ describe('validateFlux', () => {
     expect(result.valid).toBe(false)
   })
 })
+
+// ─── Connectors & user feed ────────────────────────────────────────────────────
+
+describe('getAllConnectors', () => {
+  it('returns the connector payload', async () => {
+    const payload = { connectors: { changelog: [], youtube: [] } }
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => payload })
+
+    const { getAllConnectors } = await import('@/lib/api-client')
+    await expect(getAllConnectors(TEST_TOKEN)).resolves.toEqual(payload)
+    expect(mockFetch.mock.calls[0][0]).toContain('/connectors')
+  })
+
+  it('propagates an API error', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 403, json: async () => ({ error: 'Denied' }) })
+
+    const { getAllConnectors } = await import('@/lib/api-client')
+    await expect(getAllConnectors(TEST_TOKEN)).rejects.toThrow('Denied')
+  })
+
+  it('sends the bearer token', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ connectors: {} }) })
+
+    const { getAllConnectors } = await import('@/lib/api-client')
+    await getAllConnectors(TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${TEST_TOKEN}`)
+  })
+})
+
+describe('getUserFeed', () => {
+  it('requests the feed for the given user without caching', async () => {
+    const payload = { repositories: [], connectors: {} }
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => payload })
+
+    const { getUserFeed } = await import('@/lib/api-client')
+    await expect(getUserFeed('u1', TEST_TOKEN)).resolves.toEqual(payload)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/users/u1/feed')
+    expect(mockFetch.mock.calls[0][1].cache).toBe('no-store')
+  })
+})
+
+describe('addUserRepository', () => {
+  it('POSTs the repository payload', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ repository: { id: 'l1' } }),
+    })
+
+    const { addUserRepository } = await import('@/lib/api-client')
+    const data = { provider: 'rss', url: 'https://a.dev/feed', config: {} }
+    await expect(addUserRepository('u1', TEST_TOKEN, data)).resolves.toEqual({
+      repository: { id: 'l1' },
+    })
+
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/users/u1/repositories')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual(data)
+    expect(init.headers['Content-Type']).toBe('application/json')
+  })
+})
+
+describe('deleteUserRepository', () => {
+  it('DELETEs the link', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { deleteUserRepository } = await import('@/lib/api-client')
+    await deleteUserRepository('u1', 'l1', TEST_TOKEN)
+
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/users/u1/repositories/l1')
+    expect(init.method).toBe('DELETE')
+  })
+})
+
+// ─── Admin: users ──────────────────────────────────────────────────────────────
+
+describe('adminListUsers', () => {
+  it('unwraps the users array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ users: [{ id: 'u1', name: 'Ada' }] }),
+    })
+
+    const { adminListUsers } = await import('@/lib/api-client')
+    const users = await adminListUsers(TEST_TOKEN)
+    expect(users).toHaveLength(1)
+    expect(users[0].name).toBe('Ada')
+  })
+})
+
+describe('adminGetUser', () => {
+  it('unwraps the single user', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ user: { id: 'u1', name: 'Ada' } }),
+    })
+
+    const { adminGetUser } = await import('@/lib/api-client')
+    expect((await adminGetUser('u1', TEST_TOKEN)).name).toBe('Ada')
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/users/u1')
+  })
+})
+
+describe('adminDeleteUser', () => {
+  it('DELETEs the user', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { adminDeleteUser } = await import('@/lib/api-client')
+    await adminDeleteUser('u1', TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+  })
+})
+
+// ─── Admin: repositories ───────────────────────────────────────────────────────
+
+describe('adminListRepositories', () => {
+  it('unwraps the repositories array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ repositories: [{ id: 1, url: 'https://a.dev' }] }),
+    })
+
+    const { adminListRepositories } = await import('@/lib/api-client')
+    expect(await adminListRepositories(TEST_TOKEN)).toHaveLength(1)
+  })
+})
+
+describe('adminCreateRepository', () => {
+  it('POSTs the repository and returns its id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 12 }) })
+
+    const { adminCreateRepository } = await import('@/lib/api-client')
+    const body = { url: 'https://a.dev', type: 'scrap', config: {} }
+    expect(await adminCreateRepository(body, TEST_TOKEN)).toEqual({ id: 12 })
+    expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual(body)
+  })
+})
+
+describe('adminDeleteRepository', () => {
+  it('DELETEs the repository', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { adminDeleteRepository } = await import('@/lib/api-client')
+    await adminDeleteRepository(3, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/repositories/3')
+    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+  })
+})
+
+describe('adminClearRepositoryData', () => {
+  it('DELETEs only the repository data', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { adminClearRepositoryData } = await import('@/lib/api-client')
+    await adminClearRepositoryData(3, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/repositories/3/data')
+  })
+})
+
+// ─── Scrap ─────────────────────────────────────────────────────────────────────
+
+describe('getScrapRepos', () => {
+  it('unwraps the repos array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ repos: [{ id: 1, url: 'https://a.dev' }] }),
+    })
+
+    const { getScrapRepos } = await import('@/lib/api-client')
+    expect(await getScrapRepos(TEST_TOKEN)).toHaveLength(1)
+  })
+})
+
+describe('subscribeScrap', () => {
+  it('POSTs the subscription', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { subscribeScrap } = await import('@/lib/api-client')
+    await subscribeScrap(4, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/scrap/4/subscribe')
+    expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+  })
+})
+
+describe('unsubscribeScrap', () => {
+  it('DELETEs the subscription', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { unsubscribeScrap } = await import('@/lib/api-client')
+    await unsubscribeScrap(4, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+  })
+})
+
+describe('createScrapRequest', () => {
+  it('POSTs the request URL', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'r1' }) })
+
+    const { createScrapRequest } = await import('@/lib/api-client')
+    expect(await createScrapRequest({ url: 'https://a.dev' }, TEST_TOKEN)).toEqual({ id: 'r1' })
+    expect(mockFetch.mock.calls[0][0]).toContain('/scrap/requests')
+  })
+})
+
+describe('adminListScrapRequests', () => {
+  it('unwraps the requests array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ requests: [{ id: 'r1' }] }),
+    })
+
+    const { adminListScrapRequests } = await import('@/lib/api-client')
+    expect(await adminListScrapRequests(TEST_TOKEN)).toHaveLength(1)
+  })
+})
+
+describe('adminApproveScrapRequest', () => {
+  it('POSTs the approval and returns the repository id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ repository_id: 9 }) })
+
+    const { adminApproveScrapRequest } = await import('@/lib/api-client')
+    const body = { url: 'https://a.dev', config: {} }
+    expect(await adminApproveScrapRequest('r1', body, TEST_TOKEN)).toEqual({ repository_id: 9 })
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/scrap-requests/r1/approve')
+  })
+})
+
+describe('adminRejectScrapRequest', () => {
+  it('POSTs the rejection', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+
+    const { adminRejectScrapRequest } = await import('@/lib/api-client')
+    await adminRejectScrapRequest('r1', TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/scrap-requests/r1/reject')
+    expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+  })
+})
+
+// ─── Removed documentation surface ─────────────────────────────────────────────
+
+describe('documentation API helpers', () => {
+  it('are no longer exported', async () => {
+    const mod = await import('@/lib/api-client')
+    expect(Object.keys(mod).filter((k) => /Doc/i.test(k))).toEqual([])
+  })
+})
