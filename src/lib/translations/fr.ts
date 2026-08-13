@@ -84,8 +84,8 @@ export const fr = {
           paths: ['%APPDATA%\\dev.r-sik.stayup-desktop'],
         },
         brew: {
-          install: ['brew install --cask sindus/tap/stayup'],
-          uninstall: ['brew uninstall --cask sindus/tap/stayup', 'Supprimez les données :'],
+          install: ['brew install --cask stayup-app/tap/stayup'],
+          uninstall: ['brew uninstall --cask stayup-app/tap/stayup', 'Supprimez les données :'],
           paths: [
             '~/Library/Application Support/dev.r-sik.stayup-desktop',
             '~/Library/Preferences/dev.r-sik.stayup-desktop.plist',

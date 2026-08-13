@@ -5,14 +5,14 @@ import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
 
 function makePlatforms(version: string) {
-  const base = `https://github.com/sindus/stayup-desktop/releases/download/v${version}`
+  const base = `https://github.com/stayup-app/stayup-desktop/releases/download/v${version}`
   return [
     {
       icon: Apple,
       label: 'Homebrew',
       href: null,
       noteKey: 'brewNote' as const,
-      command: 'brew install --cask sindus/tap/stayup',
+      command: 'brew install --cask stayup-app/tap/stayup',
     },
     {
       icon: Apple,
@@ -133,7 +133,7 @@ export function DownloadSection({ version }: { version: string }) {
 
       <p className="text-center mb-16">
         <a
-          href="https://github.com/sindus/stayup-desktop/releases"
+          href="https://github.com/stayup-app/stayup-desktop/releases"
           target="_blank"
           rel="noopener noreferrer"
           className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition-colors"
