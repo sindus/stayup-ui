@@ -178,6 +178,7 @@ export const fr = {
     deleteAriaLabel: 'Supprimer ce flux',
     confirmDelete: 'Supprimer "{id}" ?',
     noContent: 'Aucun contenu disponible.',
+    retry: 'Réessayer',
     filterAll: 'Tous',
     filterUnread: 'Non lu',
     markAllRead: 'Tout marquer lu',
@@ -225,6 +226,7 @@ export const fr = {
   viewer: {
     noTitle: 'Sans titre',
     selectItem: 'Sélectionnez un élément.',
+    repository: 'dépôt',
     openOnGithub: 'Voir sur GitHub',
     watchOnYoutube: 'Voir sur YouTube',
     readArticle: "Lire l'article",
