@@ -165,6 +165,7 @@ export const en = {
     noFlux: 'No feeds',
     add: 'Add a feed',
     addShort: '+ Add',
+    refresh: 'Refresh feeds',
     deleteAriaLabel: 'Delete this feed',
     confirmDelete: 'Delete "{id}"?',
     noContent: 'No content available.',

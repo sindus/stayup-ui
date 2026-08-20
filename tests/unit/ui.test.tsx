@@ -27,9 +27,13 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
+import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { Language } from '@/lib/translations'
+
+const useLinkStatusMock = vi.fn(() => ({ pending: false }))
+vi.mock('next/link', () => ({ useLinkStatus: () => useLinkStatusMock() }))
 
 const setTheme = vi.fn()
 const useThemeMock = vi.fn(() => ({ theme: 'dark', setTheme }))
@@ -46,6 +50,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 beforeEach(() => {
   vi.clearAllMocks()
   useThemeMock.mockReturnValue({ theme: 'dark', setTheme })
+  useLinkStatusMock.mockReturnValue({ pending: false })
 })
 
 describe('Badge', () => {
@@ -317,6 +322,20 @@ describe('LanguageSwitcher', () => {
     await user.selectOptions(screen.getByLabelText('Language'), 'en')
     expect(screen.getByLabelText('Language')).toHaveValue('en')
     expect(refresh).toHaveBeenCalled()
+  })
+})
+
+describe('LinkPendingSpinner', () => {
+  it('renders nothing while the link is not pending', () => {
+    useLinkStatusMock.mockReturnValue({ pending: false })
+    render(<LinkPendingSpinner />)
+    expect(document.querySelector('svg')).not.toBeInTheDocument()
+  })
+
+  it('renders a spinner while the link is pending', () => {
+    useLinkStatusMock.mockReturnValue({ pending: true })
+    render(<LinkPendingSpinner />)
+    expect(document.querySelector('svg')).toBeInTheDocument()
   })
 })
 

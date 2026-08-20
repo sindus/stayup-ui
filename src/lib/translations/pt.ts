@@ -173,6 +173,7 @@ export const pt: Translations = {
     noFlux: 'Nenhum feed',
     add: 'Adicionar um feed',
     addShort: '+ Adicionar',
+    refresh: 'Atualizar feeds',
     deleteAriaLabel: 'Excluir este feed',
     confirmDelete: 'Excluir "{id}"?',
     noContent: 'Nenhum conteúdo disponível.',

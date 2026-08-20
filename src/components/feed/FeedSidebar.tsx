@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid } from 'lucide-react'
+import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid, RefreshCw } from 'lucide-react'
 import { AddFluxDialog } from './AddFluxDialog'
 import { ImportExportButtons } from './ImportExportButtons'
+import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
 import { cn, stripUrlScheme } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
@@ -89,6 +90,13 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
   const [addOpen, setAddOpen] = useState(false)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [isRefreshing, startRefresh] = useTransition()
+
+  // The per-item "deleting" indicator stays lit until the refreshed list has
+  // actually landed, not just until the DELETE request resolves.
+  useEffect(() => {
+    if (!isRefreshing) setDeleting(null)
+  }, [isRefreshing])
 
   const byProvider = fluxes.reduce<Partial<Record<Provider, UserRepository[]>>>((acc, flux) => {
     ;(acc[flux.provider] ??= []).push(flux)
@@ -111,8 +119,11 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
     if (!confirm(t.feed.confirmDelete.replace('{id}', flux.identifier))) return
     setDeleting(flux.id)
     await fetch(`/api/fluxes/${flux.id}`, { method: 'DELETE' })
-    setDeleting(null)
-    router.refresh()
+    startRefresh(() => router.refresh())
+  }
+
+  function handleRefresh() {
+    startRefresh(() => router.refresh())
   }
 
   const isAllActive = pathname === '/feed'
@@ -132,7 +143,8 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
           style={isAllActive ? { background: 'var(--surface-3)' } : undefined}
         >
           <LayoutGrid className="h-3.5 w-3.5 shrink-0" />
-          <span>{t.feed.allFeed}</span>
+          <span className="flex-1">{t.feed.allFeed}</span>
+          <LinkPendingSpinner />
         </Link>
 
         {/* My feeds section */}
@@ -144,6 +156,15 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
             {t.feed.myFeeds}
           </span>
           <div className="flex items-center gap-1">
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+              style={{ border: '1px solid hsl(var(--border))' }}
+              aria-label={t.feed.refresh}
+            >
+              <RefreshCw className={cn('h-3 w-3', isRefreshing && 'animate-spin')} />
+            </button>
             <button
               onClick={() => setAddOpen(true)}
               className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
@@ -214,6 +235,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
                           {totalUnread}
                         </span>
                       )}
+                      <LinkPendingSpinner />
                     </Link>
                   </div>
 
@@ -257,6 +279,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
                                   {fluxUnread}
                                 </span>
                               )}
+                              <LinkPendingSpinner />
                             </Link>
                             <button
                               onClick={(e) => handleDelete(flux, e)}

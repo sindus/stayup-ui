@@ -66,6 +66,11 @@ describe('Navbar', () => {
     expect(screen.getByTitle('Ada Lovelace')).toHaveTextContent('A')
   })
 
+  it('exposes the language switcher', () => {
+    renderWithLang(<Navbar user={USER} />)
+    expect(screen.getByLabelText('Language')).toBeInTheDocument()
+  })
+
   // Navbar's `?? '?'` initial fallback is unreachable in practice: UserMenu,
   // rendered alongside it, calls user.name.split() and throws first. An empty
   // name therefore renders an empty initial rather than '?'.
