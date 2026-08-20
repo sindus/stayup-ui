@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import Image from 'next/image'
 import type {
   TaggedItem,
@@ -147,6 +145,7 @@ export function UnifiedFeedList({
                   repoUrl={repoUrlMap[tagged.item.repository_id] ?? ''}
                   color={color}
                   dimColor={PROVIDER_DIM[tagged.provider]}
+                  repositoryLabel={t.viewer.repository}
                 />
               )}
               {tagged.provider === 'youtube' && (
@@ -155,7 +154,9 @@ export function UnifiedFeedList({
               {tagged.provider === 'rss' && (
                 <RssEntry item={tagged.item} color={color} noTitle={t.viewer.noTitle} />
               )}
-              {tagged.provider === 'scrap' && <ScrapEntry item={tagged.item} color={color} />}
+              {tagged.provider === 'scrap' && (
+                <ScrapEntry item={tagged.item} color={color} scrapLabel={t.feed.providers.scrap} />
+              )}
             </div>
           </div>
         )
@@ -169,18 +170,20 @@ function ChangelogEntry({
   repoUrl,
   color,
   dimColor,
+  repositoryLabel,
 }: {
   item: import('@/types').ChangelogItem
   repoUrl: string
   color: string
   dimColor: string
+  repositoryLabel: string
 }) {
   return (
     <div>
       <div className="flex items-center justify-between gap-2 mb-0.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className="text-[14px] font-mono text-muted-foreground truncate">
-            {repoUrl?.replace('https://github.com/', '') ?? 'repository'}
+            {repoUrl?.replace('https://github.com/', '') || repositoryLabel}
           </span>
           <span
             className="text-[13px] font-mono font-semibold px-1.5 py-0.5 rounded shrink-0"
@@ -308,7 +311,15 @@ function RssEntry({
   )
 }
 
-function ScrapEntry({ item, color }: { item: import('@/types').ScrapItem; color: string }) {
+function ScrapEntry({
+  item,
+  color,
+  scrapLabel,
+}: {
+  item: import('@/types').ScrapItem
+  color: string
+  scrapLabel: string
+}) {
   const params: ScrapItemParams | null =
     typeof item.params === 'string'
       ? (() => {
@@ -326,7 +337,7 @@ function ScrapEntry({ item, color }: { item: import('@/types').ScrapItem; color:
     <div>
       <div className="flex items-start justify-between gap-2 mb-0.5">
         <span className="text-[15px] font-medium line-clamp-1 text-foreground">
-          {item.content?.slice(0, 80) ?? params?.url ?? 'Scrap'}
+          {item.content?.slice(0, 80) ?? params?.url ?? scrapLabel}
         </span>
         <span className="text-[13px] font-mono shrink-0 text-gray-500">
           {formatDate(item.executed_at)}

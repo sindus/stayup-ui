@@ -170,6 +170,7 @@ export const en: Translations = {
     deleteAriaLabel: 'Delete this feed',
     confirmDelete: 'Delete "{id}"?',
     noContent: 'No content available.',
+    retry: 'Retry',
     filterAll: 'All',
     filterUnread: 'Unread',
     markAllRead: 'Mark all read',
@@ -216,6 +217,7 @@ export const en: Translations = {
   viewer: {
     noTitle: 'Untitled',
     selectItem: 'Select an item.',
+    repository: 'repository',
     openOnGithub: 'View on GitHub',
     watchOnYoutube: 'Watch on YouTube',
     readArticle: 'Read article',

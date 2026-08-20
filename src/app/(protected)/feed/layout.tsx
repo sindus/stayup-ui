@@ -10,10 +10,7 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
   const cookieStore = await cookies()
   const token = cookieStore.get('stayup_token')?.value ?? ''
 
-  const feedData = await getCachedUserFeed(session!.userId, token).catch(() => ({
-    repositories: [],
-    connectors: { changelog: [], youtube: [], rss: [], scrap: [] },
-  }))
+  const feedData = await getCachedUserFeed(session!.userId, token)
 
   const fluxes: UserRepository[] = feedData.repositories.map((repo) => ({
     id: repo.id,

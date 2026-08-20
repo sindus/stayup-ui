@@ -144,9 +144,10 @@ describe('changelog entries', () => {
     expect(screen.queryByText(/Fixes/)).not.toBeInTheDocument()
   })
 
-  it('renders an empty repo label for an unknown repository', () => {
+  it('falls back to the translated "repository" label for an unknown repository', () => {
     renderList({ items: [changelog({ repository_id: 999 })], repositories: [] })
     expect(screen.getByText('v19.1.0')).toBeInTheDocument()
+    expect(screen.getByText('repository')).toBeInTheDocument()
   })
 })
 
