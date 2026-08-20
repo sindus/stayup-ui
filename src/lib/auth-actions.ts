@@ -2,11 +2,13 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { COOKIE_NAME, decodeToken, getToken } from './session'
+import { COOKIE_NAME, ADMIN_COOKIE_NAME, decodeToken, getToken } from './session'
 
 const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
-async function setTokenCookie(token: string) {
+// Admin sessions use their own cookie (ADMIN_COOKIE_NAME) so a browser can
+// hold a regular user session and an admin session at the same time.
+async function setTokenCookie(name: string, token: string) {
   const exp = (
     JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()) as {
       exp: number
@@ -14,7 +16,7 @@ async function setTokenCookie(token: string) {
   ).exp
   const maxAge = Math.max(exp - Math.floor(Date.now() / 1000), 0)
   const cookieStore = await cookies()
-  cookieStore.set(COOKIE_NAME, token, {
+  cookieStore.set(name, token, {
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
@@ -36,7 +38,7 @@ export async function loginAction(email: string, password: string): Promise<{ er
   }
 
   const { token } = (await res.json()) as { token: string }
-  await setTokenCookie(token)
+  await setTokenCookie(COOKIE_NAME, token)
   redirect('/feed')
 }
 
@@ -61,7 +63,7 @@ export async function registerAction(
   }
 
   const { token } = (await res.json()) as { token: string }
-  await setTokenCookie(token)
+  await setTokenCookie(COOKIE_NAME, token)
   redirect('/feed')
 }
 
@@ -81,7 +83,7 @@ export async function adminLoginAction(
   }
 
   const { token } = (await res.json()) as { token: string }
-  await setTokenCookie(token)
+  await setTokenCookie(ADMIN_COOKIE_NAME, token)
   redirect('/admin')
 }
 
@@ -89,6 +91,12 @@ export async function logoutAction(): Promise<void> {
   const cookieStore = await cookies()
   cookieStore.delete(COOKIE_NAME)
   redirect('/')
+}
+
+export async function adminLogoutAction(): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.delete(ADMIN_COOKIE_NAME)
+  redirect('/admin/login')
 }
 
 export async function updateProfileAction(data: {

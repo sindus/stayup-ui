@@ -41,7 +41,7 @@ test.describe('Admin routes (unauthenticated)', () => {
   })
 })
 
-test.describe('Admin login page (already authenticated as user)', () => {
+test.describe('Admin session is independent from the user session', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/register')
     await page.getByLabel('Nom').fill('Admin E2E Test')
@@ -52,8 +52,19 @@ test.describe('Admin login page (already authenticated as user)', () => {
     await expect(page).toHaveURL('/feed', { timeout: 15000 })
   })
 
-  test('user accessing /admin is redirected to /feed', async ({ page }) => {
+  // Admin uses its own cookie (separate from the user session), so a regular
+  // user has no admin session at all and is sent to the admin login — not to
+  // /feed as if they'd been recognized and rejected.
+  test('a plain user session does not grant /admin access', async ({ page }) => {
     await page.goto('/admin')
+    await expect(page).toHaveURL('/admin/login')
+  })
+
+  // The user session must survive visiting the admin login page: the two
+  // cookies must not collide.
+  test('visiting /admin/login does not sign the user out', async ({ page }) => {
+    await page.goto('/admin/login')
+    await page.goto('/feed')
     await expect(page).toHaveURL('/feed')
   })
 })

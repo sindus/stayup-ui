@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers'
-import { COOKIE_NAME } from './constants'
+import { COOKIE_NAME, ADMIN_COOKIE_NAME } from './constants'
 
-export { COOKIE_NAME }
+export { COOKIE_NAME, ADMIN_COOKIE_NAME }
 
 export interface AppSession {
   userId: string
@@ -39,4 +39,23 @@ export async function getSession(): Promise<AppSession | null> {
 export async function getToken(): Promise<string | null> {
   const cookieStore = await cookies()
   return cookieStore.get(COOKIE_NAME)?.value ?? null
+}
+
+// Admin sessions use a separate cookie from user sessions, so the same
+// browser can be signed in as a regular user and as admin at the same time.
+
+export async function getAdminSession(): Promise<AppSession | null> {
+  const cookieStore = await cookies()
+  const token = cookieStore.get(ADMIN_COOKIE_NAME)?.value
+  if (!token) return null
+  try {
+    return decodeToken(token)
+  } catch {
+    return null
+  }
+}
+
+export async function getAdminToken(): Promise<string | null> {
+  const cookieStore = await cookies()
+  return cookieStore.get(ADMIN_COOKIE_NAME)?.value ?? null
 }

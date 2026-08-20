@@ -12,10 +12,14 @@ vi.mock('next/server', () => ({
 }))
 
 /** Minimal NextRequest stand-in: only cookies and nextUrl are read. */
-function makeRequest(pathname: string, token?: string) {
+function makeRequest(pathname: string, cookies: { user?: string; admin?: string } = {}) {
   return {
     cookies: {
-      get: (name: string) => (token && name === 'stayup_token' ? { value: token } : undefined),
+      get: (name: string) => {
+        if (name === 'stayup_token' && cookies.user) return { value: cookies.user }
+        if (name === 'stayup_admin_token' && cookies.admin) return { value: cookies.admin }
+        return undefined
+      },
     },
     nextUrl: { pathname },
     url: `https://app.test${pathname}`,
@@ -44,14 +48,22 @@ describe('admin routes', () => {
   })
 
   it('lets an admin through', () => {
-    middleware(makeRequest('/admin/users', tokenWithRole('admin')))
+    middleware(makeRequest('/admin/users', { admin: tokenWithRole('admin') }))
     expect(next).toHaveBeenCalled()
     expect(redirectTo).not.toHaveBeenCalled()
   })
 
-  it('sends a non-admin user to the feed', () => {
-    middleware(makeRequest('/admin/users', tokenWithRole('user')))
-    expect(redirectPath()).toBe('/feed')
+  it('is unaffected by a regular user session in the other cookie', () => {
+    middleware(
+      makeRequest('/admin/users', { user: tokenWithRole('user'), admin: tokenWithRole('admin') }),
+    )
+    expect(next).toHaveBeenCalled()
+    expect(redirectTo).not.toHaveBeenCalled()
+  })
+
+  it('sends a non-admin token back to the admin login', () => {
+    middleware(makeRequest('/admin/users', { admin: tokenWithRole('user') }))
+    expect(redirectPath()).toBe('/admin/login')
   })
 
   it('shows the admin login page to an anonymous visitor', () => {
@@ -61,18 +73,18 @@ describe('admin routes', () => {
   })
 
   it('redirects an already authenticated admin away from the login page', () => {
-    middleware(makeRequest('/admin/login', tokenWithRole('admin')))
+    middleware(makeRequest('/admin/login', { admin: tokenWithRole('admin') }))
     expect(redirectPath()).toBe('/admin')
   })
 
   it('keeps a non-admin on the admin login page', () => {
-    middleware(makeRequest('/admin/login', tokenWithRole('user')))
+    middleware(makeRequest('/admin/login', { admin: tokenWithRole('user') }))
     expect(next).toHaveBeenCalled()
   })
 
   it('treats an undecodable token as non-admin', () => {
-    middleware(makeRequest('/admin/users', 'garbage'))
-    expect(redirectPath()).toBe('/feed')
+    middleware(makeRequest('/admin/users', { admin: 'garbage' }))
+    expect(redirectPath()).toBe('/admin/login')
   })
 })
 
@@ -83,7 +95,7 @@ describe('protected routes', () => {
   })
 
   it('lets an authenticated user reach the feed', () => {
-    middleware(makeRequest('/feed', tokenWithRole('user')))
+    middleware(makeRequest('/feed', { user: tokenWithRole('user') }))
     expect(next).toHaveBeenCalled()
     expect(redirectTo).not.toHaveBeenCalled()
   })
@@ -92,11 +104,16 @@ describe('protected routes', () => {
     middleware(makeRequest('/feed/flux/12'))
     expect(redirectPath()).toBe('/login')
   })
+
+  it('is unaffected by an admin session in the other cookie', () => {
+    middleware(makeRequest('/feed', { admin: tokenWithRole('admin') }))
+    expect(redirectPath()).toBe('/login')
+  })
 })
 
 describe('auth pages', () => {
   it.each(['/login', '/register'])('redirects a signed-in user from %s to /feed', (path) => {
-    middleware(makeRequest(path, tokenWithRole('user')))
+    middleware(makeRequest(path, { user: tokenWithRole('user') }))
     expect(redirectPath()).toBe('/feed')
   })
 

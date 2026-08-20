@@ -1,14 +1,14 @@
 import { redirect } from 'next/navigation'
-import { getSession, getToken } from '@/lib/session'
+import { getAdminSession, getAdminToken } from '@/lib/session'
 import { adminListRepositories } from '@/lib/api-client'
 import { RepositoriesTable } from '@/components/admin/RepositoriesTable'
 import { ScrapCreateForm } from '@/components/admin/ScrapCreateForm'
 
 export default async function AdminRepositoriesPage() {
-  const session = await getSession()
-  if (!session || session.role !== 'admin') redirect('/login')
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') redirect('/admin/login')
 
-  const token = await getToken()
+  const token = await getAdminToken()
   const repositories = await adminListRepositories(token as string).catch(() => [])
 
   return (

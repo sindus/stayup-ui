@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { getSession, getToken } from '@/lib/session'
+import { getAdminSession, getAdminToken } from '@/lib/session'
 import { adminGetUser, getUserFeed } from '@/lib/api-client'
 import { UserFluxesTable } from '@/components/admin/UserFluxesTable'
 import { EditUserDialog } from '@/components/admin/EditUserDialog'
@@ -8,10 +8,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function AdminUserDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const session = await getSession()
-  if (!session || session.role !== 'admin') redirect('/login')
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') redirect('/admin/login')
 
-  const token = await getToken()
+  const token = await getAdminToken()
   const { id } = await params
 
   const [user, feed] = await Promise.all([
