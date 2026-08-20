@@ -10,6 +10,23 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3001',
     trace: 'on-first-retry',
+    // The app defaults to English; these specs assert the French UI, so pin
+    // the language cookie the same way the app itself persists a choice.
+    storageState: {
+      cookies: [
+        {
+          name: 'lang',
+          value: 'fr',
+          domain: 'localhost',
+          path: '/',
+          expires: -1,
+          httpOnly: false,
+          secure: false,
+          sameSite: 'Lax',
+        },
+      ],
+      origins: [],
+    },
   },
   projects: [
     {
