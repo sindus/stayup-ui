@@ -150,19 +150,42 @@ describe('adminLoginAction', () => {
     })
   })
 
+  it('sets the admin cookie, not the user cookie', async () => {
+    const token = makeToken()
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token }) })
+
+    const { adminLoginAction } = await import('@/lib/auth-actions')
+    await expect(adminLoginAction('root', 'pw')).rejects.toThrow()
+
+    expect(cookieSet).toHaveBeenCalledWith(
+      'stayup_admin_token',
+      token,
+      expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/' }),
+    )
+  })
+
   it('returns an error on bad credentials', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) })
 
     const { adminLoginAction } = await import('@/lib/auth-actions')
     expect(await adminLoginAction('root', 'nope')).toEqual({ error: 'Identifiants incorrects.' })
+    expect(cookieSet).not.toHaveBeenCalled()
   })
 })
 
 describe('logoutAction', () => {
-  it('deletes the session cookie and redirects home', async () => {
+  it('deletes the user cookie and redirects home', async () => {
     const { logoutAction } = await import('@/lib/auth-actions')
     await expect(logoutAction()).rejects.toThrow('NEXT_REDIRECT:/')
     expect(cookieDelete).toHaveBeenCalledWith('stayup_token')
+  })
+})
+
+describe('adminLogoutAction', () => {
+  it('deletes the admin cookie and redirects to the admin login', async () => {
+    const { adminLogoutAction } = await import('@/lib/auth-actions')
+    await expect(adminLogoutAction()).rejects.toThrow('NEXT_REDIRECT:/admin/login')
+    expect(cookieDelete).toHaveBeenCalledWith('stayup_admin_token')
   })
 })
 

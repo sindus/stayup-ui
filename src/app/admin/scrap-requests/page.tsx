@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/session'
+import { getAdminSession } from '@/lib/session'
 import { adminListScrapRequestsAction } from '@/lib/admin-actions'
 import { ScrapRequestsTable } from '@/components/admin/ScrapRequestsTable'
 
 export default async function AdminScrapRequestsPage() {
-  const session = await getSession()
-  if (!session || session.role !== 'admin') redirect('/login')
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') redirect('/admin/login')
 
   const requests = await adminListScrapRequestsAction()
 

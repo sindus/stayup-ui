@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getSession } from '@/lib/session'
-import { logoutAction } from '@/lib/auth-actions'
+import { getAdminSession } from '@/lib/session'
+import { adminLogoutAction } from '@/lib/auth-actions'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession()
-  if (!session || session.role !== 'admin') redirect('/login')
+  const session = await getAdminSession()
+  if (!session || session.role !== 'admin') redirect('/admin/login')
 
   const initial = session.email?.charAt(0)?.toUpperCase() ?? 'A'
 
@@ -58,7 +58,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <div className="flex-1 min-w-0">
             <p className="text-[11px] font-mono text-muted-foreground truncate">{session.email}</p>
           </div>
-          <form action={logoutAction}>
+          <form action={adminLogoutAction}>
             <button
               type="submit"
               className="text-[11px] text-muted-foreground hover:text-foreground transition-colors"

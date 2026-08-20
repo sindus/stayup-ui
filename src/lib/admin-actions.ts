@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { getToken } from './session'
+import { getAdminToken } from './session'
 import {
   adminClearRepositoryData,
   adminCreateRepository,
@@ -17,7 +17,7 @@ import type { ScrapRequest } from '@/types'
 const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 export async function adminDeleteUserAction(userId: string): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await adminDeleteUser(userId, token)
@@ -32,7 +32,7 @@ export async function adminUpdateUserAction(
   userId: string,
   data: { name?: string; email?: string; password?: string },
 ): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
 
   const res = await fetch(`${API_URL}/ui/users/${userId}`, {
@@ -59,7 +59,7 @@ export async function adminDeleteUserFluxAction(
   userId: string,
   linkId: string,
 ): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await deleteUserRepository(userId, linkId, token)
@@ -71,7 +71,7 @@ export async function adminDeleteUserFluxAction(
 }
 
 export async function adminDeleteRepositoryAction(repoId: number): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await adminDeleteRepository(repoId, token)
@@ -83,7 +83,7 @@ export async function adminDeleteRepositoryAction(repoId: number): Promise<{ err
 }
 
 export async function adminClearRepositoryDataAction(repoId: number): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await adminClearRepositoryData(repoId, token)
@@ -99,7 +99,7 @@ export async function adminCreateRepositoryAction(data: {
   type: string
   config: Record<string, unknown>
 }): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await adminCreateRepository(data, token)
@@ -111,7 +111,7 @@ export async function adminCreateRepositoryAction(data: {
 }
 
 export async function adminListScrapRequestsAction(): Promise<ScrapRequest[]> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return []
   return adminListScrapRequests(token).catch(() => [])
 }
@@ -119,7 +119,7 @@ export async function adminListScrapRequestsAction(): Promise<ScrapRequest[]> {
 export async function adminRejectScrapRequestAction(
   requestId: string,
 ): Promise<{ error?: string }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     await adminRejectScrapRequest(requestId, token)
@@ -134,7 +134,7 @@ export async function adminApproveScrapRequestAction(
   requestId: string,
   data: { url: string; config: Record<string, unknown> },
 ): Promise<{ error?: string; repository_id?: number }> {
-  const token = await getToken()
+  const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
   try {
     const result = await adminApproveScrapRequest(requestId, data, token)

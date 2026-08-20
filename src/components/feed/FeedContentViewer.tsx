@@ -254,7 +254,7 @@ function ChangelogContent({
 
       {item.content && (
         <div
-          className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap"
+          className="text-muted-foreground leading-relaxed whitespace-pre-wrap"
           style={{ fontSize: `${15 + fontSizeOffset}px` }}
         >
           {item.content
@@ -299,7 +299,7 @@ function YoutubeContent({
   return (
     <div className="p-6 max-w-2xl">
       <h2
-        className="font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-2"
+        className="font-semibold text-foreground leading-snug mb-2"
         style={{ fontSize: `${18 + fontSizeOffset}px` }}
       >
         {parsed?.title ?? t.viewer.noTitle}
@@ -389,7 +389,7 @@ function RssContent({
   return (
     <div className="p-6 max-w-2xl">
       <h2
-        className="font-semibold text-gray-900 dark:text-gray-100 leading-snug mb-2"
+        className="font-semibold text-foreground leading-snug mb-2"
         style={{ fontSize: `${18 + fontSizeOffset}px` }}
       >
         {parsed?.title ?? t.viewer.noTitle}
@@ -464,7 +464,7 @@ function ScrapContent({
 
       {item.content && (
         <p
-          className="text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap"
+          className="text-muted-foreground leading-relaxed whitespace-pre-wrap"
           style={{ fontSize: `${15 + fontSizeOffset}px` }}
         >
           {item.content}

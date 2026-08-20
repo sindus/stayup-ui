@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-const getToken = vi.fn()
-vi.mock('@/lib/session', () => ({ getToken: () => getToken() }))
+const getAdminToken = vi.fn()
+vi.mock('@/lib/session', () => ({ getAdminToken: () => getAdminToken() }))
 
 const revalidatePath = vi.fn()
 vi.mock('next/cache', () => ({ revalidatePath: (p: string) => revalidatePath(p) }))
@@ -23,7 +23,7 @@ vi.mock('@/lib/api-client', () => api)
 
 beforeEach(() => {
   vi.clearAllMocks()
-  getToken.mockResolvedValue('token')
+  getAdminToken.mockResolvedValue('token')
   for (const fn of Object.values(api)) fn.mockResolvedValue(undefined)
 })
 
@@ -36,7 +36,7 @@ describe('adminDeleteUserAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminDeleteUserAction } = await import('@/lib/admin-actions')
     expect(await adminDeleteUserAction('u1')).toEqual({ error: 'Non authentifié' })
   })
@@ -64,7 +64,7 @@ describe('adminUpdateUserAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminUpdateUserAction } = await import('@/lib/admin-actions')
     expect(await adminUpdateUserAction('u1', { name: 'Ada' })).toEqual({
       error: 'Non authentifié',
@@ -104,7 +104,7 @@ describe('adminDeleteUserFluxAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminDeleteUserFluxAction } = await import('@/lib/admin-actions')
     expect(await adminDeleteUserFluxAction('u1', 'link1')).toEqual({ error: 'Non authentifié' })
   })
@@ -125,7 +125,7 @@ describe('adminDeleteRepositoryAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminDeleteRepositoryAction } = await import('@/lib/admin-actions')
     expect(await adminDeleteRepositoryAction(3)).toEqual({ error: 'Non authentifié' })
   })
@@ -146,7 +146,7 @@ describe('adminClearRepositoryDataAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminClearRepositoryDataAction } = await import('@/lib/admin-actions')
     expect(await adminClearRepositoryDataAction(4)).toEqual({ error: 'Non authentifié' })
   })
@@ -169,7 +169,7 @@ describe('adminCreateRepositoryAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminCreateRepositoryAction } = await import('@/lib/admin-actions')
     expect(await adminCreateRepositoryAction(payload)).toEqual({ error: 'Non authentifié' })
   })
@@ -191,7 +191,7 @@ describe('adminListScrapRequestsAction', () => {
   })
 
   it('returns an empty array when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminListScrapRequestsAction } = await import('@/lib/admin-actions')
     expect(await adminListScrapRequestsAction()).toEqual([])
     expect(api.adminListScrapRequests).not.toHaveBeenCalled()
@@ -213,7 +213,7 @@ describe('adminRejectScrapRequestAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminRejectScrapRequestAction } = await import('@/lib/admin-actions')
     expect(await adminRejectScrapRequestAction('r1')).toEqual({ error: 'Non authentifié' })
   })
@@ -238,7 +238,7 @@ describe('adminApproveScrapRequestAction', () => {
   })
 
   it('returns an error when unauthenticated', async () => {
-    getToken.mockResolvedValue(null)
+    getAdminToken.mockResolvedValue(null)
     const { adminApproveScrapRequestAction } = await import('@/lib/admin-actions')
     expect(await adminApproveScrapRequestAction('r1', payload)).toEqual({
       error: 'Non authentifié',
