@@ -181,6 +181,16 @@ export const en: Translations = {
       scrap: 'Web scraping',
     },
   },
+  importExport: {
+    export: 'Export feeds',
+    import: 'Import feeds',
+    importing: 'Importing…',
+    invalidFile: 'This file could not be read as a valid OPML file.',
+    added: 'added',
+    alreadyPresent: 'already present',
+    unavailable: 'unavailable',
+    close: 'Close',
+  },
   addFlux: {
     title: 'Add a feed',
     description: 'Choose a provider and enter the repository or channel identifier.',

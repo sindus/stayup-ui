@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid } from 'lucide-react'
 import { AddFluxDialog } from './AddFluxDialog'
+import { ImportExportButtons } from './ImportExportButtons'
 import { cn, stripUrlScheme } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
@@ -142,14 +143,17 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
           >
             {t.feed.myFeeds}
           </span>
-          <button
-            onClick={() => setAddOpen(true)}
-            className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
-            style={{ border: '1px solid hsl(var(--border))' }}
-            aria-label={t.feed.add}
-          >
-            <Plus className="h-3 w-3" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setAddOpen(true)}
+              className="w-5 h-5 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors"
+              style={{ border: '1px solid hsl(var(--border))' }}
+              aria-label={t.feed.add}
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+            <ImportExportButtons fluxes={fluxes} />
+          </div>
         </div>
 
         {providers.length === 0 ? (
@@ -181,6 +185,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
                   <div className="flex items-center gap-0.5">
                     <button
                       onClick={() => toggleExpanded(provider)}
+                      aria-label={meta.label}
                       className="p-1 text-muted-foreground hover:text-foreground rounded transition-colors"
                     >
                       {open ? (

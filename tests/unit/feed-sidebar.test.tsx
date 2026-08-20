@@ -124,8 +124,7 @@ describe('FeedSidebar', () => {
 
     expect(screen.getByRole('link', { name: 'facebook/react' })).toBeInTheDocument()
 
-    // The chevron is the first button inside the provider row.
-    const chevron = screen.getAllByRole('button')[1]
+    const chevron = screen.getByRole('button', { name: 'GitHub Changelog' })
     await user.click(chevron)
     expect(screen.queryByRole('link', { name: 'facebook/react' })).not.toBeInTheDocument()
 

@@ -189,6 +189,16 @@ export const fr = {
       scrap: 'Scraping web',
     },
   },
+  importExport: {
+    export: 'Exporter les flux',
+    import: 'Importer des flux',
+    importing: 'Import en cours…',
+    invalidFile: "Ce fichier n'a pas pu être lu comme un fichier OPML valide.",
+    added: 'ajouté(s)',
+    alreadyPresent: 'déjà présent(s)',
+    unavailable: 'indisponible(s)',
+    close: 'Fermer',
+  },
   addFlux: {
     title: 'Ajouter un flux',
     description: "Choisissez un provider et renseignez l'identifiant du dépôt ou de la chaîne.",
