@@ -25,3 +25,11 @@ if (!globalThis.ResizeObserver) {
     disconnect() {}
   }
 }
+
+// jsdom does not implement the Blob URL APIs used by the feed export button.
+if (!URL.createObjectURL) {
+  URL.createObjectURL = vi.fn(() => 'blob:mock')
+}
+if (!URL.revokeObjectURL) {
+  URL.revokeObjectURL = vi.fn()
+}
