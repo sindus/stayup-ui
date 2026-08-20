@@ -5,6 +5,8 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import type { Language } from '@/lib/translations'
 import './globals.css'
 
+const SUPPORTED_LANGUAGES: Language[] = ['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh']
+
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
@@ -30,7 +32,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
-  const lang = (cookieStore.get('lang')?.value === 'en' ? 'en' : 'fr') as Language
+  const cookieLang = cookieStore.get('lang')?.value
+  const lang: Language = SUPPORTED_LANGUAGES.includes(cookieLang as Language)
+    ? (cookieLang as Language)
+    : 'en'
 
   return (
     <html lang={lang} className={`${dmSans.variable} ${jetbrainsMono.variable}`}>

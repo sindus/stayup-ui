@@ -2,9 +2,20 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { fr, en, type Translations, type Language } from '@/lib/translations'
+import {
+  en,
+  fr,
+  de,
+  es,
+  it,
+  pt,
+  ja,
+  zh,
+  type Translations,
+  type Language,
+} from '@/lib/translations'
 
-const dictionaries: Record<Language, Translations> = { fr, en }
+const dictionaries: Record<Language, Translations> = { en, fr, de, es, it, pt, ja, zh }
 
 interface LanguageContextType {
   lang: Language
@@ -16,7 +27,7 @@ const LanguageContext = createContext<LanguageContextType | null>(null)
 
 export function LanguageProvider({
   children,
-  initialLang = 'fr',
+  initialLang = 'en',
 }: {
   children: ReactNode
   initialLang?: Language

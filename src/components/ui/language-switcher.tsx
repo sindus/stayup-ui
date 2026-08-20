@@ -3,26 +3,32 @@
 import { useLanguage } from '@/context/LanguageContext'
 import type { Language } from '@/lib/translations'
 
-const FLAGS: Record<Language, string> = { fr: '🇫🇷', en: '🇬🇧' }
+const LANGUAGE_LABELS: Record<Language, string> = {
+  en: '🇬🇧 English',
+  fr: '🇫🇷 Français',
+  de: '🇩🇪 Deutsch',
+  es: '🇪🇸 Español',
+  it: '🇮🇹 Italiano',
+  pt: '🇵🇹 Português',
+  ja: '🇯🇵 日本語',
+  zh: '🇨🇳 中文',
+}
 
 export function LanguageSwitcher() {
   const { lang, setLang } = useLanguage()
 
   return (
-    <div className="flex items-center gap-0.5" role="group" aria-label="Langue / Language">
-      {(['fr', 'en'] as Language[]).map((l) => (
-        <button
-          key={l}
-          onClick={() => setLang(l)}
-          title={l === 'fr' ? 'Français' : 'English'}
-          aria-label={l === 'fr' ? 'Français' : 'English'}
-          className={`text-base leading-none px-1 py-0.5 rounded transition-opacity ${
-            lang === l ? 'opacity-100' : 'opacity-35 hover:opacity-65'
-          }`}
-        >
-          {FLAGS[l]}
-        </button>
+    <select
+      value={lang}
+      onChange={(e) => setLang(e.target.value as Language)}
+      aria-label="Language"
+      className="bg-transparent text-sm leading-none px-1 py-0.5 rounded opacity-65 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    >
+      {(Object.keys(LANGUAGE_LABELS) as Language[]).map((code) => (
+        <option key={code} value={code}>
+          {LANGUAGE_LABELS[code]}
+        </option>
       ))}
-    </div>
+    </select>
   )
 }

@@ -1,6 +1,4 @@
-import type { Translations } from './fr'
-
-export const en: Translations = {
+export const en = {
   landing: {
     header: { signIn: 'Sign in' },
     hero: {
@@ -300,3 +298,5 @@ export const en: Translations = {
     error: 'An error occurred.',
   },
 }
+
+export type Translations = typeof en

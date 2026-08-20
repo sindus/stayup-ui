@@ -140,23 +140,23 @@ describe('LanguageContext', () => {
     )
   }
 
-  it('defaults to French', () => {
+  it('defaults to English', () => {
     render(
       <LanguageProvider>
         <Probe />
       </LanguageProvider>,
     )
-    expect(screen.getByTestId('lang')).toHaveTextContent('fr')
-    expect(screen.getByTestId('my-feed')).toHaveTextContent('Mon flux')
+    expect(screen.getByTestId('lang')).toHaveTextContent('en')
+    expect(screen.getByTestId('my-feed')).toHaveTextContent('My feed')
   })
 
   it('honours the initial language', () => {
     render(
-      <LanguageProvider initialLang="en">
+      <LanguageProvider initialLang="fr">
         <Probe />
       </LanguageProvider>,
     )
-    expect(screen.getByTestId('my-feed')).toHaveTextContent('My feed')
+    expect(screen.getByTestId('my-feed')).toHaveTextContent('Mon flux')
   })
 
   it('switches dictionary, writes the cookie and refreshes the route', async () => {
@@ -167,24 +167,24 @@ describe('LanguageContext', () => {
       </LanguageProvider>,
     )
 
-    await user.click(screen.getByText('en'))
+    await user.click(screen.getByText('fr'))
 
-    expect(screen.getByTestId('lang')).toHaveTextContent('en')
-    expect(screen.getByTestId('my-feed')).toHaveTextContent('My feed')
-    expect(document.cookie).toContain('lang=en')
+    expect(screen.getByTestId('lang')).toHaveTextContent('fr')
+    expect(screen.getByTestId('my-feed')).toHaveTextContent('Mon flux')
+    expect(document.cookie).toContain('lang=fr')
     expect(refresh).toHaveBeenCalled()
   })
 
-  it('switches back to French', async () => {
+  it('switches back to English', async () => {
     const user = userEvent.setup()
     render(
-      <LanguageProvider initialLang="en">
+      <LanguageProvider initialLang="fr">
         <Probe />
       </LanguageProvider>,
     )
 
-    await user.click(screen.getByText('fr'))
-    expect(screen.getByTestId('my-feed')).toHaveTextContent('Mon flux')
+    await user.click(screen.getByText('en'))
+    expect(screen.getByTestId('my-feed')).toHaveTextContent('My feed')
   })
 
   it('throws when used outside its provider', () => {

@@ -29,6 +29,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { LanguageProvider } from '@/context/LanguageContext'
+import type { Language } from '@/lib/translations'
 
 const setTheme = vi.fn()
 const useThemeMock = vi.fn(() => ({ theme: 'dark', setTheme }))
@@ -289,7 +290,7 @@ describe('ThemeToggle', () => {
 })
 
 describe('LanguageSwitcher', () => {
-  function renderSwitcher(initialLang: 'fr' | 'en' = 'fr') {
+  function renderSwitcher(initialLang: Language = 'fr') {
     return render(
       <LanguageProvider initialLang={initialLang}>
         <LanguageSwitcher />
@@ -297,24 +298,24 @@ describe('LanguageSwitcher', () => {
     )
   }
 
-  it('renders one button per language', () => {
+  it('offers every supported language', () => {
     renderSwitcher()
-    expect(screen.getByRole('button', { name: 'Français' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'English' })).toBeInTheDocument()
+    const select = screen.getByLabelText('Language') as HTMLSelectElement
+    const values = Array.from(select.options).map((o) => o.value)
+    expect(values).toEqual(['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh'])
   })
 
-  it('highlights the active language', () => {
+  it('shows the active language as the selected option', () => {
     renderSwitcher('fr')
-    expect(screen.getByRole('button', { name: 'Français' }).className).toContain('opacity-100')
-    expect(screen.getByRole('button', { name: 'English' }).className).toContain('opacity-35')
+    expect(screen.getByLabelText('Language')).toHaveValue('fr')
   })
 
-  it('switches language on click', async () => {
+  it('switches language on selection', async () => {
     const user = userEvent.setup()
     renderSwitcher('fr')
 
-    await user.click(screen.getByRole('button', { name: 'English' }))
-    expect(screen.getByRole('button', { name: 'English' }).className).toContain('opacity-100')
+    await user.selectOptions(screen.getByLabelText('Language'), 'en')
+    expect(screen.getByLabelText('Language')).toHaveValue('en')
     expect(refresh).toHaveBeenCalled()
   })
 })
