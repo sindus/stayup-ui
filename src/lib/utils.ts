@@ -44,15 +44,25 @@ export function toRepositoryUrl(identifier: string, provider: Provider): string 
 
 /** Derives the short display identifier from a repository URL */
 export function extractIdentifier(url: string, provider: Provider): string {
-  if (provider === 'changelog') {
-    const m = url.match(/github\.com\/([^/]+\/[^/?\s]+)/i)
-    return m ? m[1].replace(/\/$/, '') : url
+  try {
+    const u = new URL(url)
+    switch (provider) {
+      case 'changelog': {
+        const parts = u.pathname.replace(/^\//, '').split('/')
+        return parts.slice(0, 2).join('/')
+      }
+      case 'youtube':
+        return u.pathname.replace(/^\//, '')
+      case 'rss':
+        return u.hostname + u.pathname
+      case 'scrap':
+        return u.hostname
+      default:
+        return url
+    }
+  } catch {
+    return url
   }
-  if (provider === 'youtube') {
-    const m = url.match(/youtube\.com\/(?:@|channel\/|user\/)([^/?\s]+)/i)
-    return m ? m[1] : url
-  }
-  return url
 }
 
 export function stripUrlScheme(url: string): string {

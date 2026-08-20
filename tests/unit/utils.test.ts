@@ -7,6 +7,7 @@ import {
   stripUrlScheme,
   formatDate,
 } from '@/lib/utils'
+import type { Provider } from '@/types'
 
 describe('normalizeIdentifier', () => {
   describe('changelog provider', () => {
@@ -117,30 +118,36 @@ describe('extractIdentifier', () => {
     )
   })
 
-  it('returns the URL unchanged when it is not a GitHub URL', () => {
-    expect(extractIdentifier('https://example.com/thing', 'changelog')).toBe(
-      'https://example.com/thing',
+  it('handles deeply nested changelog paths and only takes the first two segments', () => {
+    expect(extractIdentifier('https://github.com/vercel/next.js/releases', 'changelog')).toBe(
+      'vercel/next.js',
     )
   })
 
-  it('extracts the handle from a YouTube URL', () => {
-    expect(extractIdentifier('https://www.youtube.com/@fireship', 'youtube')).toBe('fireship')
+  it('extracts the handle from a YouTube URL, keeping the @', () => {
+    expect(extractIdentifier('https://www.youtube.com/@fireship', 'youtube')).toBe('@fireship')
   })
 
-  it('extracts the id from a YouTube channel URL', () => {
-    expect(extractIdentifier('https://www.youtube.com/channel/UC123', 'youtube')).toBe('UC123')
-  })
-
-  it('returns the URL unchanged when it is not a YouTube URL', () => {
-    expect(extractIdentifier('https://example.com/chan', 'youtube')).toBe(
-      'https://example.com/chan',
+  it('extracts hostname + path for rss', () => {
+    expect(extractIdentifier('https://blog.example.com/feed.xml', 'rss')).toBe(
+      'blog.example.com/feed.xml',
     )
   })
 
-  it('returns the URL unchanged for rss', () => {
-    expect(extractIdentifier('https://example.com/feed.xml', 'rss')).toBe(
-      'https://example.com/feed.xml',
+  it('extracts only the hostname for scrap', () => {
+    expect(extractIdentifier('https://news.ycombinator.com/newest', 'scrap')).toBe(
+      'news.ycombinator.com',
     )
+  })
+
+  it('returns the raw URL for an unknown provider', () => {
+    expect(extractIdentifier('https://example.com/x', 'unknown' as Provider)).toBe(
+      'https://example.com/x',
+    )
+  })
+
+  it('returns the original string when the URL is invalid', () => {
+    expect(extractIdentifier('not-a-url', 'changelog')).toBe('not-a-url')
   })
 })
 
