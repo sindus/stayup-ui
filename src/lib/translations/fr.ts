@@ -177,6 +177,7 @@ export const fr: Translations = {
     noFlux: 'Aucun flux',
     add: 'Ajouter un flux',
     addShort: '+ Ajouter',
+    refresh: 'Actualiser les flux',
     deleteAriaLabel: 'Supprimer ce flux',
     confirmDelete: 'Supprimer "{id}" ?',
     noContent: 'Aucun contenu disponible.',

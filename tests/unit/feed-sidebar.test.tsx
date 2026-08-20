@@ -158,6 +158,14 @@ describe('FeedSidebar', () => {
     expect(refresh).not.toHaveBeenCalled()
   })
 
+  it('refreshes the feed data from the header button', async () => {
+    const user = userEvent.setup()
+    renderSidebar({ fluxes: [flux()] })
+
+    await user.click(screen.getByRole('button', { name: 'Refresh feeds' }))
+    expect(refresh).toHaveBeenCalled()
+  })
+
   it('opens the add-feed dialog from the header button', async () => {
     const user = userEvent.setup()
     renderSidebar({ fluxes: [flux()] })

@@ -169,6 +169,7 @@ export const ja: Translations = {
     noFlux: 'フィードがありません',
     add: 'フィードを追加',
     addShort: '+ 追加',
+    refresh: 'フィードを更新',
     deleteAriaLabel: 'このフィードを削除',
     confirmDelete: '「{id}」を削除しますか？',
     noContent: 'コンテンツがありません。',

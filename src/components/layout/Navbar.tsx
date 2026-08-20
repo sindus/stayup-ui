@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { UserMenu } from './UserMenu'
+import { LanguageSwitcher } from '@/components/ui/language-switcher'
+import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
 import { useLanguage } from '@/context/LanguageContext'
 import { cn } from '@/lib/utils'
 
@@ -48,7 +50,7 @@ export function Navbar({ user }: NavbarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  'px-3 py-1 text-[13px] rounded-md transition-colors',
+                  'flex items-center gap-1.5 px-3 py-1 text-[13px] rounded-md transition-colors',
                   active
                     ? 'text-foreground font-medium'
                     : 'text-muted-foreground hover:text-foreground',
@@ -63,12 +65,14 @@ export function Navbar({ user }: NavbarProps) {
                 }
               >
                 {label}
+                <LinkPendingSpinner />
               </Link>
             )
           })}
         </nav>
 
         <div className="flex items-center gap-2 shrink-0">
+          <LanguageSwitcher />
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold text-foreground"
             style={{

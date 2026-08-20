@@ -162,6 +162,7 @@ export const zh: Translations = {
     noFlux: '暂无订阅源',
     add: '添加订阅源',
     addShort: '+ 添加',
+    refresh: '刷新订阅源',
     deleteAriaLabel: '删除此订阅源',
     confirmDelete: '删除"{id}"？',
     noContent: '暂无可用内容。',
