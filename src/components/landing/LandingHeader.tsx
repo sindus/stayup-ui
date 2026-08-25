@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Button } from '@/components/ui/button'
+import { ArrowRight } from 'lucide-react'
+import { AuroraWordmark } from '@/components/ui/aurora-mark'
 
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false)
@@ -22,46 +22,46 @@ export function LandingHeader() {
       style={
         scrolled
           ? {
-              background: 'rgba(9,9,11,0.85)',
+              background: 'rgba(14,17,25,0.85)',
               backdropFilter: 'blur(12px)',
-              borderBottom: '1px solid hsl(var(--border))',
+              borderBottom: '1px solid var(--border-soft)',
             }
           : undefined
       }
     >
       <div className="w-full max-w-[1200px] mx-auto px-8 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.svg" width={26} height={26} alt="StayUp" />
-          <span
-            className="font-semibold text-[15px] text-foreground"
-            style={{ letterSpacing: '-0.02em' }}
-          >
-            StayUp
-          </span>
+        <Link href="/">
+          <AuroraWordmark size={15} />
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-7 text-[13.5px] text-fg-soft">
           {[
-            { label: 'Feed', href: '/feed' },
-            { label: 'Download', href: '#download' },
+            { label: 'Fonctionnalités', href: '#features' },
+            { label: 'Télécharger', href: '#download' },
+            { label: 'Changelog', href: 'https://github.com/stayup-app/stayup-desktop/releases' },
+            { label: 'GitHub', href: 'https://github.com/stayup-app' },
           ].map(({ label, href }) => (
-            <Link
-              key={label}
-              href={href}
-              className="text-[13.5px] text-muted-foreground hover:text-foreground transition-colors"
-            >
+            <Link key={label} href={href} className="hover:text-fg transition-colors">
               {label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/login">Se connecter</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/register">Commencer</Link>
-          </Button>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/login"
+            className="px-3.5 py-2 text-[13.5px] text-fg-soft hover:text-fg rounded-md transition-colors"
+          >
+            Se connecter
+          </Link>
+          <Link
+            href="/register"
+            className="px-4 py-2 rounded-md bg-peach text-[13.5px] font-semibold inline-flex items-center gap-1.5 hover:opacity-95 transition-opacity"
+            style={{ color: 'var(--peach-on)' }}
+          >
+            Commencer
+            <ArrowRight size={12} />
+          </Link>
         </div>
       </div>
     </header>

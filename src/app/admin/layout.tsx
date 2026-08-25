@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getAdminSession } from '@/lib/session'
 import { adminLogoutAction } from '@/lib/auth-actions'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
+import { AuroraMark } from '@/components/ui/aurora-mark'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getAdminSession()
@@ -23,19 +24,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           style={{ borderBottom: '1px solid hsl(var(--border))' }}
         >
           <Link href="/admin" className="flex items-center gap-2">
-            <svg width="22" height="22" viewBox="0 0 26 26" fill="none">
-              <rect width="26" height="26" rx="6" fill="var(--teal)" />
-              <path d="M13 6L19.5 15H15V20H11V15H6.5L13 6Z" fill="#09090b" />
-            </svg>
-            <span className="font-semibold text-[14px]" style={{ letterSpacing: '-0.02em' }}>
-              StayUp
+            <AuroraMark size={22} />
+            <span className="font-semibold text-[14px]" style={{ letterSpacing: '-0.015em' }}>
+              stayup
             </span>
           </Link>
           <span
-            className="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded-full"
-            style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}
+            className="text-[9px] uppercase tracking-micro font-bold px-1.5 py-0.5 rounded-full"
+            style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}
           >
-            Admin
+            admin
           </span>
         </div>
 
@@ -51,7 +49,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         >
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-semibold shrink-0"
-            style={{ background: 'linear-gradient(135deg, var(--teal), oklch(0.65 0.22 280))' }}
+            style={{
+              background: 'linear-gradient(135deg, var(--peach), var(--lavender))',
+              color: 'var(--peach-on)',
+            }}
           >
             {initial}
           </div>

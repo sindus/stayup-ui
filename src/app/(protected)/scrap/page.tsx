@@ -13,9 +13,11 @@ export default async function ScrapPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Scraping web</h1>
+        <h1 className="font-serif text-[28px] leading-[1.1] tracking-editorial font-normal">
+          Pages web
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Suivez les pages web disponibles dans votre flux
+          Suis les pages web disponibles dans ton flux
         </p>
       </div>
       <ScrapList repos={repos} />

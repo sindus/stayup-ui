@@ -16,7 +16,7 @@ const PROVIDER_META: Record<
   { label: string; color: string; dimColor: string; icon: React.ReactNode }
 > = {
   changelog: {
-    label: 'GitHub Changelog',
+    label: 'GitHub',
     color: 'var(--teal)',
     dimColor: 'var(--teal-dim)',
     icon: (
@@ -64,7 +64,7 @@ const PROVIDER_META: Record<
     ),
   },
   scrap: {
-    label: 'Scraping web',
+    label: 'Web',
     color: 'var(--green)',
     dimColor: 'var(--green-dim)',
     icon: (

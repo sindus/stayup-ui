@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { AuroraWordmark } from '@/components/ui/aurora-mark'
 import { UserMenu } from './UserMenu'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
@@ -30,16 +30,13 @@ export function Navbar({ user }: NavbarProps) {
     <header
       className="sticky top-0 z-40 h-[52px] flex items-center shrink-0 backdrop-blur"
       style={{
-        background: 'rgba(9,9,11,0.85)',
-        borderBottom: '1px solid hsl(var(--border))',
+        background: 'var(--bg)',
+        borderBottom: '1px solid var(--border-soft)',
       }}
     >
       <div className="w-full px-4 flex items-center justify-between gap-4">
         <Link href="/feed" className="flex items-center gap-2 shrink-0">
-          <Image src="/logo.svg" width={22} height={22} alt="StayUp" />
-          <span className="font-semibold text-[14px]" style={{ letterSpacing: '-0.02em' }}>
-            StayUp
-          </span>
+          <AuroraWordmark size={14} />
         </Link>
 
         <nav className="flex items-center gap-1">
@@ -74,9 +71,10 @@ export function Navbar({ user }: NavbarProps) {
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSwitcher />
           <div
-            className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold text-foreground"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold"
             style={{
-              background: 'linear-gradient(135deg, var(--teal), oklch(0.65 0.22 280))',
+              background: 'linear-gradient(135deg, var(--peach), var(--lavender))',
+              color: 'var(--peach-on)',
             }}
             title={user.name}
           >

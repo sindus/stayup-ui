@@ -47,7 +47,7 @@ beforeEach(() => {
 describe('FeedContentViewer', () => {
   it('prompts to select an item when nothing is open', () => {
     withLang(<FeedContentViewer item={null} repositories={REPOS} />)
-    expect(screen.getByText('Select an item.')).toBeInTheDocument()
+    expect(screen.getByText('Pick something to read.')).toBeInTheDocument()
   })
 
   it('renders changelog content with markdown markers stripped', () => {

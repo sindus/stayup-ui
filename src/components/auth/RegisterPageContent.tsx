@@ -19,10 +19,10 @@ export function RegisterPageContent() {
       }}
     >
       <div className="text-center mb-6">
-        <h1 className="text-[20px] font-bold mb-1" style={{ letterSpacing: '-0.02em' }}>
-          Créer un compte
+        <h1 className="font-serif text-[26px] leading-[1.15] tracking-editorial font-normal mb-1.5">
+          {a.registerTitle}
         </h1>
-        <p className="text-[13px] text-muted-foreground">Gratuit. Sans carte de crédit.</p>
+        <p className="text-[13px] text-muted-foreground">{a.registerSubtitle}</p>
       </div>
 
       <div className="space-y-3 mb-5">
@@ -30,9 +30,9 @@ export function RegisterPageContent() {
       </div>
 
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
-        <span className="text-[11px] text-muted-foreground">ou continuer avec email</span>
-        <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+        <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
+        <span className="text-[11px] text-muted-foreground uppercase">ou</span>
+        <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
       </div>
 
       <RegisterForm />
@@ -42,7 +42,7 @@ export function RegisterPageContent() {
         <Link
           href="/login"
           className="font-medium transition-colors"
-          style={{ color: 'var(--teal)' }}
+          style={{ color: 'var(--peach)' }}
         >
           {a.signIn}
         </Link>

@@ -130,10 +130,10 @@ export const zh: Translations = {
     noContent: '目前没有可用的抓取订阅源。',
   },
   auth: {
-    loginTitle: '登录',
-    loginSubtitle: '登录你的 StayUp 账户',
-    registerTitle: '创建账户',
-    registerSubtitle: '加入 StayUp，追踪你的最新动态',
+    loginTitle: '欢迎回来。',
+    loginSubtitle: '从你上次离开的地方继续。',
+    registerTitle: '创建你的账户。',
+    registerSubtitle: '一个信息流，汇聚所有重要内容。',
     name: '姓名',
     namePlaceholder: '你的姓名',
     email: '电子邮箱',
@@ -146,7 +146,7 @@ export const zh: Translations = {
     creatingAccount: '正在创建...',
     noAccount: '还没有账户？',
     alreadyAccount: '已有账户？',
-    signUp: '注册',
+    signUp: '创建账户',
     or: '或',
     continueWithGoogle: '使用 Google 继续',
     continueWithGitHub: '使用 GitHub 继续',
@@ -171,10 +171,10 @@ export const zh: Translations = {
     filterUnread: '未读',
     markAllRead: '全部标记为已读',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: '网页抓取',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -188,8 +188,8 @@ export const zh: Translations = {
     close: '关闭',
   },
   addFlux: {
-    title: '添加订阅源',
-    description: '选择一个提供方，并输入仓库或频道的标识符。',
+    title: '我们要关注什么？',
+    description: '选择一个来源，剩下的交给我们。',
     provider: '提供方',
     identifierLabels: {
       changelog: 'GitHub 仓库',
@@ -222,7 +222,8 @@ export const zh: Translations = {
   },
   viewer: {
     noTitle: '无标题',
-    selectItem: '请选择一个项目。',
+    selectItem: '选择要阅读的内容。',
+    selectItemHint: '左侧列表按从新到旧排序。',
     repository: '仓库',
     openOnGithub: '在GitHub上查看',
     watchOnYoutube: '在YouTube上观看',

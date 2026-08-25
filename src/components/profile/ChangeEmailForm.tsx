@@ -47,7 +47,11 @@ export function ChangeEmailForm({ currentEmail }: { currentEmail: string }) {
         {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && <p className="text-sm text-green-600">{t.profile.emailUpdated}</p>}
+      {success && (
+        <p className="text-sm" style={{ color: 'var(--sage)' }}>
+          {t.profile.emailUpdated}
+        </p>
+      )}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? t.profile.updatingEmail : t.profile.updateEmail}
       </Button>

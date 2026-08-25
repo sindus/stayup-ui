@@ -47,14 +47,22 @@ const FEATURES = [
 
 export function FeaturesSection() {
   return (
-    <section className="py-16">
+    <section id="features" className="py-16">
       <div className="max-w-[1200px] mx-auto px-8">
-        <h2 className="text-[36px] font-bold text-center mb-3" style={{ letterSpacing: '-0.03em' }}>
-          4 sources, un seul flux
-        </h2>
-        <p className="text-center text-muted-foreground mb-10">
-          Suivez tout ce qui compte dans un feed unifié et personnalisé.
-        </p>
+        <div className="text-center mb-10">
+          <span
+            className="inline-block text-[11px] font-semibold uppercase tracking-micro px-3 py-1 rounded-full mb-4"
+            style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}
+          >
+            Quatre sources, un seul flux
+          </span>
+          <h2 className="font-serif text-[38px] leading-[1.08] tracking-editorial font-normal">
+            Tout ce que tu suis,{' '}
+            <span className="italic" style={{ color: 'var(--peach)' }}>
+              rangé chronologiquement
+            </span>
+          </h2>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {FEATURES.map(({ provider, title, description, color, dimColor, icon, badge }) => (
@@ -66,19 +74,15 @@ export function FeaturesSection() {
                 border: '1px solid var(--border-subtle)',
               }}
               onMouseEnter={(e) => {
-                const el = e.currentTarget
-                el.style.borderColor = 'hsl(var(--border))'
-                el.style.boxShadow = `0 0 0 1px color-mix(in srgb, ${color} 12%, transparent)`
+                e.currentTarget.style.borderColor = `color-mix(in srgb, ${color} 27%, transparent)`
               }}
               onMouseLeave={(e) => {
-                const el = e.currentTarget
-                el.style.borderColor = 'var(--border-subtle)'
-                el.style.boxShadow = 'none'
+                e.currentTarget.style.borderColor = 'var(--border-subtle)'
               }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center"
+                  className="w-10 h-10 rounded-[9px] flex items-center justify-center"
                   style={{ background: dimColor }}
                 >
                   <Image src={icon} width={18} height={18} alt={title} />
@@ -92,8 +96,8 @@ export function FeaturesSection() {
               </div>
 
               <h3
-                className="text-[18px] font-bold mb-2"
-                style={{ letterSpacing: '-0.02em', color }}
+                className="text-[18px] font-semibold mb-2 text-foreground"
+                style={{ letterSpacing: '-0.01em' }}
               >
                 {title}
               </h3>

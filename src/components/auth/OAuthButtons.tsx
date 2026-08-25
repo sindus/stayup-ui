@@ -13,19 +13,19 @@ export function OAuthButtons() {
         href={`${API_URL}/auth/oauth/github`}
         className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
         style={{
-          background: 'var(--surface-2)',
-          border: '1px solid var(--border-subtle)',
-          color: 'hsl(var(--foreground))',
+          background: 'var(--surface)',
+          border: '1px solid var(--border-color)',
+          color: 'var(--fg)',
         }}
         onMouseEnter={(e) => {
           const el = e.currentTarget
-          el.style.background = 'var(--surface-3)'
-          el.style.borderColor = 'hsl(var(--border))'
+          el.style.background = 'var(--surface-hi)'
+          el.style.borderColor = 'var(--peach-mid)'
         }}
         onMouseLeave={(e) => {
           const el = e.currentTarget
-          el.style.background = 'var(--surface-2)'
-          el.style.borderColor = 'var(--border-subtle)'
+          el.style.background = 'var(--surface)'
+          el.style.borderColor = 'var(--border-color)'
         }}
       >
         <GithubIcon className="h-4 w-4" />
@@ -35,19 +35,19 @@ export function OAuthButtons() {
         href={`${API_URL}/auth/oauth/google`}
         className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
         style={{
-          background: 'var(--surface-2)',
-          border: '1px solid var(--border-subtle)',
-          color: 'hsl(var(--foreground))',
+          background: 'var(--surface)',
+          border: '1px solid var(--border-color)',
+          color: 'var(--fg)',
         }}
         onMouseEnter={(e) => {
           const el = e.currentTarget
-          el.style.background = 'var(--surface-3)'
-          el.style.borderColor = 'hsl(var(--border))'
+          el.style.background = 'var(--surface-hi)'
+          el.style.borderColor = 'var(--peach-mid)'
         }}
         onMouseLeave={(e) => {
           const el = e.currentTarget
-          el.style.background = 'var(--surface-2)'
-          el.style.borderColor = 'var(--border-subtle)'
+          el.style.background = 'var(--surface)'
+          el.style.borderColor = 'var(--border-color)'
         }}
       >
         <GoogleIcon className="h-4 w-4" />

@@ -137,10 +137,10 @@ export const ja: Translations = {
     noContent: '現在利用可能なスクレイピングフィードはありません。',
   },
   auth: {
-    loginTitle: 'サインイン',
-    loginSubtitle: 'StayUpアカウントにサインイン',
-    registerTitle: 'アカウントを作成',
-    registerSubtitle: 'StayUpに参加して最新情報を追跡',
+    loginTitle: 'おかえりなさい。',
+    loginSubtitle: '前回の続きから始めよう。',
+    registerTitle: 'アカウントを作成しよう。',
+    registerSubtitle: '大切な情報をひとつのフィードに。',
     name: '名前',
     namePlaceholder: 'お名前',
     email: 'メールアドレス',
@@ -153,7 +153,7 @@ export const ja: Translations = {
     creatingAccount: '作成中...',
     noAccount: 'アカウントをお持ちでないですか？',
     alreadyAccount: 'すでにアカウントをお持ちですか？',
-    signUp: '登録する',
+    signUp: 'アカウントを作成',
     or: 'または',
     continueWithGoogle: 'Googleで続ける',
     continueWithGitHub: 'GitHubで続ける',
@@ -178,10 +178,10 @@ export const ja: Translations = {
     filterUnread: '未読',
     markAllRead: 'すべて既読にする',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'ウェブスクレイピング',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -195,8 +195,8 @@ export const ja: Translations = {
     close: '閉じる',
   },
   addFlux: {
-    title: 'フィードを追加',
-    description: 'プロバイダーを選択し、リポジトリまたはチャンネルの識別子を入力してください。',
+    title: '何をフォローする？',
+    description: 'ソースを選べば、あとはおまかせ。',
     provider: 'プロバイダー',
     identifierLabels: {
       changelog: 'GitHubリポジトリ',
@@ -229,7 +229,8 @@ export const ja: Translations = {
   },
   viewer: {
     noTitle: 'タイトルなし',
-    selectItem: '項目を選択してください。',
+    selectItem: '読む項目を選んでください。',
+    selectItemHint: '左のリストは新しい順に並んでいます。',
     repository: 'リポジトリ',
     openOnGithub: 'GitHubで見る',
     watchOnYoutube: 'YouTubeで見る',

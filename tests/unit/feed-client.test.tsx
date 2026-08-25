@@ -157,14 +157,14 @@ describe('FeedClientView', () => {
     document.body.appendChild(input)
     fireEvent.keyDown(input, { key: 'ArrowDown' })
 
-    expect(screen.getByText('Select an item.')).toBeInTheDocument()
+    expect(screen.getByText('Pick something to read.')).toBeInTheDocument()
     input.remove()
   })
 
   it('ignores unrelated keys', () => {
     renderView([item(1)])
     fireEvent.keyDown(window, { key: 'Escape' })
-    expect(screen.getByText('Select an item.')).toBeInTheDocument()
+    expect(screen.getByText('Pick something to read.')).toBeInTheDocument()
   })
 
   it('resizes the list pane by dragging the divider', () => {

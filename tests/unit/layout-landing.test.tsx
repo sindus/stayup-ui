@@ -109,10 +109,13 @@ describe('UserMenu', () => {
 })
 
 describe('LandingHeader', () => {
-  it('links to the feed and the download anchor', () => {
+  it('links to the features and download anchors', () => {
     render(<LandingHeader />)
-    expect(screen.getByRole('link', { name: 'Feed' })).toHaveAttribute('href', '/feed')
-    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '#download')
+    expect(screen.getByRole('link', { name: 'Fonctionnalités' })).toHaveAttribute(
+      'href',
+      '#features',
+    )
+    expect(screen.getByRole('link', { name: 'Télécharger' })).toHaveAttribute('href', '#download')
   })
 
   it('no longer links to the documentation', () => {
@@ -178,10 +181,10 @@ describe('FeaturesSection', () => {
 
     const card = screen.getByRole('heading', { name: 'Flux RSS' }).closest('div.group')!
     await user.hover(card)
-    expect((card as HTMLElement).style.boxShadow).not.toBe('none')
+    expect((card as HTMLElement).style.borderColor).toContain('color-mix')
 
     await user.unhover(card)
-    expect((card as HTMLElement).style.boxShadow).toBe('none')
+    expect((card as HTMLElement).style.borderColor).toBe('var(--border-subtle)')
   })
 })
 

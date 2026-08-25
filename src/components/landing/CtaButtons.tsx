@@ -14,7 +14,9 @@ export function CtaButtons({ isLoggedIn }: CtaButtonsProps) {
 
   return (
     <section className="py-20 text-center">
-      <h2 className="text-2xl font-bold mb-4">{c.title}</h2>
+      <h2 className="font-serif text-[32px] leading-[1.1] tracking-editorial font-normal mb-4">
+        {c.title}
+      </h2>
       <p className="text-muted-foreground mb-8">
         {isLoggedIn ? c.subtitleLoggedIn : c.subtitleGuest}
       </p>

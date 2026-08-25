@@ -21,7 +21,7 @@ function ScrapCard({ repo }: { repo: ScrapRepository }) {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-3">
+    <div className="rounded-[14px] border border-border bg-card p-4 space-y-3 transition-colors hover:border-peach/30">
       <div className="space-y-1">
         <p className="text-sm font-medium truncate">{repo.url}</p>
         {repo.config.articles_selector && (

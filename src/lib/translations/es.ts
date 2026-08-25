@@ -141,10 +141,10 @@ export const es: Translations = {
     noContent: 'Todavía no hay feeds de scraping disponibles.',
   },
   auth: {
-    loginTitle: 'Iniciar sesión',
-    loginSubtitle: 'Inicia sesión en tu cuenta de StayUp',
-    registerTitle: 'Crear una cuenta',
-    registerSubtitle: 'Únete a StayUp para seguir tus actualizaciones',
+    loginTitle: 'Qué bueno verte de nuevo.',
+    loginSubtitle: 'Retoma la lectura justo donde la dejaste.',
+    registerTitle: 'Crea tu cuenta.',
+    registerSubtitle: 'Un solo feed para todo lo que importa.',
     name: 'Nombre',
     namePlaceholder: 'Tu nombre',
     email: 'Correo electrónico',
@@ -157,7 +157,7 @@ export const es: Translations = {
     creatingAccount: 'Creando cuenta...',
     noAccount: '¿Aún no tienes cuenta?',
     alreadyAccount: '¿Ya tienes una cuenta?',
-    signUp: 'Registrarse',
+    signUp: 'Crear una cuenta',
     or: 'o',
     continueWithGoogle: 'Continuar con Google',
     continueWithGitHub: 'Continuar con GitHub',
@@ -182,10 +182,10 @@ export const es: Translations = {
     filterUnread: 'No leídos',
     markAllRead: 'Marcar todo como leído',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'Web scraping',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -199,8 +199,8 @@ export const es: Translations = {
     close: 'Cerrar',
   },
   addFlux: {
-    title: 'Añadir un feed',
-    description: 'Elige un proveedor e indica el identificador del repositorio o canal.',
+    title: '¿Qué vamos a seguir?',
+    description: 'Elige una fuente, nosotros nos encargamos del resto.',
     provider: 'Proveedor',
     identifierLabels: {
       changelog: 'Repositorio de GitHub',
@@ -233,7 +233,8 @@ export const es: Translations = {
   },
   viewer: {
     noTitle: 'Sin título',
-    selectItem: 'Selecciona un elemento.',
+    selectItem: 'Elige algo para leer.',
+    selectItemHint: 'La lista de la izquierda está ordenada de más reciente a más antiguo.',
     repository: 'repositorio',
     openOnGithub: 'Ver en GitHub',
     watchOnYoutube: 'Ver en YouTube',

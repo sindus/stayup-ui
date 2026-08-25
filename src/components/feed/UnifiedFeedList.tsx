@@ -192,7 +192,7 @@ function ChangelogEntry({
             {item.version}
           </span>
         </div>
-        <span className="text-[13px] font-mono shrink-0 text-gray-500">
+        <span className="text-[13px] font-mono shrink-0 text-dim">
           {formatDate(item.datetime ?? item.executed_at)}
         </span>
       </div>
@@ -265,7 +265,7 @@ function YoutubeEntry({
               {extractChannelName(parsed.url)}
             </span>
           )}
-          <span className="text-[13px] font-mono shrink-0 text-gray-500">
+          <span className="text-[13px] font-mono shrink-0 text-dim">
             {formatDate(item.datetime ?? item.executed_at)}
           </span>
         </div>
@@ -298,7 +298,7 @@ function RssEntry({
         <span className="text-[15px] font-medium line-clamp-1 text-foreground">
           {parsed?.title ?? noTitle}
         </span>
-        <span className="text-[13px] font-mono shrink-0 text-gray-500">
+        <span className="text-[13px] font-mono shrink-0 text-dim">
           {formatDate(item.datetime ?? item.executed_at)}
         </span>
       </div>
@@ -339,7 +339,7 @@ function ScrapEntry({
         <span className="text-[15px] font-medium line-clamp-1 text-foreground">
           {item.content?.slice(0, 80) ?? params?.url ?? scrapLabel}
         </span>
-        <span className="text-[13px] font-mono shrink-0 text-gray-500">
+        <span className="text-[13px] font-mono shrink-0 text-dim">
           {formatDate(item.executed_at)}
         </span>
       </div>

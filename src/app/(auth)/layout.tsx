@@ -1,21 +1,18 @@
-import Image from 'next/image'
 import Link from 'next/link'
+import { AuroraMark } from '@/components/ui/aurora-mark'
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4"
       style={{
-        background: 'hsl(var(--background))',
+        background: 'var(--bg)',
         backgroundImage:
-          'radial-gradient(ellipse 60% 50% at 50% 0%, oklch(0.72 0.22 195 / 0.06), transparent)',
+          'radial-gradient(ellipse 60% 50% at 50% 0%, var(--peach-dim), transparent), radial-gradient(ellipse 50% 40% at 10% 20%, var(--lavender-dim), transparent)',
       }}
     >
-      <Link href="/" className="flex items-center gap-2 mb-8">
-        <Image src="/logo.svg" width={32} height={32} alt="StayUp" />
-        <span className="font-semibold text-lg" style={{ letterSpacing: '-0.02em' }}>
-          StayUp
-        </span>
+      <Link href="/" className="mb-8">
+        <AuroraMark size={56} />
       </Link>
       {children}
       <Link

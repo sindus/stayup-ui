@@ -133,10 +133,10 @@ export const en = {
     noContent: 'No scraping feeds are available yet.',
   },
   auth: {
-    loginTitle: 'Sign in',
-    loginSubtitle: 'Sign in to your StayUp account',
-    registerTitle: 'Create an account',
-    registerSubtitle: 'Join StayUp to track your updates',
+    loginTitle: 'Good to see you again.',
+    loginSubtitle: 'Pick up right where you left off.',
+    registerTitle: 'Create your account.',
+    registerSubtitle: 'One feed for everything that matters.',
     name: 'Name',
     namePlaceholder: 'Your name',
     email: 'Email',
@@ -149,7 +149,7 @@ export const en = {
     creatingAccount: 'Creating account...',
     noAccount: 'No account yet?',
     alreadyAccount: 'Already have an account?',
-    signUp: 'Sign up',
+    signUp: 'Create an account',
     or: 'or',
     continueWithGoogle: 'Continue with Google',
     continueWithGitHub: 'Continue with GitHub',
@@ -174,10 +174,10 @@ export const en = {
     filterUnread: 'Unread',
     markAllRead: 'Mark all read',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'Web scraping',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -191,8 +191,8 @@ export const en = {
     close: 'Close',
   },
   addFlux: {
-    title: 'Add a feed',
-    description: 'Choose a provider and enter the repository or channel identifier.',
+    title: 'What are we tracking?',
+    description: "Pick a source, we'll handle the rest.",
     provider: 'Provider',
     identifierLabels: {
       changelog: 'GitHub repository',
@@ -225,7 +225,8 @@ export const en = {
   },
   viewer: {
     noTitle: 'Untitled',
-    selectItem: 'Select an item.',
+    selectItem: 'Pick something to read.',
+    selectItemHint: 'The list on the left is sorted from newest to oldest.',
     repository: 'repository',
     openOnGithub: 'View on GitHub',
     watchOnYoutube: 'Watch on YouTube',
