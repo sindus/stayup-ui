@@ -89,19 +89,9 @@ export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps)
               {version} — {t.landing.hero.tagline}
             </div>
 
-            <h1
-              className="text-[56px] font-bold leading-[1.05] mb-5"
-              style={{ letterSpacing: '-0.04em' }}
-            >
+            <h1 className="font-serif text-[62px] leading-[1.02] tracking-tightest mb-5 font-normal">
               {t.landing.hero.titleMain}{' '}
-              <span
-                style={{
-                  background: 'linear-gradient(135deg, var(--teal), oklch(0.65 0.22 210))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
+              <span className="italic" style={{ color: 'var(--peach)' }}>
                 {t.landing.hero.titleAccent}
               </span>
             </h1>
@@ -127,14 +117,20 @@ export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps)
               )}
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-7">
               {[
-                { value: '4 sources', label: 'GitHub · YouTube · RSS · Web' },
-                { value: 'Desktop', label: 'Mac · Windows · Linux' },
+                { value: '4', label: 'sources unifiées' },
+                { value: '3', label: 'plateformes desktop' },
+                { value: 'Zéro', label: 'algorithme, juste la chronologie' },
               ].map(({ value, label }) => (
-                <div key={value}>
-                  <div className="text-sm font-semibold text-foreground">{value}</div>
-                  <div className="text-xs text-muted-foreground">{label}</div>
+                <div key={label}>
+                  <div
+                    className="font-serif text-[28px] font-normal tracking-display"
+                    style={{ color: 'var(--peach)' }}
+                  >
+                    {value}
+                  </div>
+                  <div className="text-[12px] text-muted-foreground mt-1">{label}</div>
                 </div>
               ))}
             </div>

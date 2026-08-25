@@ -20,14 +20,14 @@ import type { ScrapRequest } from '@/types'
 function StatusBadge({ status }: { status: ScrapRequest['status'] }) {
   if (status === 'pending') {
     return (
-      <Badge className="bg-amber-900/30 text-amber-400 hover:bg-amber-900/30">En attente</Badge>
+      <Badge style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}>En attente</Badge>
     )
   }
   if (status === 'approved') {
-    return <Badge className="bg-green-900/30 text-green-400 hover:bg-green-900/30">Approuvé</Badge>
+    return <Badge style={{ background: 'var(--sage-dim)', color: 'var(--sage)' }}>Approuvé</Badge>
   }
   if (status === 'rejected') {
-    return <Badge className="bg-red-900/30 text-red-400 hover:bg-red-900/30">Refusé</Badge>
+    return <Badge style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}>Refusé</Badge>
   }
   return <Badge variant="secondary">{status}</Badge>
 }

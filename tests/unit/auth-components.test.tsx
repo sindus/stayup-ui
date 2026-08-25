@@ -129,7 +129,10 @@ describe('LoginPageContent', () => {
   it('renders the form and a link to registration', () => {
     renderWithLang(<LoginPageContent />)
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/register')
+    expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
+      'href',
+      '/register',
+    )
   })
 })
 

@@ -145,10 +145,10 @@ export const de: Translations = {
     noContent: 'Derzeit sind keine Scraping-Feeds verfügbar.',
   },
   auth: {
-    loginTitle: 'Anmelden',
-    loginSubtitle: 'Melde dich bei deinem StayUp-Konto an',
-    registerTitle: 'Konto erstellen',
-    registerSubtitle: 'Tritt StayUp bei, um deine Updates zu verfolgen',
+    loginTitle: 'Schön, dich wiederzusehen.',
+    loginSubtitle: 'Mach da weiter, wo du aufgehört hast.',
+    registerTitle: 'Erstelle dein Konto.',
+    registerSubtitle: 'Ein Feed für alles, was zählt.',
     name: 'Name',
     namePlaceholder: 'Dein Name',
     email: 'E-Mail',
@@ -161,7 +161,7 @@ export const de: Translations = {
     creatingAccount: 'Wird erstellt...',
     noAccount: 'Noch kein Konto?',
     alreadyAccount: 'Bereits ein Konto?',
-    signUp: 'Registrieren',
+    signUp: 'Konto erstellen',
     or: 'oder',
     continueWithGoogle: 'Mit Google fortfahren',
     continueWithGitHub: 'Mit GitHub fortfahren',
@@ -186,10 +186,10 @@ export const de: Translations = {
     filterUnread: 'Ungelesen',
     markAllRead: 'Alle als gelesen markieren',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'Web-Scraping',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -203,8 +203,8 @@ export const de: Translations = {
     close: 'Schließen',
   },
   addFlux: {
-    title: 'Feed hinzufügen',
-    description: 'Wähle einen Anbieter und gib die Kennung des Repositorys oder Kanals ein.',
+    title: 'Was wollen wir verfolgen?',
+    description: 'Wähle eine Quelle, wir kümmern uns um den Rest.',
     provider: 'Anbieter',
     identifierLabels: {
       changelog: 'GitHub-Repository',
@@ -238,7 +238,8 @@ export const de: Translations = {
   },
   viewer: {
     noTitle: 'Kein Titel',
-    selectItem: 'Wähle ein Element aus.',
+    selectItem: 'Wähle etwas zum Lesen.',
+    selectItemHint: 'Die Liste links ist vom neuesten zum ältesten sortiert.',
     repository: 'Repository',
     openOnGithub: 'Auf GitHub ansehen',
     watchOnYoutube: 'Auf YouTube ansehen',

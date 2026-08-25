@@ -73,7 +73,11 @@ export function ChangePasswordForm() {
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && <p className="text-sm text-green-600">{t.profile.passwordUpdated}</p>}
+      {success && (
+        <p className="text-sm" style={{ color: 'var(--sage)' }}>
+          {t.profile.passwordUpdated}
+        </p>
+      )}
 
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? t.profile.updatingPassword : t.profile.updatePassword}

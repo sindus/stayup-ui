@@ -141,10 +141,10 @@ export const pt: Translations = {
     noContent: 'Nenhum feed de scraping disponível no momento.',
   },
   auth: {
-    loginTitle: 'Entrar',
-    loginSubtitle: 'Entre na sua conta StayUp',
-    registerTitle: 'Criar uma conta',
-    registerSubtitle: 'Junte-se ao StayUp para acompanhar suas atualizações',
+    loginTitle: 'Que bom te ver de novo.',
+    loginSubtitle: 'Continue de onde parou.',
+    registerTitle: 'Cria a tua conta.',
+    registerSubtitle: 'Um só feed para tudo o que importa.',
     name: 'Nome',
     namePlaceholder: 'Seu nome',
     email: 'Email',
@@ -157,7 +157,7 @@ export const pt: Translations = {
     creatingAccount: 'Criando conta...',
     noAccount: 'Ainda não tem conta?',
     alreadyAccount: 'Já tem uma conta?',
-    signUp: 'Cadastrar-se',
+    signUp: 'Criar uma conta',
     or: 'ou',
     continueWithGoogle: 'Continuar com Google',
     continueWithGitHub: 'Continuar com GitHub',
@@ -182,10 +182,10 @@ export const pt: Translations = {
     filterUnread: 'Não lidos',
     markAllRead: 'Marcar tudo como lido',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'Web scraping',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -199,8 +199,8 @@ export const pt: Translations = {
     close: 'Fechar',
   },
   addFlux: {
-    title: 'Adicionar um feed',
-    description: 'Escolha um provedor e informe o identificador do repositório ou canal.',
+    title: 'O que vamos seguir?',
+    description: 'Escolhe uma fonte, tratamos do resto.',
     provider: 'Provedor',
     identifierLabels: {
       changelog: 'Repositório do GitHub',
@@ -233,7 +233,8 @@ export const pt: Translations = {
   },
   viewer: {
     noTitle: 'Sem título',
-    selectItem: 'Selecione um item.',
+    selectItem: 'Escolhe algo para ler.',
+    selectItemHint: 'A lista à esquerda está ordenada da mais recente à mais antiga.',
     repository: 'repositório',
     openOnGithub: 'Ver no GitHub',
     watchOnYoutube: 'Assistir no YouTube',

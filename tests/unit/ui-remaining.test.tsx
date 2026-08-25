@@ -159,10 +159,10 @@ describe('OAuthButtons hover styling', () => {
       .find((l) => l.getAttribute('href')?.includes('github'))!
 
     await user.hover(github)
-    expect(github.style.background).toBe('var(--surface-3)')
+    expect(github.style.background).toBe('var(--surface-hi)')
 
     await user.unhover(github)
-    expect(github.style.background).toBe('var(--surface-2)')
+    expect(github.style.background).toBe('var(--surface)')
   })
 
   it('highlights and resets the Google button', async () => {
@@ -174,10 +174,10 @@ describe('OAuthButtons hover styling', () => {
       .find((l) => l.getAttribute('href')?.includes('google'))!
 
     await user.hover(google)
-    expect(google.style.background).toBe('var(--surface-3)')
+    expect(google.style.background).toBe('var(--surface-hi)')
 
     await user.unhover(google)
-    expect(google.style.background).toBe('var(--surface-2)')
+    expect(google.style.background).toBe('var(--surface)')
   })
 })
 

@@ -21,10 +21,9 @@ function renderDialog(props: Partial<React.ComponentProps<typeof AddFluxDialog>>
   return { ...utils, onOpenChange }
 }
 
-/** Picks an option in the provider Select (a Radix listbox). */
+/** Picks a provider tile in the 2x2 provider grid. */
 async function chooseProvider(user: ReturnType<typeof userEvent.setup>, name: string) {
-  await user.click(screen.getByRole('combobox', { name: /provider/i }))
-  await user.click(await screen.findByRole('option', { name }))
+  await user.click(screen.getByRole('button', { name }))
 }
 
 beforeEach(() => {
@@ -38,21 +37,17 @@ describe('AddFluxDialog', () => {
     expect(screen.getByLabelText('GitHub repository')).toBeInTheDocument()
   })
 
-  it('lists exactly the four supported providers', async () => {
-    const user = userEvent.setup()
+  it('lists exactly the four supported providers', () => {
     renderDialog()
 
-    await user.click(screen.getByRole('combobox', { name: /provider/i }))
-    const options = (await screen.findAllByRole('option')).map((o) => o.textContent)
-    expect(options).toEqual(['GitHub Changelog', 'YouTube', 'RSS', 'Web scraping'])
+    for (const name of ['GitHub', 'YouTube', 'RSS', 'Page web']) {
+      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+    }
   })
 
-  it('no longer offers a documentation provider', async () => {
-    const user = userEvent.setup()
+  it('no longer offers a documentation provider', () => {
     renderDialog()
-
-    await user.click(screen.getByRole('combobox', { name: /provider/i }))
-    expect(screen.queryByRole('option', { name: 'Documentation' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Documentation' })).not.toBeInTheDocument()
   })
 
   it('requires an identifier', async () => {
@@ -135,7 +130,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/api/scrap'))
       expect(await screen.findByLabelText('Available feed')).toBeInTheDocument()
     })
@@ -144,7 +139,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(screen.getByRole('button', { name: 'Add' }))
 
       // "Select a feed" is also the Select placeholder, hence the count check.
@@ -162,7 +157,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('combobox', { name: 'Available feed' }))
       await user.click(await screen.findByRole('option', { name: 'https://a.dev/blog' }))
       await user.click(screen.getByRole('button', { name: 'Add' }))
@@ -184,7 +179,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('combobox', { name: 'Available feed' }))
       expect((await screen.findAllByText('No feeds available')).length).toBeGreaterThan(0)
       expect(screen.queryByText('https://taken.dev')).not.toBeInTheDocument()
@@ -195,7 +190,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       expect(await screen.findByLabelText('Available feed')).toBeInTheDocument()
     })
 
@@ -203,7 +198,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('button', { name: 'Make a request' }))
       await user.type(screen.getByLabelText('URL to scrape'), 'https://new.dev/blog')
       await user.click(screen.getByRole('button', { name: 'Add' }))
@@ -220,7 +215,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('button', { name: 'Make a request' }))
       await user.click(screen.getByRole('button', { name: 'Add' }))
 
@@ -234,7 +229,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('button', { name: 'Make a request' }))
       const input = screen.getByLabelText('URL to scrape')
       await user.type(input, 'not-a-url')
@@ -249,7 +244,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('button', { name: 'Make a request' }))
       await user.type(screen.getByLabelText('URL to scrape'), 'https://dup.dev')
 
@@ -268,7 +263,7 @@ describe('AddFluxDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await chooseProvider(user, 'Web scraping')
+      await chooseProvider(user, 'Page web')
       await user.click(await screen.findByRole('button', { name: 'Make a request' }))
       await user.click(screen.getByRole('button', { name: 'Choose an existing feed' }))
 
@@ -296,8 +291,8 @@ describe('EmptyFeed', () => {
       </LanguageProvider>,
     )
 
-    expect(screen.getByText('Votre flux est vide')).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Ajouter mon premier flux' }))
+    expect(screen.getByText("Aucun flux pour l'instant.")).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Ajoute-en un →' }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 })

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { DM_Sans, JetBrains_Mono } from 'next/font/google'
+import { Instrument_Sans, Instrument_Serif, JetBrains_Mono } from 'next/font/google'
 import { cookies } from 'next/headers'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { Language } from '@/lib/translations'
@@ -7,10 +7,17 @@ import './globals.css'
 
 const SUPPORTED_LANGUAGES: Language[] = ['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh']
 
-const dmSans = DM_Sans({
+const instrumentSans = Instrument_Sans({
   subsets: ['latin'],
   variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '600', '700'],
+})
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  variable: '--font-serif',
+  weight: '400',
+  style: ['normal', 'italic'],
 })
 
 const jetbrainsMono = JetBrains_Mono({
@@ -38,8 +45,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     : 'en'
 
   return (
-    <html lang={lang} className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
-      <body className={dmSans.className}>
+    <html
+      lang={lang}
+      className={`${instrumentSans.variable} ${instrumentSerif.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className={instrumentSans.className}>
         <LanguageProvider initialLang={lang}>{children}</LanguageProvider>
       </body>
     </html>

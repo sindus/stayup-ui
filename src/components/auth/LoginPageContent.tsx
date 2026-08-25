@@ -19,8 +19,8 @@ export function LoginPageContent() {
       }}
     >
       <div className="text-center mb-6">
-        <h1 className="text-[20px] font-bold mb-1" style={{ letterSpacing: '-0.02em' }}>
-          Bon retour
+        <h1 className="font-serif text-[26px] leading-[1.15] tracking-editorial font-normal mb-1.5">
+          {a.loginTitle}
         </h1>
         <p className="text-[13px] text-muted-foreground">{a.loginSubtitle}</p>
       </div>
@@ -30,9 +30,9 @@ export function LoginPageContent() {
       </div>
 
       <div className="flex items-center gap-3 mb-5">
-        <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
-        <span className="text-[11px] text-muted-foreground">ou continuer avec email</span>
-        <div className="flex-1 h-px" style={{ background: 'hsl(var(--border))' }} />
+        <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
+        <span className="text-[11px] text-muted-foreground uppercase">ou</span>
+        <div className="flex-1 h-px" style={{ background: 'var(--border-soft)' }} />
       </div>
 
       <LoginForm />
@@ -42,7 +42,7 @@ export function LoginPageContent() {
         <Link
           href="/register"
           className="font-medium transition-colors"
-          style={{ color: 'var(--teal)' }}
+          style={{ color: 'var(--peach)' }}
         >
           {a.signUp}
         </Link>

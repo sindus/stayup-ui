@@ -83,22 +83,35 @@ export function DownloadSection({ version }: { version: string }) {
   ]
 
   return (
-    <section id="download" className="py-20" style={{ borderTop: '1px solid hsl(var(--border))' }}>
+    <section
+      id="download"
+      className="py-20 relative"
+      style={{ borderTop: '1px solid var(--border-soft)' }}
+    >
       {/* Header */}
-      <div className="text-center mb-10 max-w-[1200px] mx-auto px-8">
+      <div className="text-center mb-10 max-w-[880px] mx-auto px-8 relative">
+        <div
+          aria-hidden
+          className="absolute -top-10 left-1/2 -translate-x-1/2 w-[420px] h-[200px] pointer-events-none"
+          style={{
+            background: 'radial-gradient(closest-side, var(--peach-dim), transparent)',
+          }}
+        />
         <span
-          className="inline-block text-[11px] font-mono font-semibold px-3 py-1 rounded-full mb-4"
-          style={{ background: 'var(--teal-dim)', color: 'var(--teal)' }}
+          className="relative inline-block text-[11px] font-mono font-semibold px-3 py-1 rounded-full mb-5"
+          style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}
         >
           v{version}
         </span>
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <Download className="h-5 w-5 text-primary" />
-          <h2 className="text-[36px] font-bold" style={{ letterSpacing: '-0.03em' }}>
+        <div className="relative flex items-center justify-center gap-2 mb-3">
+          <Download className="h-5 w-5" style={{ color: 'var(--peach)' }} />
+          <h2 className="font-serif text-[36px] leading-[1.08] tracking-editorial font-normal">
             {d.title}
           </h2>
         </div>
-        <p className="text-muted-foreground max-w-xl mx-auto text-[13.5px]">{d.subtitle}</p>
+        <p className="relative text-muted-foreground max-w-xl mx-auto text-[13.5px]">
+          {d.subtitle}
+        </p>
       </div>
 
       {/* Download buttons */}

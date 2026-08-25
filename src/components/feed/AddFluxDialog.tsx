@@ -24,9 +24,77 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
+import { cn } from '@/lib/utils'
 
 type AllProvider = 'changelog' | 'youtube' | 'rss' | 'scrap'
 type FeedProvider = 'changelog' | 'youtube' | 'rss'
+
+const PROVIDER_TILES: {
+  id: AllProvider
+  color: string
+  dim: string
+  icon: React.ReactNode
+}[] = [
+  {
+    id: 'changelog',
+    color: 'var(--peach)',
+    dim: 'var(--peach-dim)',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1L9.5 4H11.5L7 1ZM7 1L4.5 4H2.5L7 1Z" fill="currentColor" opacity="0.85" />
+        <rect x="2" y="4" width="10" height="1" rx="0.5" fill="currentColor" />
+        <rect x="3" y="6.5" width="8" height="1" rx="0.5" fill="currentColor" opacity="0.5" />
+      </svg>
+    ),
+  },
+  {
+    id: 'youtube',
+    color: 'var(--rose)',
+    dim: 'var(--rose-dim)',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+        <rect x="1" y="3" width="12" height="8" rx="2" fill="currentColor" />
+        <path d="M5.5 5.5L9 7L5.5 8.5V5.5Z" fill="var(--surface)" />
+      </svg>
+    ),
+  },
+  {
+    id: 'rss',
+    color: 'var(--sage)',
+    dim: 'var(--sage-dim)',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+        <circle cx="3" cy="11" r="1.5" fill="currentColor" />
+        <path
+          d="M2 7.5C5 7.5 6.5 9 6.5 11.5"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          fill="none"
+          strokeLinecap="round"
+        />
+        <path
+          d="M2 4C7 4 10 7 10 12"
+          stroke="currentColor"
+          strokeWidth="1.3"
+          fill="none"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'scrap',
+    color: 'var(--sky)',
+    dim: 'var(--sky-dim)',
+    icon: (
+      <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.2" fill="none" />
+        <ellipse cx="7" cy="7" rx="2" ry="5" stroke="currentColor" strokeWidth="1.2" fill="none" />
+        <line x1="2" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.2" />
+      </svg>
+    ),
+  },
+]
 
 type FormData = {
   provider: AllProvider
@@ -198,32 +266,49 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="provider">Provider</Label>
-                  <Select
-                    value={provider}
-                    onValueChange={(v) => {
-                      setValue('provider', v as AllProvider)
-                      setValue('identifier', '')
-                      setValue('scrapRepoId', '')
-                      setScrapMode('select')
-                    }}
-                  >
-                    <SelectTrigger id="provider">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="changelog">
-                        {t.feed.providers?.changelog ?? 'GitHub Changelog'}
-                      </SelectItem>
-                      <SelectItem value="youtube">
-                        {t.feed.providers?.youtube ?? 'YouTube'}
-                      </SelectItem>
-                      <SelectItem value="rss">{t.feed.providers?.rss ?? 'RSS'}</SelectItem>
-                      <SelectItem value="scrap">
-                        {t.feed.providers?.scrap ?? 'Scraping web'}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label>Provider</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PROVIDER_TILES.map((tile) => {
+                      const active = provider === tile.id
+                      const label =
+                        tile.id === 'changelog'
+                          ? 'GitHub'
+                          : tile.id === 'scrap'
+                            ? 'Page web'
+                            : (t.feed.providers?.[tile.id] ?? tile.id)
+                      return (
+                        <button
+                          key={tile.id}
+                          type="button"
+                          onClick={() => {
+                            setValue('provider', tile.id)
+                            setValue('identifier', '')
+                            setValue('scrapRepoId', '')
+                            setScrapMode('select')
+                          }}
+                          className={cn(
+                            'flex items-center gap-2 rounded-[10px] px-3 py-2.5 text-[13.5px] font-medium transition-colors border',
+                          )}
+                          style={
+                            active
+                              ? {
+                                  background: tile.dim,
+                                  borderColor: tile.color,
+                                  color: 'var(--fg)',
+                                }
+                              : {
+                                  background: 'var(--bg)',
+                                  borderColor: 'var(--border-color)',
+                                  color: 'var(--fg-soft)',
+                                }
+                          }
+                        >
+                          <span style={{ color: tile.color }}>{tile.icon}</span>
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
                   {errors.provider && (
                     <p className="text-sm text-destructive">{errors.provider.message}</p>
                   )}

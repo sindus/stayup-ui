@@ -145,10 +145,10 @@ export const fr: Translations = {
     noContent: "Aucun flux scraping n'est disponible pour le moment.",
   },
   auth: {
-    loginTitle: 'Connexion',
-    loginSubtitle: 'Connectez-vous à votre compte StayUp',
-    registerTitle: 'Créer un compte',
-    registerSubtitle: 'Rejoignez StayUp pour suivre vos mises à jour',
+    loginTitle: 'Content de te revoir.',
+    loginSubtitle: "Reprends ta lecture là où tu l'avais laissée.",
+    registerTitle: 'Crée ton compte.',
+    registerSubtitle: 'Un seul flux pour tout ce qui se passe.',
     name: 'Nom',
     namePlaceholder: 'Votre nom',
     email: 'E-mail',
@@ -160,8 +160,8 @@ export const fr: Translations = {
     createAccount: 'Créer mon compte',
     creatingAccount: 'Inscription...',
     noAccount: 'Pas encore de compte ?',
-    alreadyAccount: 'Déjà un compte ?',
-    signUp: "S'inscrire",
+    alreadyAccount: 'Déjà inscrit ?',
+    signUp: 'Crée un compte',
     or: 'ou',
     continueWithGoogle: 'Continuer avec Google',
     continueWithGitHub: 'Continuer avec GitHub',
@@ -186,10 +186,10 @@ export const fr: Translations = {
     filterUnread: 'Non lu',
     markAllRead: 'Tout marquer lu',
     providers: {
-      changelog: 'GitHub Changelog',
+      changelog: 'GitHub',
       youtube: 'YouTube',
       rss: 'RSS',
-      scrap: 'Scraping web',
+      scrap: 'Web',
     },
   },
   importExport: {
@@ -204,7 +204,7 @@ export const fr: Translations = {
   },
   addFlux: {
     title: 'Ajouter un flux',
-    description: "Choisissez un provider et renseignez l'identifiant du dépôt ou de la chaîne.",
+    description: "Choisis une source, on s'occupe du reste.",
     provider: 'Provider',
     identifierLabels: {
       changelog: 'Dépôt GitHub',
@@ -238,7 +238,8 @@ export const fr: Translations = {
   },
   viewer: {
     noTitle: 'Sans titre',
-    selectItem: 'Sélectionnez un élément.',
+    selectItem: 'Choisis un élément à lire.',
+    selectItemHint: 'La liste à gauche est triée du plus récent au plus ancien.',
     repository: 'dépôt',
     openOnGithub: 'Voir sur GitHub',
     watchOnYoutube: 'Voir sur YouTube',
