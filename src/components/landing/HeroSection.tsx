@@ -119,9 +119,9 @@ export function HeroSection({ isLoggedIn, version = '0.3.8' }: HeroSectionProps)
 
             <div className="flex items-center gap-7">
               {[
-                { value: '4', label: 'sources unifiées' },
-                { value: '3', label: 'plateformes desktop' },
-                { value: 'Zéro', label: 'algorithme, juste la chronologie' },
+                { value: '4', label: t.landing.hero.stats.sourcesLabel },
+                { value: '3', label: t.landing.hero.stats.platformsLabel },
+                { value: t.landing.hero.stats.zero, label: t.landing.hero.stats.algorithmLabel },
               ].map(({ value, label }) => (
                 <div key={label}>
                   <div

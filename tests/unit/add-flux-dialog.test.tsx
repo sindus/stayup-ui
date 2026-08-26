@@ -345,8 +345,8 @@ describe('EmptyFeed', () => {
       </LanguageProvider>,
     )
 
-    expect(screen.getByText("Aucun flux pour l'instant.")).toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: 'Ajoute-en un →' }))
+    expect(screen.getByText('No feeds yet.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Add one →' }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
   })
 })

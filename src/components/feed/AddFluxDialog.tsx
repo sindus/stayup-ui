@@ -306,7 +306,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label>Provider</Label>
+                  <Label>{t.addFlux.provider}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {tiles.map((tile) => {
                       const active = provider === tile.id

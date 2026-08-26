@@ -4,6 +4,7 @@ import { DownloadSection } from '@/components/landing/DownloadSection'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { AuroraWordmark } from '@/components/ui/aurora-mark'
 import { getSession } from '@/lib/session'
+import { getServerTranslations } from '@/lib/serverLang'
 
 async function getLatestVersion(): Promise<string> {
   try {
@@ -22,7 +23,11 @@ async function getLatestVersion(): Promise<string> {
 }
 
 export default async function LandingPage() {
-  const [session, version] = await Promise.all([getSession(), getLatestVersion()])
+  const [session, version, t] = await Promise.all([
+    getSession(),
+    getLatestVersion(),
+    getServerTranslations(),
+  ])
   const isLoggedIn = !!session
 
   return (
@@ -52,7 +57,7 @@ export default async function LandingPage() {
               GitHub
             </a>
             <a href="#download" className="hover:text-fg transition-colors">
-              Télécharger
+              {t.landing.header.download}
             </a>
           </nav>
         </div>

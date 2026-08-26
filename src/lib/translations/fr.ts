@@ -2,15 +2,19 @@ import type { Translations } from './en'
 
 export const fr: Translations = {
   landing: {
-    header: { signIn: 'Se connecter' },
+    meta: {
+      title: 'StayUp — Restez à jour, sans effort',
+      description:
+        'Suivez les dernières mises à jour de vos projets GitHub, chaînes YouTube, flux RSS et pages web, au même endroit.',
+      ogDescription: 'Agrégateur de mises à jour GitHub, YouTube, RSS et web',
+    },
+    header: {
+      signIn: 'Se connecter',
+      features: 'Fonctionnalités',
+      download: 'Télécharger',
+      getStarted: 'Commencer',
+    },
     hero: {
-      title: 'Restez à jour,',
-      titleHighlight: 'sans effort',
-      subtitle:
-        'StayUp agrège les dernières mises à jour de vos projets GitHub et chaînes YouTube en un seul flux personnalisé.',
-      ctaStart: 'Commencer gratuitement',
-      ctaSignIn: 'Se connecter',
-      ctaFeed: 'Mes flux',
       tagline: 'Disponible maintenant',
       titleMain: 'Restez à jour.',
       titleAccent: 'Toujours.',
@@ -19,18 +23,40 @@ export const fr: Translations = {
       ctaRegister: 'Créer un compte gratuit',
       ctaFeedArrow: 'Mes flux →',
       ctaFeedAnon: 'Voir le feed →',
+      stats: {
+        sourcesLabel: 'sources unifiées',
+        platformsLabel: 'plateformes desktop',
+        zero: 'Zéro',
+        algorithmLabel: 'algorithme, juste la chronologie',
+      },
     },
     features: {
-      title: 'Deux providers, un seul flux',
+      tagline: 'Quatre sources, un seul flux',
+      titleMain: 'Tout ce que tu suis,',
+      titleAccent: 'rangé chronologiquement',
       changelog: {
-        title: 'Changelog GitHub',
+        title: 'GitHub Changelog',
         description:
-          "Suivez les releases de vos dépôts GitHub préférés. Recevez les notes de mise à jour dès qu'une nouvelle version est publiée.",
+          'Suivez les releases de vos dépôts GitHub préférés. Notes de mise à jour dès la publication.',
+        badge: 'v2.1.0',
       },
       youtube: {
         title: 'Chaînes YouTube',
         description:
-          "Restez informé des dernières vidéos de vos créateurs favoris. Retrouvez titre, description et lien en un coup d'œil.",
+          "Restez informé des dernières vidéos de vos créateurs favoris. Titre, miniature et lien en un coup d'œil.",
+        badge: 'Nouvelle vidéo',
+      },
+      rss: {
+        title: 'Flux RSS',
+        description:
+          "Agrégez n'importe quel flux RSS ou Atom. Blogs tech, actualités, podcasts — tout en un endroit.",
+        badge: 'Atom · RSS',
+      },
+      scrap: {
+        title: 'Web Scraping',
+        description:
+          "Surveillez les pages web qui n'ont pas de flux RSS. Détectez les changements automatiquement.",
+        badge: 'HTML · JSON',
       },
     },
     cta: {
@@ -172,6 +198,12 @@ export const fr: Translations = {
     passwordMismatch: 'Les mots de passe ne correspondent pas',
   },
   feed: {
+    empty: {
+      title: "Aucun flux pour l'instant.",
+      description:
+        'Ajoute ta première source pour commencer à suivre les mises à jour qui comptent pour toi.',
+      cta: 'Ajoute-en un →',
+    },
     allFeed: 'Tout le feed',
     myFeeds: 'Mes flux',
     noFlux: 'Aucun flux',
@@ -317,6 +349,8 @@ export const fr: Translations = {
     configJsonOptional: 'Config JSON (optionnel)',
   },
   common: {
+    copy: 'Copier',
+    language: 'Langue',
     cancel: 'Annuler',
     close: 'Fermer',
     add: 'Ajouter',

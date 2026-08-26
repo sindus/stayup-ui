@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { Rss } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/context/LanguageContext'
 import { AddFluxDialog } from './AddFluxDialog'
 
 export function EmptyFeed() {
+  const { t } = useLanguage()
   const [open, setOpen] = useState(false)
 
   return (
@@ -24,12 +26,10 @@ export function EmptyFeed() {
         </div>
       </div>
       <h2 className="font-serif text-[26px] leading-[1.15] tracking-editorial font-normal mb-2">
-        Aucun flux pour l&apos;instant.
+        {t.feed.empty.title}
       </h2>
-      <p className="text-muted-foreground mb-6 max-w-sm">
-        Ajoute ta première source pour commencer à suivre les mises à jour qui comptent pour toi.
-      </p>
-      <Button onClick={() => setOpen(true)}>Ajoute-en un →</Button>
+      <p className="text-muted-foreground mb-6 max-w-sm">{t.feed.empty.description}</p>
+      <Button onClick={() => setOpen(true)}>{t.feed.empty.cta}</Button>
       <AddFluxDialog open={open} onOpenChange={setOpen} />
     </div>
   )

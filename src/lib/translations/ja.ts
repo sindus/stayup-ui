@@ -2,35 +2,60 @@ import type { Translations } from './en'
 
 export const ja: Translations = {
   landing: {
-    header: { signIn: 'サインイン' },
+    meta: {
+      title: 'StayUp — 手間なく最新情報をキャッチ',
+      description:
+        'GitHubプロジェクト、YouTubeチャンネル、RSSフィード、ウェブページの最新情報を1か所でチェック。',
+      ogDescription: 'GitHub・YouTube・RSS・Web更新アグリゲーター',
+    },
+    header: {
+      signIn: 'サインイン',
+      features: '機能',
+      download: 'ダウンロード',
+      getStarted: 'はじめる',
+    },
     hero: {
-      title: '最新情報を、',
-      titleHighlight: '手間なく',
-      subtitle:
-        'StayUpはGitHubプロジェクトとYouTubeチャンネルの最新アップデートを1つのパーソナライズされたフィードにまとめます。',
-      ctaStart: '無料で始める',
-      ctaSignIn: 'サインイン',
-      ctaFeed: 'マイフィード',
       tagline: '今すぐ利用可能',
-      titleMain: '最新情報を、常に。',
+      titleMain: '最新情報をキャッチ。',
       titleAccent: '常に。',
       subtitleNew:
         'StayUpはGitHubの更新履歴、YouTube動画、RSSフィード、ウェブページを1つのパーソナライズされたフィードにまとめます。',
       ctaRegister: '無料アカウントを作成',
       ctaFeedArrow: 'マイフィード →',
       ctaFeedAnon: 'フィードを見る →',
+      stats: {
+        sourcesLabel: '統合ソース',
+        platformsLabel: 'デスクトッププラットフォーム',
+        zero: 'ゼロ',
+        algorithmLabel: 'アルゴリズムなし、時系列のみ',
+      },
     },
     features: {
-      title: '2つのプロバイダー、1つの統合フィード',
+      tagline: '4つのソース、1つのフィード',
+      titleMain: 'フォローするすべてが、',
+      titleAccent: '時系列順に整理',
       changelog: {
         title: 'GitHub Changelog',
         description:
           'お気に入りのGitHubリポジトリのリリースをフォロー。新バージョンが公開されるとすぐにリリースノートを受け取れます。',
+        badge: 'v2.1.0',
       },
       youtube: {
         title: 'YouTubeチャンネル',
         description:
-          'お気に入りのクリエイターの最新動画をチェック。タイトル、説明、リンクを一目で確認できます。',
+          'お気に入りのクリエイターの最新動画をチェック。タイトル、サムネイル、リンクを一目で確認できます。',
+        badge: '新着動画',
+      },
+      rss: {
+        title: 'RSSフィード',
+        description:
+          'あらゆるRSSやAtomフィードを集約。技術ブログ、ニュース、ポッドキャスト — すべてを1か所で。',
+        badge: 'Atom · RSS',
+      },
+      scrap: {
+        title: 'Webスクレイピング',
+        description: 'RSSフィードのないウェブページを監視。変更を自動検出します。',
+        badge: 'HTML · JSON',
       },
     },
     cta: {
@@ -164,6 +189,11 @@ export const ja: Translations = {
     passwordMismatch: 'パスワードが一致しません',
   },
   feed: {
+    empty: {
+      title: 'まだフィードがありません。',
+      description: '最初のソースを追加して、気になる更新をフォローしましょう。',
+      cta: '追加する →',
+    },
     allFeed: 'すべてのフィード',
     myFeeds: 'マイフィード',
     noFlux: 'フィードがありません',
@@ -308,6 +338,8 @@ export const ja: Translations = {
     configJsonOptional: 'JSON設定（任意）',
   },
   common: {
+    copy: 'コピー',
+    language: '言語',
     cancel: 'キャンセル',
     close: '閉じる',
     add: '追加',

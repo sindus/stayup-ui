@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { LANG_COOKIE_NAME } from '@/lib/constants'
 import {
   en,
   fr,
@@ -37,7 +38,7 @@ export function LanguageProvider({
 
   const setLang = (newLang: Language) => {
     setLangState(newLang)
-    document.cookie = `lang=${newLang}; path=/; max-age=31536000; SameSite=Lax`
+    document.cookie = `${LANG_COOKIE_NAME}=${newLang}; path=/; max-age=31536000; SameSite=Lax`
     router.refresh()
   }
 

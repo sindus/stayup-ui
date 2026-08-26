@@ -1,51 +1,34 @@
 'use client'
 
 import Image from 'next/image'
+import { useLanguage } from '@/context/LanguageContext'
 
-const FEATURES = [
-  {
-    provider: 'changelog',
-    title: 'GitHub Changelog',
-    description:
-      'Suivez les releases de vos dépôts GitHub préférés. Notes de mise à jour dès la publication.',
-    color: 'var(--teal)',
-    dimColor: 'var(--teal-dim)',
-    icon: '/icons/changelog.svg',
-    badge: 'v2.1.0',
-  },
-  {
-    provider: 'youtube',
-    title: 'Chaînes YouTube',
-    description:
-      "Restez informé des dernières vidéos de vos créateurs favoris. Titre, thumbnail et lien en un coup d'œil.",
-    color: 'var(--rose)',
-    dimColor: 'var(--rose-dim)',
-    icon: '/icons/youtube.svg',
-    badge: 'New video',
-  },
-  {
-    provider: 'rss',
-    title: 'Flux RSS',
-    description:
-      "Agrégez n'importe quel flux RSS ou Atom. Blogs tech, actualités, podcasts — tout en un endroit.",
-    color: 'var(--amber)',
-    dimColor: 'var(--amber-dim)',
-    icon: '/icons/rss.svg',
-    badge: 'Atom · RSS',
-  },
-  {
-    provider: 'scrap',
-    title: 'Web Scraping',
-    description:
-      "Surveillez les pages web qui n'ont pas de flux RSS. Détectez les changements automatiquement.",
-    color: 'var(--green)',
-    dimColor: 'var(--green-dim)',
-    icon: '/icons/scrap.svg',
-    badge: 'HTML · JSON',
-  },
-]
+const ICONS: Record<string, string> = {
+  changelog: '/icons/changelog.svg',
+  youtube: '/icons/youtube.svg',
+  rss: '/icons/rss.svg',
+  scrap: '/icons/scrap.svg',
+}
+
+const COLORS: Record<string, { color: string; dimColor: string }> = {
+  changelog: { color: 'var(--teal)', dimColor: 'var(--teal-dim)' },
+  youtube: { color: 'var(--rose)', dimColor: 'var(--rose-dim)' },
+  rss: { color: 'var(--amber)', dimColor: 'var(--amber-dim)' },
+  scrap: { color: 'var(--green)', dimColor: 'var(--green-dim)' },
+}
 
 export function FeaturesSection() {
+  const { t } = useLanguage()
+  const f = t.landing.features
+
+  const providers = ['changelog', 'youtube', 'rss', 'scrap'] as const
+  const FEATURES = providers.map((provider) => ({
+    provider,
+    ...f[provider],
+    ...COLORS[provider],
+    icon: ICONS[provider],
+  }))
+
   return (
     <section id="features" className="py-16">
       <div className="max-w-[1200px] mx-auto px-8">
@@ -54,18 +37,18 @@ export function FeaturesSection() {
             className="inline-block text-[11px] font-semibold uppercase tracking-micro px-3 py-1 rounded-full mb-4"
             style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}
           >
-            Quatre sources, un seul flux
+            {f.tagline}
           </span>
           <h2 className="font-serif text-[38px] leading-[1.08] tracking-editorial font-normal">
-            Tout ce que tu suis,{' '}
+            {f.titleMain}{' '}
             <span className="italic" style={{ color: 'var(--peach)' }}>
-              rangé chronologiquement
+              {f.titleAccent}
             </span>
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {FEATURES.map(({ provider, title, description, color, dimColor, icon, badge }) => (
+          {FEATURES.map(({ provider, title, description, badge, color, dimColor, icon }) => (
             <div
               key={provider}
               className="group rounded-[10px] p-6 transition-all duration-150 cursor-default"

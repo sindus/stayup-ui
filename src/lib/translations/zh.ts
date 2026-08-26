@@ -2,14 +2,18 @@ import type { Translations } from './en'
 
 export const zh: Translations = {
   landing: {
-    header: { signIn: '登录' },
+    meta: {
+      title: 'StayUp — 轻松掌握最新动态',
+      description: '在同一处跟踪你的 GitHub 项目、YouTube 频道、RSS 订阅源和网页的最新更新。',
+      ogDescription: 'GitHub、YouTube、RSS 和网页更新聚合器',
+    },
+    header: {
+      signIn: '登录',
+      features: '功能',
+      download: '下载',
+      getStarted: '开始使用',
+    },
     hero: {
-      title: '轻松掌握最新动态，',
-      titleHighlight: '毫不费力',
-      subtitle: 'StayUp 将你的 GitHub 项目和 YouTube 频道的最新更新汇聚到一个个性化的订阅源中。',
-      ctaStart: '免费开始',
-      ctaSignIn: '登录',
-      ctaFeed: '我的订阅源',
       tagline: '现已推出',
       titleMain: '始终掌握最新动态。',
       titleAccent: '始终如一。',
@@ -18,16 +22,36 @@ export const zh: Translations = {
       ctaRegister: '创建免费账户',
       ctaFeedArrow: '我的订阅源 →',
       ctaFeedAnon: '查看订阅源 →',
+      stats: {
+        sourcesLabel: '统一来源',
+        platformsLabel: '桌面平台',
+        zero: '零',
+        algorithmLabel: '算法，只按时间顺序',
+      },
     },
     features: {
-      title: '两种提供方，一个统一订阅源',
+      tagline: '四种来源，一个订阅源',
+      titleMain: '你关注的一切，',
+      titleAccent: '按时间顺序排列',
       changelog: {
         title: 'GitHub Changelog',
         description: '关注你最喜爱的 GitHub 仓库的发布动态。新版本发布后即可收到发布说明。',
+        badge: 'v2.1.0',
       },
       youtube: {
         title: 'YouTube 频道',
-        description: '及时了解你喜爱的创作者的最新视频。一目了然地查看标题、描述和链接。',
+        description: '及时了解你喜爱的创作者的最新视频。一目了然地查看标题、缩略图和链接。',
+        badge: '新视频',
+      },
+      rss: {
+        title: 'RSS 订阅源',
+        description: '聚合任意 RSS 或 Atom 订阅源。技术博客、新闻、播客——尽在一处。',
+        badge: 'Atom · RSS',
+      },
+      scrap: {
+        title: '网页抓取',
+        description: '监控没有 RSS 订阅源的网页，自动检测变化。',
+        badge: 'HTML · JSON',
       },
     },
     cta: {
@@ -157,6 +181,11 @@ export const zh: Translations = {
     passwordMismatch: '两次输入的密码不一致',
   },
   feed: {
+    empty: {
+      title: '还没有订阅源。',
+      description: '添加你的第一个来源，开始关注对你重要的更新。',
+      cta: '添加一个 →',
+    },
     allFeed: '所有订阅源',
     myFeeds: '我的订阅源',
     noFlux: '暂无订阅源',
@@ -301,6 +330,8 @@ export const zh: Translations = {
     configJsonOptional: 'JSON 配置（可选）',
   },
   common: {
+    copy: '复制',
+    language: '语言',
     cancel: '取消',
     close: '关闭',
     add: '添加',

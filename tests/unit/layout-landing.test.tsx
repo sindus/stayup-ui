@@ -110,27 +110,24 @@ describe('UserMenu', () => {
 
 describe('LandingHeader', () => {
   it('links to the features and download anchors', () => {
-    render(<LandingHeader />)
-    expect(screen.getByRole('link', { name: 'Fonctionnalités' })).toHaveAttribute(
-      'href',
-      '#features',
-    )
-    expect(screen.getByRole('link', { name: 'Télécharger' })).toHaveAttribute('href', '#download')
+    renderWithLang(<LandingHeader />)
+    expect(screen.getByRole('link', { name: 'Features' })).toHaveAttribute('href', '#features')
+    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '#download')
   })
 
   it('no longer links to the documentation', () => {
-    render(<LandingHeader />)
+    renderWithLang(<LandingHeader />)
     expect(screen.queryByRole('link', { name: 'Docs' })).not.toBeInTheDocument()
   })
 
   it('exposes the sign-in and start links', () => {
-    render(<LandingHeader />)
-    expect(screen.getByRole('link', { name: 'Se connecter' })).toHaveAttribute('href', '/login')
-    expect(screen.getByRole('link', { name: 'Commencer' })).toHaveAttribute('href', '/register')
+    renderWithLang(<LandingHeader />)
+    expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Get started' })).toHaveAttribute('href', '/register')
   })
 
   it('adds a solid background once scrolled', async () => {
-    render(<LandingHeader />)
+    renderWithLang(<LandingHeader />)
     const header = document.querySelector('header')!
     expect(header.style.background).toBe('')
 
@@ -168,18 +165,18 @@ describe('HeroSection', () => {
 
 describe('FeaturesSection', () => {
   it('renders one card per provider', () => {
-    render(<FeaturesSection />)
+    renderWithLang(<FeaturesSection />)
     expect(screen.getByRole('heading', { name: 'GitHub Changelog' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Chaînes YouTube' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Flux RSS' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'YouTube Channels' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'RSS Feeds' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Web Scraping' })).toBeInTheDocument()
   })
 
   it('highlights and resets a card border on hover', async () => {
     const user = userEvent.setup()
-    render(<FeaturesSection />)
+    renderWithLang(<FeaturesSection />)
 
-    const card = screen.getByRole('heading', { name: 'Flux RSS' }).closest('div.group')!
+    const card = screen.getByRole('heading', { name: 'RSS Feeds' }).closest('div.group')!
     await user.hover(card)
     expect((card as HTMLElement).style.borderColor).toContain('color-mix')
 

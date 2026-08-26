@@ -2,15 +2,19 @@ import type { Translations } from './en'
 
 export const es: Translations = {
   landing: {
-    header: { signIn: 'Iniciar sesión' },
+    meta: {
+      title: 'StayUp — Mantente al día, sin esfuerzo',
+      description:
+        'Sigue las últimas actualizaciones de tus proyectos de GitHub, canales de YouTube, feeds RSS y páginas web, todo en un mismo sitio.',
+      ogDescription: 'Agregador de actualizaciones de GitHub, YouTube, RSS y web',
+    },
+    header: {
+      signIn: 'Iniciar sesión',
+      features: 'Funciones',
+      download: 'Descargar',
+      getStarted: 'Empezar',
+    },
     hero: {
-      title: 'Mantente al día,',
-      titleHighlight: 'sin esfuerzo',
-      subtitle:
-        'StayUp agrupa las últimas actualizaciones de tus proyectos de GitHub y canales de YouTube en un único feed personalizado.',
-      ctaStart: 'Empieza gratis',
-      ctaSignIn: 'Iniciar sesión',
-      ctaFeed: 'Mis feeds',
       tagline: 'Disponible ahora',
       titleMain: 'Mantente al día.',
       titleAccent: 'Siempre.',
@@ -19,18 +23,40 @@ export const es: Translations = {
       ctaRegister: 'Crear una cuenta gratuita',
       ctaFeedArrow: 'Mis feeds →',
       ctaFeedAnon: 'Ver el feed →',
+      stats: {
+        sourcesLabel: 'fuentes unificadas',
+        platformsLabel: 'plataformas de escritorio',
+        zero: 'Cero',
+        algorithmLabel: 'algoritmo, solo cronología',
+      },
     },
     features: {
-      title: 'Dos proveedores, un único feed',
+      tagline: 'Cuatro fuentes, un solo feed',
+      titleMain: 'Todo lo que sigues,',
+      titleAccent: 'ordenado cronológicamente',
       changelog: {
         title: 'GitHub Changelog',
         description:
           'Sigue los releases de tus repositorios de GitHub favoritos. Recibe las notas de versión en cuanto se publica una nueva.',
+        badge: 'v2.1.0',
       },
       youtube: {
         title: 'Canales de YouTube',
         description:
-          'Mantente informado de los últimos vídeos de tus creadores favoritos. Título, descripción y enlace de un vistazo.',
+          'Mantente informado de los últimos vídeos de tus creadores favoritos. Título, miniatura y enlace de un vistazo.',
+        badge: 'Vídeo nuevo',
+      },
+      rss: {
+        title: 'Feeds RSS',
+        description:
+          'Agrega cualquier feed RSS o Atom. Blogs de tecnología, noticias, podcasts — todo en un mismo sitio.',
+        badge: 'Atom · RSS',
+      },
+      scrap: {
+        title: 'Web Scraping',
+        description:
+          'Supervisa páginas web que no tienen feed RSS. Detecta los cambios automáticamente.',
+        badge: 'HTML · JSON',
       },
     },
     cta: {
@@ -168,6 +194,12 @@ export const es: Translations = {
     passwordMismatch: 'Las contraseñas no coinciden',
   },
   feed: {
+    empty: {
+      title: 'Aún no hay feeds.',
+      description:
+        'Añade tu primera fuente para empezar a seguir las actualizaciones que te importan.',
+      cta: 'Añadir una →',
+    },
     allFeed: 'Todos los feeds',
     myFeeds: 'Mis feeds',
     noFlux: 'Sin feeds',
@@ -312,6 +344,8 @@ export const es: Translations = {
     configJsonOptional: 'Configuración JSON (opcional)',
   },
   common: {
+    copy: 'Copiar',
+    language: 'Idioma',
     cancel: 'Cancelar',
     close: 'Cerrar',
     add: 'Añadir',

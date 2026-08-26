@@ -1,14 +1,18 @@
 export const en = {
   landing: {
-    header: { signIn: 'Sign in' },
+    meta: {
+      title: 'StayUp — Stay up to date, effortlessly',
+      description:
+        'Follow the latest updates from your GitHub projects, YouTube channels, RSS feeds and web pages, all in one place.',
+      ogDescription: 'GitHub, YouTube, RSS and web update aggregator',
+    },
+    header: {
+      signIn: 'Sign in',
+      features: 'Features',
+      download: 'Download',
+      getStarted: 'Get started',
+    },
     hero: {
-      title: 'Stay up to date,',
-      titleHighlight: 'effortlessly',
-      subtitle:
-        'StayUp aggregates the latest updates from your GitHub projects and YouTube channels into one personalized feed.',
-      ctaStart: 'Get started for free',
-      ctaSignIn: 'Sign in',
-      ctaFeed: 'My feed',
       tagline: 'Available now',
       titleMain: 'Stay up to date.',
       titleAccent: 'Always.',
@@ -17,18 +21,39 @@ export const en = {
       ctaRegister: 'Create a free account',
       ctaFeedArrow: 'My feeds →',
       ctaFeedAnon: 'View the feed →',
+      stats: {
+        sourcesLabel: 'unified sources',
+        platformsLabel: 'desktop platforms',
+        zero: 'Zero',
+        algorithmLabel: 'algorithm — just chronology',
+      },
     },
     features: {
-      title: 'Two providers, one unified feed',
+      tagline: 'Four sources, one feed',
+      titleMain: 'Everything you follow,',
+      titleAccent: 'sorted chronologically',
       changelog: {
         title: 'GitHub Changelog',
         description:
-          'Follow releases from your favorite GitHub repositories. Receive release notes as soon as a new version is published.',
+          'Follow releases from your favorite GitHub repositories. Get release notes as soon as a new version is published.',
+        badge: 'v2.1.0',
       },
       youtube: {
         title: 'YouTube Channels',
         description:
-          'Stay informed of the latest videos from your favorite creators. Find the title, description, and link at a glance.',
+          'Stay informed about the latest videos from your favorite creators. Title, thumbnail and link at a glance.',
+        badge: 'New video',
+      },
+      rss: {
+        title: 'RSS Feeds',
+        description:
+          'Aggregate any RSS or Atom feed. Tech blogs, news, podcasts — all in one place.',
+        badge: 'Atom · RSS',
+      },
+      scrap: {
+        title: 'Web Scraping',
+        description: "Monitor web pages that don't have an RSS feed. Automatically detect changes.",
+        badge: 'HTML · JSON',
       },
     },
     cta: {
@@ -160,6 +185,11 @@ export const en = {
     passwordMismatch: 'Passwords do not match',
   },
   feed: {
+    empty: {
+      title: 'No feeds yet.',
+      description: 'Add your first source to start following the updates that matter to you.',
+      cta: 'Add one →',
+    },
     allFeed: 'All feeds',
     myFeeds: 'My feeds',
     noFlux: 'No feeds',
@@ -304,6 +334,8 @@ export const en = {
     configJsonOptional: 'Config JSON (optional)',
   },
   common: {
+    copy: 'Copy',
+    language: 'Language',
     cancel: 'Cancel',
     close: 'Close',
     add: 'Add',

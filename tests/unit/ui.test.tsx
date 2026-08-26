@@ -305,21 +305,22 @@ describe('LanguageSwitcher', () => {
 
   it('offers every supported language', () => {
     renderSwitcher()
-    const select = screen.getByLabelText('Language') as HTMLSelectElement
+    const select = screen.getByLabelText('Langue') as HTMLSelectElement
     const values = Array.from(select.options).map((o) => o.value)
     expect(values).toEqual(['en', 'fr', 'de', 'es', 'it', 'pt', 'ja', 'zh'])
   })
 
   it('shows the active language as the selected option', () => {
     renderSwitcher('fr')
-    expect(screen.getByLabelText('Language')).toHaveValue('fr')
+    expect(screen.getByLabelText('Langue')).toHaveValue('fr')
   })
 
   it('switches language on selection', async () => {
     const user = userEvent.setup()
     renderSwitcher('fr')
 
-    await user.selectOptions(screen.getByLabelText('Language'), 'en')
+    // The aria-label is itself translated: it flips to English with the selection.
+    await user.selectOptions(screen.getByLabelText('Langue'), 'en')
     expect(screen.getByLabelText('Language')).toHaveValue('en')
     expect(refresh).toHaveBeenCalled()
   })

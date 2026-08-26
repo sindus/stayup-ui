@@ -124,7 +124,7 @@ export function DownloadSection({ version }: { version: string }) {
                 <code
                   className="cursor-pointer font-mono text-xs"
                   onClick={() => navigator.clipboard.writeText(p.command!)}
-                  title="Copier"
+                  title={t.common.copy}
                 >
                   <Icon className="mr-2 h-4 w-4" />
                   <span>{p.command}</span>
