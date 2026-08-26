@@ -35,12 +35,14 @@ test.describe('Feed page (authenticated)', () => {
   test('opens add flux dialog on button click', async ({ page }) => {
     await page.getByRole('button', { name: /ajouter un flux/i }).click()
     await expect(page.getByRole('dialog')).toBeVisible()
-    await expect(page.getByText(/choisissez un provider/i)).toBeVisible()
+    await expect(page.getByText(/choisis une source/i)).toBeVisible()
   })
 
   test('add flux dialog has provider selector and identifier input', async ({ page }) => {
     await page.getByRole('button', { name: /ajouter un flux/i }).click()
-    await expect(page.getByRole('combobox')).toBeVisible()
+    await expect(
+      page.getByRole('dialog').getByRole('button', { name: 'GitHub', exact: true }),
+    ).toBeVisible()
     await expect(page.getByLabel(/dépôt github/i)).toBeVisible()
   })
 
