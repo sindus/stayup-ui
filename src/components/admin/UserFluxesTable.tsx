@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { adminDeleteUserFluxAction } from '@/lib/admin-actions'
 import type { UserRepositoryItem } from '@/lib/api-client'
+import { providerDisplayName } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
@@ -65,7 +66,9 @@ export function UserFluxesTable({
           {repositories.map((repo) => (
             <TableRow key={repo.id}>
               <TableCell>
-                <Badge variant="secondary">{PROVIDER_LABELS[repo.provider] ?? repo.provider}</Badge>
+                <Badge variant="secondary">
+                  {PROVIDER_LABELS[repo.provider] ?? providerDisplayName(repo.provider)}
+                </Badge>
               </TableCell>
               <TableCell className="max-w-xs truncate text-sm font-mono text-muted-foreground">
                 {repo.url}

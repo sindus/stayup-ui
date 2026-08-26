@@ -25,18 +25,15 @@ import {
 } from '@/components/ui/select'
 import { useLanguage } from '@/context/LanguageContext'
 import { cn } from '@/lib/utils'
+import { isKnownProvider, type KnownProvider } from '@/types'
 
-type AllProvider = 'changelog' | 'youtube' | 'rss' | 'scrap'
-type FeedProvider = 'changelog' | 'youtube' | 'rss'
+type FeedProvider = Exclude<KnownProvider, 'scrap'>
 
-const PROVIDER_TILES: {
-  id: AllProvider
-  color: string
-  dim: string
-  icon: React.ReactNode
-}[] = [
-  {
-    id: 'changelog',
+const KNOWN_TILE_STYLE: Record<
+  FeedProvider | 'scrap',
+  { color: string; dim: string; icon: React.ReactNode }
+> = {
+  changelog: {
     color: 'var(--peach)',
     dim: 'var(--peach-dim)',
     icon: (
@@ -47,8 +44,7 @@ const PROVIDER_TILES: {
       </svg>
     ),
   },
-  {
-    id: 'youtube',
+  youtube: {
     color: 'var(--rose)',
     dim: 'var(--rose-dim)',
     icon: (
@@ -58,8 +54,7 @@ const PROVIDER_TILES: {
       </svg>
     ),
   },
-  {
-    id: 'rss',
+  rss: {
     color: 'var(--sage)',
     dim: 'var(--sage-dim)',
     icon: (
@@ -82,8 +77,7 @@ const PROVIDER_TILES: {
       </svg>
     ),
   },
-  {
-    id: 'scrap',
+  scrap: {
     color: 'var(--sky)',
     dim: 'var(--sky-dim)',
     icon: (
@@ -94,10 +88,30 @@ const PROVIDER_TILES: {
       </svg>
     ),
   },
-]
+}
+
+// Style neutre pour tout provider découvert dynamiquement (voir GET /connectors/providers)
+// et non connu de cette app.
+const GENERIC_TILE_STYLE = {
+  color: 'var(--muted-foreground)',
+  dim: 'var(--surface-2)',
+  icon: (
+    <svg width="15" height="15" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" fill="none" />
+    </svg>
+  ),
+}
+
+interface ProviderTile {
+  id: string
+  label: string
+  color: string
+  dim: string
+  icon: React.ReactNode
+}
 
 type FormData = {
-  provider: AllProvider
+  provider: string
   identifier: string
   scrapRepoId: string
 }
@@ -122,10 +136,34 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   const [scrapMode, setScrapMode] = useState<'select' | 'request'>('select')
   const [requestUrl, setRequestUrl] = useState('')
   const [requestSuccess, setRequestSuccess] = useState(false)
+  const [tiles, setTiles] = useState<ProviderTile[]>([])
+
+  // Liste des providers dynamique : vient de l'API, aucun nom n'est codé en dur ici.
+  useEffect(() => {
+    if (!open) return
+    fetch('/api/providers')
+      .then((r) => r.json())
+      .then((data) => {
+        const providers = (data.providers as { name: string; displayName: string }[]) ?? []
+        setTiles(
+          providers.map(({ name, displayName }) => {
+            const known = isKnownProvider(name) ? KNOWN_TILE_STYLE[name] : GENERIC_TILE_STYLE
+            const label =
+              name === 'changelog'
+                ? 'GitHub'
+                : name === 'scrap'
+                  ? 'Page web'
+                  : (t.feed.providers?.[name as KnownProvider] ?? displayName)
+            return { id: name, label, ...known }
+          }),
+        )
+      })
+      .catch(() => setTiles([]))
+  }, [open, t])
 
   const schema = z
     .object({
-      provider: z.enum(['changelog', 'youtube', 'rss', 'scrap']),
+      provider: z.string().min(1),
       identifier: z.string().max(200),
       scrapRepoId: z.string(),
     })
@@ -173,7 +211,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     defaultValues: { provider: 'changelog', identifier: '', scrapRepoId: '' },
   })
 
-  const provider = watch('provider') as AllProvider
+  const provider = watch('provider')
 
   useEffect(() => {
     if (provider !== 'scrap') return
@@ -247,6 +285,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   }
 
   const availableScrapRepos = scrapRepos.filter((r) => !r.is_subscribed)
+  const isKnownFeedProvider =
+    provider === 'changelog' || provider === 'youtube' || provider === 'rss'
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -268,14 +308,8 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                 <div className="space-y-2">
                   <Label>Provider</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {PROVIDER_TILES.map((tile) => {
+                    {tiles.map((tile) => {
                       const active = provider === tile.id
-                      const label =
-                        tile.id === 'changelog'
-                          ? 'GitHub'
-                          : tile.id === 'scrap'
-                            ? 'Page web'
-                            : (t.feed.providers?.[tile.id] ?? tile.id)
                       return (
                         <button
                           key={tile.id}
@@ -304,7 +338,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                           }
                         >
                           <span style={{ color: tile.color }}>{tile.icon}</span>
-                          {label}
+                          {tile.label}
                         </button>
                       )
                     })}
@@ -388,10 +422,18 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    <Label htmlFor="identifier">{identifierLabels[provider as FeedProvider]}</Label>
+                    <Label htmlFor="identifier">
+                      {isKnownFeedProvider
+                        ? identifierLabels[provider as FeedProvider]
+                        : t.addFlux.identifierLabels.generic}
+                    </Label>
                     <Input
                       id="identifier"
-                      placeholder={placeholders[provider as FeedProvider]}
+                      placeholder={
+                        isKnownFeedProvider
+                          ? placeholders[provider as FeedProvider]
+                          : t.addFlux.placeholders.generic
+                      }
                       {...register('identifier')}
                     />
                     {errors.identifier && (

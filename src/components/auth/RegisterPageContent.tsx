@@ -5,7 +5,7 @@ import { RegisterForm } from './RegisterForm'
 import { OAuthButtons } from './OAuthButtons'
 import { useLanguage } from '@/context/LanguageContext'
 
-export function RegisterPageContent() {
+export function RegisterPageContent({ apiUrl }: { apiUrl: string }) {
   const { t } = useLanguage()
   const a = t.auth
 
@@ -26,7 +26,7 @@ export function RegisterPageContent() {
       </div>
 
       <div className="space-y-3 mb-5">
-        <OAuthButtons />
+        <OAuthButtons apiUrl={apiUrl} />
       </div>
 
       <div className="flex items-center gap-3 mb-5">

@@ -9,9 +9,11 @@ import type {
   RssItemContent,
   ScrapItem,
   ScrapItemParams,
+  GenericItem,
   Provider,
 } from '@/types'
-import { formatDate } from '@/lib/utils'
+import { isKnownProvider } from '@/types'
+import { formatDate, providerDisplayName } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 
 function extractHostname(url: string): string {
@@ -34,7 +36,7 @@ function extractChannelName(url: string): string {
   }
 }
 
-type AnyItem = ChangelogItem | YoutubeItem | RssItem | ScrapItem
+type AnyItem = ChangelogItem | YoutubeItem | RssItem | ScrapItem | GenericItem
 
 function getItemDate(item: AnyItem): string {
   if ('datetime' in item && item.datetime) return item.datetime
@@ -82,6 +84,10 @@ export function FeedItemList({ items, provider, repositories = [] }: FeedItemLis
         ))}
       {provider === 'scrap' &&
         (sorted as ScrapItem[]).map((item) => <ScrapEntry key={item.id} item={item} />)}
+      {!isKnownProvider(provider) &&
+        (sorted as GenericItem[]).map((item) => (
+          <GenericEntry key={item.id} item={item} providerLabel={providerDisplayName(provider)} />
+        ))}
     </div>
   )
 }
@@ -238,5 +244,23 @@ function ScrapEntry({ item }: { item: ScrapItem }) {
     <a href={params.url} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
       {inner}
     </a>
+  )
+}
+
+function GenericEntry({ item, providerLabel }: { item: GenericItem; providerLabel: string }) {
+  return (
+    <div className="space-y-1 border-l-2 border-muted pl-3 py-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-medium text-sm">{providerLabel}</span>
+        <span className="text-xs text-muted-foreground shrink-0">
+          {formatDate(item.datetime ?? item.executed_at)}
+        </span>
+      </div>
+      {item.content && (
+        <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">
+          {item.content.slice(0, 300)}
+        </p>
+      )}
+    </div>
   )
 }

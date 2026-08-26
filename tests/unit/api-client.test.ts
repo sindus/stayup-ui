@@ -3,6 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
+// apiFetch résout l'URL de l'API via un cookie (voir src/lib/apiUrl.ts) — aucune
+// surcharge en test, donc on retombe sur STAYUP_API_URL (non défini ici, donc '').
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: vi.fn() }),
+}))
+
 const TEST_TOKEN = 'header.eyJzdWIiOiIxIn0.sig'
 
 beforeEach(() => {
@@ -10,120 +16,40 @@ beforeEach(() => {
   mockFetch.mockReset()
 })
 
-describe('getChangelogItems', () => {
-  it('returns data array on success', async () => {
+describe('getConnectorProviders', () => {
+  it('returns the discovered providers', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        connector: 'changelog',
-        data: [{ id: 1, provider_id: 1, content: 'fix: bug', version: 'v1.0.0' }],
-      }),
-    })
-
-    const { getChangelogItems } = await import('@/lib/api-client')
-    const result = await getChangelogItems(TEST_TOKEN)
-    expect(result).toHaveLength(1)
-    expect(result[0].version).toBe('v1.0.0')
-  })
-
-  it('returns empty array when data fetch fails', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
-
-    const { getChangelogItems } = await import('@/lib/api-client')
-    const result = await getChangelogItems(TEST_TOKEN)
-    expect(result).toEqual([])
-  })
-})
-
-describe('getYoutubeItems', () => {
-  it('returns youtube items on success', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        connector: 'youtube',
-        data: [
-          {
-            id: 1,
-            provider_id: 1,
-            version: 'abc123',
-            content: '{"title":"Test","thumbnail":"","url":""}',
-          },
+        providers: [
+          { name: 'changelog', displayName: 'Changelog' },
+          { name: 'youtube', displayName: 'YouTube' },
         ],
       }),
     })
 
-    const { getYoutubeItems } = await import('@/lib/api-client')
-    const result = await getYoutubeItems(TEST_TOKEN)
-    expect(result).toHaveLength(1)
-    expect(result[0].version).toBe('abc123')
+    const { getConnectorProviders } = await import('@/lib/api-client')
+    const result = await getConnectorProviders(TEST_TOKEN)
+    expect(result).toEqual([
+      { name: 'changelog', displayName: 'Changelog' },
+      { name: 'youtube', displayName: 'YouTube' },
+    ])
+    expect(mockFetch.mock.calls[0][0]).toContain('/connectors/providers')
   })
 
-  it('returns empty array on network error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
+  it('propagates an API error', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 403, json: async () => ({ error: 'Denied' }) })
 
-    const { getYoutubeItems } = await import('@/lib/api-client')
-    const result = await getYoutubeItems(TEST_TOKEN)
-    expect(result).toEqual([])
-  })
-})
-
-describe('getRssItems', () => {
-  it('returns rss items on success', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        connector: 'rss',
-        data: [
-          {
-            id: 1,
-            repository_id: 1,
-            content: '{"title":"RSS Post"}',
-            datetime: null,
-            executed_at: '2024-01-01',
-            success: true,
-          },
-        ],
-      }),
-    })
-    const { getRssItems } = await import('@/lib/api-client')
-    const result = await getRssItems(TEST_TOKEN)
-    expect(result).toHaveLength(1)
+    const { getConnectorProviders } = await import('@/lib/api-client')
+    await expect(getConnectorProviders(TEST_TOKEN)).rejects.toThrow('Denied')
   })
 
-  it('returns empty array on failure', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('fail'))
-    const { getRssItems } = await import('@/lib/api-client')
-    expect(await getRssItems(TEST_TOKEN)).toEqual([])
-  })
-})
+  it('sends the bearer token', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) })
 
-describe('getScrapItems', () => {
-  it('returns scrap items on success', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        connector: 'scrap',
-        data: [
-          {
-            id: 1,
-            repository_id: 1,
-            content: 'scraped text',
-            params: {},
-            executed_at: '2024-01-01',
-            success: true,
-          },
-        ],
-      }),
-    })
-    const { getScrapItems } = await import('@/lib/api-client')
-    const result = await getScrapItems(TEST_TOKEN)
-    expect(result).toHaveLength(1)
-  })
-
-  it('returns empty array on failure', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
-    const { getScrapItems } = await import('@/lib/api-client')
-    expect(await getScrapItems(TEST_TOKEN)).toEqual([])
+    const { getConnectorProviders } = await import('@/lib/api-client')
+    await getConnectorProviders(TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${TEST_TOKEN}`)
   })
 })
 
@@ -236,40 +162,22 @@ describe('validateFlux', () => {
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('returns valid:false for unknown provider', async () => {
+  it('returns valid:false for an unknown provider given a non-URL identifier', async () => {
     const { validateFlux } = await import('@/lib/api-client')
     const result = await validateFlux('unknown', 'test')
     expect(result.valid).toBe(false)
   })
+
+  it('returns valid:true for an unknown provider given a full URL', async () => {
+    const { validateFlux } = await import('@/lib/api-client')
+    const result = await validateFlux('unknown', 'https://example.com/feed')
+    expect(result.valid).toBe(true)
+    // Aucune requête réseau pour un provider inconnu.
+    expect(mockFetch).not.toHaveBeenCalled()
+  })
 })
 
 // ─── Connectors & user feed ────────────────────────────────────────────────────
-
-describe('getAllConnectors', () => {
-  it('returns the connector payload', async () => {
-    const payload = { connectors: { changelog: [], youtube: [] } }
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => payload })
-
-    const { getAllConnectors } = await import('@/lib/api-client')
-    await expect(getAllConnectors(TEST_TOKEN)).resolves.toEqual(payload)
-    expect(mockFetch.mock.calls[0][0]).toContain('/connectors')
-  })
-
-  it('propagates an API error', async () => {
-    mockFetch.mockResolvedValue({ ok: false, status: 403, json: async () => ({ error: 'Denied' }) })
-
-    const { getAllConnectors } = await import('@/lib/api-client')
-    await expect(getAllConnectors(TEST_TOKEN)).rejects.toThrow('Denied')
-  })
-
-  it('sends the bearer token', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ connectors: {} }) })
-
-    const { getAllConnectors } = await import('@/lib/api-client')
-    await getAllConnectors(TEST_TOKEN)
-    expect(mockFetch.mock.calls[0][1].headers.Authorization).toBe(`Bearer ${TEST_TOKEN}`)
-  })
-})
 
 describe('getUserFeed', () => {
   it('requests the feed for the given user without caching', async () => {

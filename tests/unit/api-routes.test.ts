@@ -18,6 +18,7 @@ const api = {
   deleteUserRepository: vi.fn(),
   getScrapRepos: vi.fn(),
   createScrapRequest: vi.fn(),
+  getConnectorProviders: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
 
@@ -42,6 +43,7 @@ beforeEach(() => {
   api.deleteUserRepository.mockResolvedValue(undefined)
   api.getScrapRepos.mockResolvedValue([])
   api.createScrapRequest.mockResolvedValue({ id: 'req1' })
+  api.getConnectorProviders.mockResolvedValue([])
 })
 
 describe('POST /api/fluxes', () => {
@@ -187,6 +189,28 @@ describe('GET /api/scrap', () => {
     api.getScrapRepos.mockRejectedValue(new Error('down'))
     const { GET } = await import('@/app/api/scrap/route')
     expect(await (await GET()).json()).toEqual({ repos: [] })
+  })
+})
+
+describe('GET /api/providers', () => {
+  it('returns 401 without a session cookie', async () => {
+    cookieGet.mockReturnValue(undefined)
+    const { GET } = await import('@/app/api/providers/route')
+    expect((await GET()).status).toBe(401)
+  })
+
+  it('returns the discovered providers', async () => {
+    api.getConnectorProviders.mockResolvedValue([{ name: 'youtube', displayName: 'YouTube' }])
+    const { GET } = await import('@/app/api/providers/route')
+    expect(await (await GET()).json()).toEqual({
+      providers: [{ name: 'youtube', displayName: 'YouTube' }],
+    })
+  })
+
+  it('degrades to an empty list when the API fails', async () => {
+    api.getConnectorProviders.mockRejectedValue(new Error('down'))
+    const { GET } = await import('@/app/api/providers/route')
+    expect(await (await GET()).json()).toEqual({ providers: [] })
   })
 })
 

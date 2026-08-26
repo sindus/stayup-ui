@@ -5,7 +5,7 @@ import { LoginForm } from './LoginForm'
 import { OAuthButtons } from './OAuthButtons'
 import { useLanguage } from '@/context/LanguageContext'
 
-export function LoginPageContent() {
+export function LoginPageContent({ apiUrl }: { apiUrl: string }) {
   const { t } = useLanguage()
   const a = t.auth
 
@@ -26,7 +26,7 @@ export function LoginPageContent() {
       </div>
 
       <div className="space-y-3 mb-5">
-        <OAuthButtons />
+        <OAuthButtons apiUrl={apiUrl} />
       </div>
 
       <div className="flex items-center gap-3 mb-5">

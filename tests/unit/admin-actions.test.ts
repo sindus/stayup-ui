@@ -3,6 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
+// adminUpdateUserAction résout l'URL de l'API via un cookie (voir src/lib/apiUrl.ts) —
+// aucune surcharge en test, donc on retombe sur STAYUP_API_URL.
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: vi.fn() }),
+}))
+
 const getAdminToken = vi.fn()
 vi.mock('@/lib/session', () => ({ getAdminToken: () => getAdminToken() }))
 

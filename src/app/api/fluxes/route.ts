@@ -5,16 +5,33 @@ import { COOKIE_NAME, decodeToken } from '@/lib/session'
 import { normalizeIdentifier, toRepositoryUrl } from '@/lib/utils'
 import { z } from 'zod'
 
-const createFluxSchema = z.discriminatedUnion('provider', [
-  z.object({
-    provider: z.enum(['changelog', 'youtube', 'rss']),
-    identifier: z.string().min(1).max(200),
-  }),
-  z.object({
-    provider: z.literal('scrap'),
-    scrapRepoId: z.number().int().positive(),
-  }),
-])
+// Le provider n'est plus limité à une liste fermée : n'importe quel nom déclaré côté
+// API (voir GET /connectors/providers) est accepté. 'scrap' garde son flux dédié
+// (sélection d'un repo approuvé par un admin) ; tous les autres passent par un
+// identifiant/URL, saisi par l'utilisateur.
+const createFluxSchema = z
+  .object({
+    provider: z.string().min(1),
+    identifier: z.string().max(200).optional(),
+    scrapRepoId: z.number().int().positive().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.provider === 'scrap') {
+      if (!data.scrapRepoId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'scrapRepoId requis',
+          path: ['scrapRepoId'],
+        })
+      }
+    } else if (!data.identifier) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'identifier requis',
+        path: ['identifier'],
+      })
+    }
+  })
 
 export async function POST(request: Request) {
   const cookieStore = await cookies()
@@ -33,8 +50,9 @@ export async function POST(request: Request) {
   }
 
   if (parsed.data.provider === 'scrap') {
+    // scrapRepoId requis par le superRefine ci-dessus quand provider === 'scrap'.
     try {
-      await subscribeScrap(parsed.data.scrapRepoId, token)
+      await subscribeScrap(parsed.data.scrapRepoId as number, token)
       return NextResponse.json({ success: true }, { status: 201 })
     } catch (err) {
       const message = (err as Error).message
@@ -45,8 +63,9 @@ export async function POST(request: Request) {
     }
   }
 
+  // identifier requis par le superRefine ci-dessus quand provider !== 'scrap'.
   const { provider } = parsed.data
-  const identifier = normalizeIdentifier(parsed.data.identifier, provider)
+  const identifier = normalizeIdentifier(parsed.data.identifier as string, provider)
 
   const { valid, reason } = await validateFlux(provider, identifier)
   if (!valid) {

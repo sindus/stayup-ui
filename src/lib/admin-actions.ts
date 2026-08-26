@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { getApiUrl } from './apiUrl'
 import { getAdminToken } from './session'
 import {
   adminClearRepositoryData,
@@ -13,8 +14,6 @@ import {
   deleteUserRepository,
 } from './api-client'
 import type { ScrapRequest } from '@/types'
-
-const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 export async function adminDeleteUserAction(userId: string): Promise<{ error?: string }> {
   const token = await getAdminToken()
@@ -35,7 +34,8 @@ export async function adminUpdateUserAction(
   const token = await getAdminToken()
   if (!token) return { error: 'Non authentifié' }
 
-  const res = await fetch(`${API_URL}/ui/users/${userId}`, {
+  const apiUrl = await getApiUrl()
+  const res = await fetch(`${apiUrl}/ui/users/${userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

@@ -53,10 +53,13 @@ The app is available at [http://localhost:3001](http://localhost:3001).
 | `BETTER_AUTH_SECRET`          | Random string, 32 characters minimum          |
 | `BETTER_AUTH_URL`             | Public app URL (e.g. `http://localhost:3001`) |
 | `DATABASE_URL`                | PostgreSQL connection string (auth only)      |
-| `STAYUP_API_URL`              | `stayup-api` URL used server-side             |
-| `NEXT_PUBLIC_STAYUP_API_URL`  | `stayup-api` URL used client-side             |
+| `STAYUP_API_URL`              | Default `stayup-api` URL for this deployment  |
 | `GOOGLE_CLIENT_ID` / `SECRET` | Google OAuth credentials (optional)           |
 | `GITHUB_CLIENT_ID` / `SECRET` | GitHub OAuth credentials (optional)           |
+
+Each visitor can override `STAYUP_API_URL` for their own browser from `/profile` — the
+override is stored in a cookie and takes priority over the env var (see
+[`src/lib/apiUrl.ts`](src/lib/apiUrl.ts)).
 
 See [`.env.example`](.env.example) for the full list.
 

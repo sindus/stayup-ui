@@ -11,6 +11,15 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
+// Les 4 providers connus de l'app, tels que renvoyés par GET /api/providers (proxy de
+// GET /connectors/providers côté stayup-api).
+const DEFAULT_PROVIDERS = [
+  { name: 'changelog', displayName: 'Changelog' },
+  { name: 'youtube', displayName: 'YouTube' },
+  { name: 'rss', displayName: 'RSS' },
+  { name: 'scrap', displayName: 'Scrap' },
+]
+
 function renderDialog(props: Partial<React.ComponentProps<typeof AddFluxDialog>> = {}) {
   const onOpenChange = props.onOpenChange ?? vi.fn()
   const utils = render(
@@ -21,32 +30,43 @@ function renderDialog(props: Partial<React.ComponentProps<typeof AddFluxDialog>>
   return { ...utils, onOpenChange }
 }
 
-/** Picks a provider tile in the 2x2 provider grid. */
+/** Picks a provider tile in the 2x2 provider grid (loaded async from GET /api/providers). */
 async function chooseProvider(user: ReturnType<typeof userEvent.setup>, name: string) {
-  await user.click(screen.getByRole('button', { name }))
+  await user.click(await screen.findByRole('button', { name }))
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
   mockFetch.mockResolvedValue({ ok: true, json: async () => ({ repos: [] }) })
+  // Le dialogue charge la liste des providers au montage (GET /api/providers) : c'est
+  // toujours le tout premier appel fetch d'un test, donc un mockResolvedValueOnce
+  // suffit et n'interfère pas avec les mockResolvedValue posés par chaque test pour
+  // /api/scrap, /api/fluxes, etc.
+  mockFetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ providers: DEFAULT_PROVIDERS }),
+  })
 })
 
 describe('AddFluxDialog', () => {
-  it('defaults to the GitHub changelog provider', () => {
+  it('defaults to the GitHub changelog provider', async () => {
     renderDialog()
     expect(screen.getByLabelText('GitHub repository')).toBeInTheDocument()
+    // Attend le chargement async des tuiles pour éviter un act() warning.
+    await screen.findByRole('button', { name: 'GitHub' })
   })
 
-  it('lists exactly the four supported providers', () => {
+  it('lists exactly the four supported providers', async () => {
     renderDialog()
 
     for (const name of ['GitHub', 'YouTube', 'RSS', 'Page web']) {
-      expect(screen.getByRole('button', { name })).toBeInTheDocument()
+      expect(await screen.findByRole('button', { name })).toBeInTheDocument()
     }
   })
 
-  it('no longer offers a documentation provider', () => {
+  it('no longer offers a documentation provider', async () => {
     renderDialog()
+    await screen.findByRole('button', { name: 'GitHub' })
     expect(screen.queryByRole('button', { name: 'Documentation' })).not.toBeInTheDocument()
   })
 
@@ -56,7 +76,7 @@ describe('AddFluxDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Add' }))
     expect(await screen.findByText('This field is required')).toBeInTheDocument()
-    expect(mockFetch).not.toHaveBeenCalled()
+    expect(mockFetch).not.toHaveBeenCalledWith('/api/fluxes', expect.anything())
   })
 
   it('creates a changelog feed and closes on success', async () => {
@@ -72,7 +92,8 @@ describe('AddFluxDialog', () => {
         expect.objectContaining({ method: 'POST' }),
       ),
     )
-    expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+    const call = mockFetch.mock.calls.find((c) => c[0] === '/api/fluxes')
+    expect(JSON.parse(call![1].body)).toEqual({
       provider: 'changelog',
       identifier: 'facebook/react',
     })
@@ -268,6 +289,39 @@ describe('AddFluxDialog', () => {
       await user.click(screen.getByRole('button', { name: 'Choose an existing feed' }))
 
       expect(await screen.findByLabelText('Available feed')).toBeInTheDocument()
+    })
+  })
+
+  describe('a provider unknown to the app', () => {
+    it('renders a generic tile and posts a plain URL identifier', async () => {
+      mockFetch.mockReset()
+      mockFetch.mockResolvedValue({ ok: true, json: async () => ({ repos: [] }) })
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          providers: [...DEFAULT_PROVIDERS, { name: 'podcast', displayName: 'Podcast' }],
+        }),
+      })
+      const user = userEvent.setup()
+      renderDialog()
+
+      await chooseProvider(user, 'Podcast')
+      expect(await screen.findByLabelText('URL')).toBeInTheDocument()
+
+      await user.type(screen.getByLabelText('URL'), 'https://example.com/feed.xml')
+      await user.click(screen.getByRole('button', { name: 'Add' }))
+
+      await waitFor(() =>
+        expect(mockFetch).toHaveBeenCalledWith(
+          '/api/fluxes',
+          expect.objectContaining({ method: 'POST' }),
+        ),
+      )
+      const call = mockFetch.mock.calls.find((c) => c[0] === '/api/fluxes')
+      expect(JSON.parse(call![1].body)).toEqual({
+        provider: 'podcast',
+        identifier: 'https://example.com/feed.xml',
+      })
     })
   })
 

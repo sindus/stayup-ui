@@ -23,13 +23,9 @@ export default async function FeedLayout({ children }: { children: React.ReactNo
     createdAt: repo.created_at,
   }))
 
-  const { changelog = [], youtube = [], rss = [], scrap = [] } = feedData.connectors ?? {}
-  const allItems: TaggedItem[] = [
-    ...changelog.map((item) => ({ provider: 'changelog' as const, item })),
-    ...youtube.map((item) => ({ provider: 'youtube' as const, item })),
-    ...rss.map((item) => ({ provider: 'rss' as const, item })),
-    ...scrap.map((item) => ({ provider: 'scrap' as const, item })),
-  ]
+  const allItems: TaggedItem[] = Object.entries(feedData.connectors ?? {}).flatMap(
+    ([provider, providerItems]) => providerItems.map((item) => ({ provider, item })),
+  ) as TaggedItem[]
 
   return (
     <FeedClientLayout fluxes={fluxes} allItems={allItems}>

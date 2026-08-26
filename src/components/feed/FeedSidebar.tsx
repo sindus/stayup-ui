@@ -7,12 +7,19 @@ import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid, RefreshCw } from '
 import { AddFluxDialog } from './AddFluxDialog'
 import { ImportExportButtons } from './ImportExportButtons'
 import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
-import { cn, stripUrlScheme } from '@/lib/utils'
+import { cn, providerDisplayName, stripUrlScheme } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
 
+// Icône générique utilisée pour tout provider sans rendu dédié dans l'app.
+const GENERIC_ICON = (
+  <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+    <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.2" fill="none" />
+  </svg>
+)
+
 const PROVIDER_META: Record<
-  Provider,
+  string,
   { label: string; color: string; dimColor: string; icon: React.ReactNode }
 > = {
   changelog: {
@@ -75,6 +82,17 @@ const PROVIDER_META: Record<
       </svg>
     ),
   },
+}
+
+function getProviderMeta(provider: Provider) {
+  return (
+    PROVIDER_META[provider] ?? {
+      label: providerDisplayName(provider),
+      color: 'var(--muted-foreground)',
+      dimColor: 'var(--surface-2)',
+      icon: GENERIC_ICON,
+    }
+  )
 }
 
 interface FeedSidebarProps {
@@ -191,7 +209,7 @@ export function FeedSidebar({ fluxes, unreadCountByRepoId = {}, width = 220 }: F
         ) : (
           <nav className="space-y-0.5">
             {providers.map((provider) => {
-              const meta = PROVIDER_META[provider]
+              const meta = getProviderMeta(provider)
               const categoryHref = `/feed/category/${provider}`
               const isCategoryActive = pathname === categoryHref
               const open = isExpanded(provider)

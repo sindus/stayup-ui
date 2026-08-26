@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ChangeEmailForm } from '@/components/profile/ChangeEmailForm'
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm'
+import { ApiUrlForm } from '@/components/profile/ApiUrlForm'
 import { LanguageProvider } from '@/context/LanguageContext'
 
 const updateProfileAction = vi.fn()
@@ -10,7 +11,15 @@ vi.mock('@/lib/auth-actions', () => ({
   updateProfileAction: (data: unknown) => updateProfileAction(data),
 }))
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
+const setApiUrlAction = vi.fn()
+const resetApiUrlAction = vi.fn()
+vi.mock('@/lib/settings-actions', () => ({
+  setApiUrlAction: (url: string) => setApiUrlAction(url),
+  resetApiUrlAction: () => resetApiUrlAction(),
+}))
+
+const refresh = vi.fn()
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 
 function renderWithLang(ui: React.ReactElement) {
   return render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>)
@@ -19,6 +28,8 @@ function renderWithLang(ui: React.ReactElement) {
 beforeEach(() => {
   vi.clearAllMocks()
   updateProfileAction.mockResolvedValue({})
+  setApiUrlAction.mockResolvedValue({})
+  resetApiUrlAction.mockResolvedValue(undefined)
 })
 
 describe('ChangeEmailForm', () => {
@@ -129,5 +140,46 @@ describe('ChangePasswordForm', () => {
     await user.click(screen.getByRole('button', { name: 'Change password' }))
 
     expect(await screen.findByText('Too weak')).toBeInTheDocument()
+  })
+})
+
+describe('ApiUrlForm', () => {
+  it('prefills the current API URL', () => {
+    renderWithLang(<ApiUrlForm currentApiUrl="https://api.example.com" />)
+    expect(screen.getByLabelText('API URL')).toHaveValue('https://api.example.com')
+  })
+
+  it('saves a new URL and shows a success message', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<ApiUrlForm currentApiUrl="https://api.example.com" />)
+
+    const input = screen.getByLabelText('API URL')
+    await user.clear(input)
+    await user.type(input, 'https://other-api.example.com')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() =>
+      expect(setApiUrlAction).toHaveBeenCalledWith('https://other-api.example.com'),
+    )
+    expect(await screen.findByText('API URL updated.')).toBeInTheDocument()
+    expect(refresh).toHaveBeenCalled()
+  })
+
+  it('surfaces an invalid URL error', async () => {
+    setApiUrlAction.mockResolvedValue({ error: 'invalid' })
+    const user = userEvent.setup()
+    renderWithLang(<ApiUrlForm currentApiUrl="https://api.example.com" />)
+
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Enter a valid URL.')).toBeInTheDocument()
+  })
+
+  it('resets to the default API URL', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<ApiUrlForm currentApiUrl="https://api.example.com" />)
+
+    await user.click(screen.getByRole('button', { name: 'Reset to default' }))
+    await waitFor(() => expect(resetApiUrlAction).toHaveBeenCalled())
+    expect(refresh).toHaveBeenCalled()
   })
 })

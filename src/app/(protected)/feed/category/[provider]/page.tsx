@@ -3,14 +3,10 @@ import { notFound } from 'next/navigation'
 import { getCachedUserFeed } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
 import { FeedClientView } from '@/components/feed/FeedClientView'
-import type { Provider, TaggedItem } from '@/types'
-
-const PROVIDERS = ['changelog', 'youtube', 'rss', 'scrap'] as const
+import type { TaggedItem } from '@/types'
 
 export default async function CategoryPage({ params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params
-
-  if (!PROVIDERS.includes(provider as Provider)) notFound()
 
   const session = await getSession()
   const cookieStore = await cookies()
@@ -27,11 +23,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
     )
   }
 
-  const rawItems = feedData.connectors[provider as Provider] ?? []
-  const items = rawItems.map((item) => ({
-    provider: provider as Provider,
-    item,
-  })) as TaggedItem[]
+  // La liste des providers valides est 100% dynamique : c'est la présence de la clé
+  // dans le feed (donc d'une table connector_<provider> côté API) qui fait foi.
+  if (!(provider in feedData.connectors)) notFound()
+
+  const rawItems = feedData.connectors[provider] ?? []
+  const items = rawItems.map((item) => ({ provider, item })) as TaggedItem[]
 
   return <FeedClientView items={items} repositories={feedData.repositories} />
 }

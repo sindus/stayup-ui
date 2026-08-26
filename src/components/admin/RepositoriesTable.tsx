@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { adminDeleteRepositoryAction, adminClearRepositoryDataAction } from '@/lib/admin-actions'
 import type { AdminRepository } from '@/lib/api-client'
+import { providerDisplayName } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/context/LanguageContext'
@@ -68,7 +69,9 @@ export function RepositoriesTable({ repositories }: { repositories: AdminReposit
           {repositories.map((repo) => (
             <TableRow key={repo.id}>
               <TableCell>
-                <Badge variant="secondary">{PROVIDER_LABELS[repo.type] ?? repo.type}</Badge>
+                <Badge variant="secondary">
+                  {PROVIDER_LABELS[repo.type] ?? providerDisplayName(repo.type)}
+                </Badge>
               </TableCell>
               <TableCell className="max-w-xs truncate text-sm font-mono text-muted-foreground">
                 {repo.url}

@@ -1,14 +1,5 @@
-import type {
-  ChangelogItem,
-  ConnectorData,
-  RssItem,
-  ScrapItem,
-  ScrapRepository,
-  ScrapRequest,
-  YoutubeItem,
-} from '@/types'
-
-const SERVER_BASE_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
+import type { ConnectorItem, ScrapRepository, ScrapRequest } from '@/types'
+import { getApiUrl } from './apiUrl'
 
 async function apiFetch<T>(
   path: string,
@@ -17,9 +8,10 @@ async function apiFetch<T>(
   attempt = 0,
 ): Promise<T> {
   const isGet = !init?.method || init.method === 'GET'
+  const baseUrl = await getApiUrl()
   let res: Response
   try {
-    res = await fetch(`${SERVER_BASE_URL}${path}`, {
+    res = await fetch(`${baseUrl}${path}`, {
       method: 'GET',
       ...init,
       headers: {
@@ -42,55 +34,16 @@ async function apiFetch<T>(
   return res.json() as Promise<T>
 }
 
-// ─── Connector data ────────────────────────────────────────────────────────────
+// ─── Connectors ────────────────────────────────────────────────────────────────
 
-export async function getAllConnectors(token: string): Promise<ConnectorData> {
-  return apiFetch<ConnectorData>('/connectors', token)
+export interface ConnectorProvider {
+  name: string
+  displayName: string
 }
 
-export async function getChangelogItems(token: string): Promise<ChangelogItem[]> {
-  try {
-    const data = await apiFetch<{ connector: string; data: ChangelogItem[] }>(
-      '/connectors/changelog',
-      token,
-    )
-    return data.data
-  } catch {
-    return []
-  }
-}
-
-export async function getYoutubeItems(token: string): Promise<YoutubeItem[]> {
-  try {
-    const data = await apiFetch<{ connector: string; data: YoutubeItem[] }>(
-      '/connectors/youtube',
-      token,
-    )
-    return data.data
-  } catch {
-    return []
-  }
-}
-
-export async function getRssItems(token: string): Promise<RssItem[]> {
-  try {
-    const data = await apiFetch<{ connector: string; data: RssItem[] }>('/connectors/rss', token)
-    return data.data
-  } catch {
-    return []
-  }
-}
-
-export async function getScrapItems(token: string): Promise<ScrapItem[]> {
-  try {
-    const data = await apiFetch<{ connector: string; data: ScrapItem[] }>(
-      '/connectors/scrap',
-      token,
-    )
-    return data.data
-  } catch {
-    return []
-  }
+export async function getConnectorProviders(token: string): Promise<ConnectorProvider[]> {
+  const data = await apiFetch<{ providers: ConnectorProvider[] }>('/connectors/providers', token)
+  return data.providers
 }
 
 // ─── UI user feed ──────────────────────────────────────────────────────────────
@@ -106,12 +59,7 @@ export interface UserRepositoryItem {
 
 export interface UserFeedResponse {
   repositories: UserRepositoryItem[]
-  connectors: {
-    changelog: ChangelogItem[]
-    youtube: YoutubeItem[]
-    rss: RssItem[]
-    scrap: ScrapItem[]
-  }
+  connectors: Record<string, ConnectorItem[]>
 }
 
 export async function getUserFeed(userId: string, token: string): Promise<UserFeedResponse> {
@@ -310,5 +258,12 @@ export async function validateFlux(
     }
   }
 
-  return { valid: false, reason: 'Provider inconnu.' }
+  // Provider inconnu du client (ajouté côté base de données uniquement) : on ne
+  // connaît pas sa forme d'identifiant, on exige une URL complète et valide.
+  try {
+    new URL(identifier)
+    return { valid: true }
+  } catch {
+    return { valid: false, reason: "L'URL n'est pas valide." }
+  }
 }

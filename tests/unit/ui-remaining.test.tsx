@@ -152,7 +152,7 @@ describe('AvatarImage', () => {
 describe('OAuthButtons hover styling', () => {
   it('highlights and resets the GitHub button', async () => {
     const user = userEvent.setup()
-    withLang(<OAuthButtons />)
+    withLang(<OAuthButtons apiUrl="https://api.test" />)
 
     const github = screen
       .getAllByRole('link')
@@ -167,7 +167,7 @@ describe('OAuthButtons hover styling', () => {
 
   it('highlights and resets the Google button', async () => {
     const user = userEvent.setup()
-    withLang(<OAuthButtons />)
+    withLang(<OAuthButtons apiUrl="https://api.test" />)
 
     const google = screen
       .getAllByRole('link')

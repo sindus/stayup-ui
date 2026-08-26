@@ -257,9 +257,9 @@ describe('RepositoriesTable', () => {
     expect(await screen.findByText('Still subscribed')).toBeInTheDocument()
   })
 
-  it('falls back to the raw type for an unknown provider', () => {
+  it('falls back to a capitalized type for an unknown provider', () => {
     withLang(<RepositoriesTable repositories={[{ ...REPO, type: 'mystery' }]} />)
-    expect(screen.getByText('mystery')).toBeInTheDocument()
+    expect(screen.getByText('Mystery')).toBeInTheDocument()
   })
 })
 

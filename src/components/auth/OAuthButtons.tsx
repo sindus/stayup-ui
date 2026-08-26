@@ -2,15 +2,13 @@
 
 import { useLanguage } from '@/context/LanguageContext'
 
-const API_URL = process.env.NEXT_PUBLIC_STAYUP_API_URL?.replace(/\/$/, '') ?? ''
-
-export function OAuthButtons() {
+export function OAuthButtons({ apiUrl }: { apiUrl: string }) {
   const { t } = useLanguage()
 
   return (
     <div className="flex flex-col gap-2">
       <a
-        href={`${API_URL}/auth/oauth/github`}
+        href={`${apiUrl}/auth/oauth/github`}
         className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
         style={{
           background: 'var(--surface)',
@@ -32,7 +30,7 @@ export function OAuthButtons() {
         {t.auth.continueWithGitHub}
       </a>
       <a
-        href={`${API_URL}/auth/oauth/google`}
+        href={`${apiUrl}/auth/oauth/google`}
         className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
         style={{
           background: 'var(--surface)',

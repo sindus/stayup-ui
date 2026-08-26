@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { getSession } from '@/lib/session'
+import { getApiUrl } from '@/lib/apiUrl'
 import { ChangeEmailForm } from '@/components/profile/ChangeEmailForm'
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm'
+import { ApiUrlForm } from '@/components/profile/ApiUrlForm'
 import { ProfileSidebar } from '@/components/profile/ProfileSidebar'
 import { IdentityCard } from '@/components/profile/IdentityCard'
 import { FormCard } from '@/components/profile/FormCard'
@@ -13,6 +15,7 @@ export const metadata: Metadata = {
 
 export default async function ProfilePage() {
   const session = await getSession()
+  const apiUrl = await getApiUrl()
 
   return (
     <div className="flex w-full h-full">
@@ -40,6 +43,8 @@ export default async function ProfilePage() {
           <FormCard title="Mot de passe" desc="Choisis un nouveau mot de passe sécurisé.">
             <ChangePasswordForm />
           </FormCard>
+
+          <ApiUrlForm currentApiUrl={apiUrl} />
 
           <DangerCard />
         </div>

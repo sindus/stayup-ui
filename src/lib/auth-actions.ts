@@ -2,9 +2,8 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { getApiUrl } from './apiUrl'
 import { COOKIE_NAME, ADMIN_COOKIE_NAME, decodeToken, getToken } from './session'
-
-const API_URL = process.env.STAYUP_API_URL?.replace(/\/$/, '') ?? ''
 
 // Admin sessions use their own cookie (ADMIN_COOKIE_NAME) so a browser can
 // hold a regular user session and an admin session at the same time.
@@ -26,7 +25,8 @@ async function setTokenCookie(name: string, token: string) {
 }
 
 export async function loginAction(email: string, password: string): Promise<{ error?: string }> {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  const apiUrl = await getApiUrl()
+  const res = await fetch(`${apiUrl}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -47,7 +47,8 @@ export async function registerAction(
   email: string,
   password: string,
 ): Promise<{ error?: string }> {
-  const res = await fetch(`${API_URL}/auth/register`, {
+  const apiUrl = await getApiUrl()
+  const res = await fetch(`${apiUrl}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
@@ -71,7 +72,8 @@ export async function adminLoginAction(
   username: string,
   password: string,
 ): Promise<{ error?: string }> {
-  const res = await fetch(`${API_URL}/auth/login`, {
+  const apiUrl = await getApiUrl()
+  const res = await fetch(`${apiUrl}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
@@ -108,8 +110,9 @@ export async function updateProfileAction(data: {
   if (!token) return { error: 'Non authentifié.' }
 
   const session = decodeToken(token)
+  const apiUrl = await getApiUrl()
 
-  const res = await fetch(`${API_URL}/ui/users/${session.userId}`, {
+  const res = await fetch(`${apiUrl}/ui/users/${session.userId}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',

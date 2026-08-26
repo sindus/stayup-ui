@@ -117,7 +117,7 @@ describe('RegisterForm', () => {
 
 describe('OAuthButtons', () => {
   it('links to the Google and GitHub providers', () => {
-    renderWithLang(<OAuthButtons />)
+    renderWithLang(<OAuthButtons apiUrl="https://api.test" />)
     const links = screen.getAllByRole('link')
     const hrefs = links.map((l) => l.getAttribute('href'))
     expect(hrefs.some((h) => h?.includes('google'))).toBe(true)
@@ -127,7 +127,7 @@ describe('OAuthButtons', () => {
 
 describe('LoginPageContent', () => {
   it('renders the form and a link to registration', () => {
-    renderWithLang(<LoginPageContent />)
+    renderWithLang(<LoginPageContent apiUrl="https://api.test" />)
     expect(screen.getByLabelText('Email')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Create an account' })).toHaveAttribute(
       'href',
@@ -138,7 +138,7 @@ describe('LoginPageContent', () => {
 
 describe('RegisterPageContent', () => {
   it('renders the form and a link to sign in', () => {
-    renderWithLang(<RegisterPageContent />)
+    renderWithLang(<RegisterPageContent apiUrl="https://api.test" />)
     expect(screen.getByLabelText('Name')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
   })
