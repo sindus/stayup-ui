@@ -5,6 +5,8 @@
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
+**Live at:** https://stayup-ui.vercel.app
+
 Next.js web interface for StayUp — a GitHub and YouTube changelog aggregator.
 
 Follow the sources that matter to you (GitHub releases, YouTube channels, RSS
