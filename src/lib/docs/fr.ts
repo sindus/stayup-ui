@@ -21,7 +21,7 @@ export const fr: DocContent = {
       heading: 'L’idée, en quatre phrases',
       points: [
         'StayUp t’affiche le contenu nouveau des sources que tu suis. Ce qui compte comme source n’est pas figé : c’est ce qu’un provider sait aller chercher.',
-        'Un provider est un petit programme qui va chercher un type de source et écrit ce qu’il trouve dans une base PostgreSQL. Couvrir un nouveau type de source, c’est écrire un provider ; rien d’autre ne change dans StayUp.',
+        'Un provider est un petit programme qui va chercher un type de source et écrit ce qu’il trouve dans la base de l’instance. Couvrir un nouveau type de source, c’est écrire un provider ; rien d’autre ne change dans StayUp.',
         'L’API StayUp lit cette base et la sert aux applications. Elle ne code aucun type de source en dur : à chaque requête, elle demande à la base quels providers existent à cet instant.',
         'Les applications lisent l’API. Chacune peut pointer vers n’importe quelle instance, donc vers n’importe quelle base — et chacune sait afficher un provider dont elle n’a jamais entendu parler.',
       ],
@@ -33,8 +33,9 @@ export const fr: DocContent = {
           'un flux de podcast · un fil de forum · une page de statut · tout ce qu’un programme sait lire',
         providers: 'Providers',
         providersSub: 'un petit programme par type de source',
-        database: 'PostgreSQL',
-        databaseSub: 'tout ce qui a été collecté, au même endroit',
+        database: 'La base de données',
+        databaseSub:
+          'PostgreSQL, MySQL, SQLite ou MongoDB — tout ce qui a été collecté, au même endroit',
         api: 'API StayUp',
         apiSub: 'lit la base, sert les applications',
         apps: 'Web · Desktop · Mobile',
@@ -82,12 +83,12 @@ export const fr: DocContent = {
 
     pieces: {
       heading: 'Les trois pièces',
-      database: 'PostgreSQL',
+      database: 'Une base de données',
       databaseBody:
-        'Contient tout : les sources suivies, le contenu collecté, les comptes. Version 14 ou plus, joignable depuis l’endroit où tourne l’API.',
+        'Contient tout : les sources suivies, le contenu collecté, les comptes. PostgreSQL, MySQL/MariaDB, SQLite ou MongoDB — l’API s’adapte à celle que vous lui indiquez.',
       api: 'API StayUp',
       apiBody:
-        'Une fine couche sans état au-dessus de cette base. Elle ne code aucun nom de provider en dur — à chaque requête, elle demande à Postgres ce qui s’y trouve.',
+        'Une fine couche sans état au-dessus de cette base. Elle ne code aucun nom de provider en dur — à chaque requête, elle demande à la base ce qui s’y trouve.',
       providers: 'Providers',
       providersBody:
         'Les programmes qui remplissent réellement la base. Sans au moins un, ton instance fonctionne mais n’affiche rien.',
@@ -96,10 +97,22 @@ export const fr: DocContent = {
     requirements: {
       heading: 'Ce qu’il te faut',
       items: [
-        'Une base PostgreSQL, version 14 ou plus, joignable depuis l’endroit où tourne l’API.',
+        'Une base de données parmi celles listées plus bas, joignable depuis l’endroit où tourne l’API.',
         'Node.js 22 ou plus, si tu n’utilises pas Docker.',
         'Éventuellement un compte Cloudflare, pour déployer sur Workers comme l’instance de référence.',
       ],
+    },
+
+    databases: {
+      heading: 'Quelle base de données',
+      intro:
+        'L’API ne parle pas SQL directement. Elle appelle un contrat de stockage qu’un adaptateur par moteur remplit, et c’est le schéma de votre DATABASE_URL qui choisit l’adaptateur. Quatre moteurs sont livrés avec :',
+      columnEngine: 'Moteur',
+      columnScheme: 'Schéma d’URL',
+      columnDriver: 'Pilote à installer',
+      note: 'Chaque moteur passe la même suite de conformité — les mêmes vingt-quatre comportements, vérifiés en intégration continue sur un vrai PostgreSQL, un vrai MySQL, un vrai SQLite et un vrai MongoDB. C’est ce qui rend le choix réversible : les tables, les collections et les colonnes portent partout les mêmes noms, si bien qu’un provider se décrit une fois et que seul son dialecte change.',
+      workersNote:
+        'Une exception, et elle n’est pas de notre fait : Cloudflare Workers n’ouvre que le type de connexion qu’utilise PostgreSQL. Les pilotes MySQL, SQLite et MongoDB ont besoin de Node — Docker ou Node.js nu, pas Workers.',
     },
 
     env: {
@@ -110,7 +123,7 @@ export const fr: DocContent = {
       yes: 'oui',
       no: 'non',
       descriptions: [
-        'postgres://user:pass@host:port/dbname. Les builds Node et Docker acceptent aussi DB_HOST, DB_PORT, DB_NAME, DB_USER et DB_PASSWORD séparément.',
+        'Le schéma choisit le moteur : postgres://, mysql://, sqlite:// ou mongodb://. Les builds Node et Docker acceptent aussi DB_HOST, DB_PORT, DB_NAME, DB_USER et DB_PASSWORD séparément, pour PostgreSQL.',
         'Secret aléatoire qui signe les tokens d’authentification. À générer avec openssl rand -hex 32.',
         'L’unique compte de service admin. Il n’existe aucune ligne admin en base : celui qui se connecte avec ces identifiants obtient le rôle admin. Les utilisateurs normaux s’inscrivent depuis les applications.',
         'URL publique de ton déploiement web. Sert de cible de redirection OAuth.',
@@ -137,9 +150,15 @@ export const fr: DocContent = {
     schema: {
       heading: 'Créer les tables, et ton premier compte',
       applyIntro:
-        'Si tu ne comptes pas sur l’auto-initialisation de Compose, applique le schéma une fois :',
+        'Si vous ne comptez pas sur l’auto-initialisation de Compose, appliquez le schéma une fois vous-même. Un fichier par moteur, les mêmes noms de tables et de colonnes dans tous :',
       applyNote:
-        'Il ne fait qu’ajouter — CREATE TABLE IF NOT EXISTS — donc rejouable à tout moment, y compris sur une base qui contient déjà des données.',
+        'Les fichiers SQL ne font qu’ajouter — CREATE TABLE IF NOT EXISTS — donc on peut les rejouer à tout moment, y compris sur une base qui contient déjà des données.',
+      engineNotes: [
+        'Le schéma de référence. Version 14 ou plus.',
+        'MySQL 8 ou MariaDB 10.2 et plus : l’API classe le contenu avec une fonction de fenêtrage.',
+        'Rien à héberger — un fichier à côté de l’API. Bien pour une instance personnelle, moins pour une instance que les apps sollicitent depuis plusieurs endroits à la fois.',
+        'Aucun schéma à appliquer : MongoDB crée une collection à la première écriture. Seuls les index comptent, et l’API les pose elle-même en se connectant — la commande ci-dessus ne fait que prendre les devants.',
+      ],
       userIntro:
         'L’accès admin, c’est le couple identifiant / mot de passe ci-dessus : il n’y a rien à créer. Pour un compte normal, sans passer par un formulaire d’inscription :',
       verifyIntro: 'Vérifie ensuite que ça répond :',
@@ -196,14 +215,14 @@ export const fr: DocContent = {
     what: {
       heading: 'Ce qu’est vraiment un provider',
       body: 'Ni un plugin, ni un module à enregistrer : un programme ordinaire, dans le langage que tu veux, lancé à intervalle régulier. Il lit la liste des sources qui lui sont destinées, va chercher chacune d’elles, garde ce qui est nouveau, et l’écrit dans la base. L’API le récupère toute seule, et les trois applications l’affichent — sans qu’une ligne de code change nulle part.',
-      note: 'Un provider n’appelle jamais l’API StayUp. Il parle à PostgreSQL, et à PostgreSQL uniquement.',
+      note: 'Un provider n’appelle jamais l’API StayUp. Il parle à la base de données, et à elle seule.',
       diagram: {
         title: 'Un provider, étape par étape',
         sources: 'Ses sources, lues dans la base',
         sourcesItems: 'les flux de podcast que ce provider a pour mission de suivre',
         fetch: 'Récupérer chaque flux',
         compare: 'Ne garder que ce qui n’y était pas',
-        store: 'Écrire dans PostgreSQL',
+        store: 'Écrire dans la base',
         exposed: 'L’API l’expose, les applications l’affichent',
       },
       steps: {
@@ -268,6 +287,14 @@ export const fr: DocContent = {
       tablesHeading: 'Les quatre tables',
       tablesIntro:
         'Ton étape d’initialisation, exécutée au début de chaque run, doit garantir leur existence. Chaque instruction est idempotente — rejouable à chaque fois sans risque, et sans risque non plus si un autre provider a créé les tables partagées avant toi.',
+      engineIntro:
+        'Choisissez le moteur de votre instance. Les noms ne changent pas d’un onglet à l’autre — seuls le dialecte et les types changent, et c’est pourquoi un provider écrit pour un moteur se relit à l’identique sur un autre.',
+      engineNotes: [
+        'Le dialecte de référence, celui que fait tourner l’instance publique.',
+        'Mêmes tables, types MySQL. Une URL doit tenir dans un VARCHAR indexable, d’où la longueur explicite.',
+        'Pas de serveur : votre provider et l’API ouvrent le même fichier. Les dates et le JSON sont stockés en texte, que l’API redésérialise à la lecture.',
+        'Une collection au lieu d’une table, et aucun schéma à déclarer — mais deux règles. Un document repository porte un _id numérique, tiré de la collection counters, parce que le contrat désigne une source par un nombre. Et rien ne cascade : ce que vous écrivez, c’est à vous de le nettoyer.',
+      ],
       repositoryTitle: 'repository — partagée, tu la lis surtout',
       repositoryBody:
         'Une ligne, c’est une chose à suivre : un flux de podcast, un subreddit, ce que ton provider appelle une source. La colonne type doit valoir ton nom de provider. La colonne config est du JSON libre que ton script est seul à définir et à interpréter.',

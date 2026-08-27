@@ -21,7 +21,7 @@ export const pt: DocContent = {
       heading: 'A ideia, em quatro frases',
       points: [
         'O StayUp mostra o conteúdo novo das fontes que você acompanha. O que conta como fonte não é fixo: é o que algum provedor souber buscar.',
-        'Um provedor é um pequeno programa que busca um tipo de fonte e escreve o que encontra em um banco PostgreSQL. Cobrir um novo tipo de fonte é escrever um provedor; nada mais muda no StayUp.',
+        'Um provedor é um pequeno programa que busca um tipo de fonte e escreve o que encontra no banco da instância. Cobrir um novo tipo de fonte é escrever um provedor; nada mais muda no StayUp.',
         'A API do StayUp lê esse banco e o serve aos aplicativos. Ela não fixa nenhum tipo de fonte no código: a cada requisição pergunta ao banco quais provedores existem naquele momento.',
         'Os aplicativos leem a API. Cada um pode apontar para qualquer instância e, portanto, para qualquer banco — e cada um sabe exibir um provedor de que nunca ouviu falar.',
       ],
@@ -33,8 +33,8 @@ export const pt: DocContent = {
           'um feed de podcast · um tópico de fórum · uma página de status · qualquer coisa que um programa consiga ler',
         providers: 'Provedores',
         providersSub: 'um programa pequeno por tipo de fonte',
-        database: 'PostgreSQL',
-        databaseSub: 'tudo o que foi coletado, num só lugar',
+        database: 'O banco de dados',
+        databaseSub: 'PostgreSQL, MySQL, SQLite ou MongoDB — tudo o que foi coletado, num só lugar',
         api: 'API do StayUp',
         apiSub: 'lê o banco, serve os aplicativos',
         apps: 'Web · Desktop · Celular',
@@ -82,12 +82,12 @@ export const pt: DocContent = {
 
     pieces: {
       heading: 'As três peças',
-      database: 'PostgreSQL',
+      database: 'Um banco de dados',
       databaseBody:
-        'Guarda tudo: as fontes acompanhadas, o conteúdo coletado, as contas. Versão 14 ou superior, acessível de onde a API roda.',
+        'Guarda tudo: as fontes acompanhadas, o conteúdo coletado, as contas. PostgreSQL, MySQL/MariaDB, SQLite ou MongoDB — a API se adapta ao que você apontar.',
       api: 'API do StayUp',
       apiBody:
-        'Uma camada fina e sem estado sobre esse banco. Não fixa nome de provedor no código: a cada requisição pergunta ao Postgres o que existe.',
+        'Uma camada fina e sem estado sobre esse banco. Não fixa nome de provedor no código: a cada requisição pergunta ao banco o que existe.',
       providers: 'Provedores',
       providersBody:
         'Os programas que de fato preenchem o banco. Sem pelo menos um, sua instância funciona mas não mostra nada.',
@@ -96,10 +96,22 @@ export const pt: DocContent = {
     requirements: {
       heading: 'O que você precisa',
       items: [
-        'Um banco PostgreSQL, versão 14 ou superior, acessível de onde a API roda.',
+        'Um banco de dados da lista abaixo, acessível de onde a API roda.',
         'Node.js 22 ou superior, se você não usar Docker.',
         'Opcionalmente uma conta na Cloudflare, para fazer deploy em Workers como a instância de referência.',
       ],
+    },
+
+    databases: {
+      heading: 'Qual banco de dados',
+      intro:
+        'A API não fala SQL diretamente. Ela chama um contrato de armazenamento que um adaptador por motor cumpre, e o esquema da sua DATABASE_URL escolhe o adaptador. Quatro motores vêm junto:',
+      columnEngine: 'Motor',
+      columnScheme: 'Esquema de URL',
+      columnDriver: 'Driver a instalar',
+      note: 'Todos os motores passam na mesma suíte de conformidade: os mesmos vinte e quatro comportamentos, verificados na CI contra um PostgreSQL, um MySQL, um SQLite e um MongoDB reais. É isso que torna a escolha reversível: tabelas, coleções e colunas têm os mesmos nomes em toda parte, de modo que um provedor se descreve uma vez e só muda o dialeto.',
+      workersNote:
+        'Uma exceção, e não é obra nossa: o Cloudflare Workers só abre o tipo de conexão que o PostgreSQL usa. Os drivers de MySQL, SQLite e MongoDB precisam do Node — Docker ou Node.js puro, não Workers.',
     },
 
     env: {
@@ -110,7 +122,7 @@ export const pt: DocContent = {
       yes: 'sim',
       no: 'não',
       descriptions: [
-        'postgres://user:pass@host:port/dbname. Os builds Node e Docker também aceitam DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASSWORD separadamente.',
+        'O esquema escolhe o motor: postgres://, mysql://, sqlite:// ou mongodb://. Os builds Node e Docker também aceitam DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASSWORD separadamente, para PostgreSQL.',
         'Segredo aleatório que assina os tokens de autenticação. Gere um com openssl rand -hex 32.',
         'A única conta de serviço de administração. Não existe linha de admin no banco: quem entrar com essas credenciais recebe o papel de administrador. Usuários comuns se cadastram pelos aplicativos.',
         'URL pública do seu deploy web. Usada como destino do redirecionamento OAuth.',
@@ -137,9 +149,15 @@ export const pt: DocContent = {
     schema: {
       heading: 'Criar as tabelas e sua primeira conta',
       applyIntro:
-        'Se você não conta com a inicialização automática do Compose, aplique o esquema uma vez:',
+        'Se você não depende da auto-inicialização do Compose, aplique o esquema uma vez à mão. Um arquivo por motor, com os mesmos nomes de tabelas e colunas em todos:',
       applyNote:
-        'Ele só acrescenta — CREATE TABLE IF NOT EXISTS — então pode ser reexecutado a qualquer momento, inclusive contra um banco que já tem dados.',
+        'Os arquivos SQL só adicionam — CREATE TABLE IF NOT EXISTS —, então dá para reexecutá-los a qualquer momento, inclusive num banco que já tem dados.',
+      engineNotes: [
+        'O esquema de referência. Versão 14 ou superior.',
+        'MySQL 8 ou MariaDB 10.2 em diante: a API ordena o conteúdo com uma função de janela.',
+        'Nada para hospedar: um arquivo ao lado da API. Serve para uma instância pessoal, menos para uma que os apps acessam de vários lugares ao mesmo tempo.',
+        'Não há esquema a aplicar: o MongoDB cria a coleção na primeira escrita. Só os índices importam, e a API os cria sozinha ao conectar — o comando acima apenas se antecipa.',
+      ],
       userIntro:
         'O acesso administrativo é o par de usuário e senha acima: não há nada a criar. Para uma conta comum, sem passar por um formulário de cadastro:',
       verifyIntro: 'Depois confira se responde:',
@@ -196,14 +214,14 @@ export const pt: DocContent = {
     what: {
       heading: 'O que um provedor realmente é',
       body: 'Não é um plugin nem um módulo a registrar: um programa comum, na linguagem que você quiser, executado de forma agendada. Ele lê a lista de fontes destinadas a ele, busca cada uma, guarda o que é novo e escreve no banco. A API o reconhece sozinha e os três aplicativos o exibem, sem que uma linha de código mude em lugar nenhum.',
-      note: 'Um provedor nunca chama a API do StayUp. Ele fala com o PostgreSQL, e só com o PostgreSQL.',
+      note: 'Um provedor nunca chama a API do StayUp. Ele fala com o banco de dados, e só com ele.',
       diagram: {
         title: 'Um provedor, passo a passo',
         sources: 'Suas fontes, lidas do banco',
         sourcesItems: 'os feeds de podcast que este provedor foi incumbido de acompanhar',
         fetch: 'Buscar cada feed',
         compare: 'Guardar só o que não estava lá',
-        store: 'Escrever no PostgreSQL',
+        store: 'Escrever no banco de dados',
         exposed: 'A API expõe, os aplicativos exibem',
       },
       steps: {
@@ -268,6 +286,14 @@ export const pt: DocContent = {
       tablesHeading: 'As quatro tabelas',
       tablesIntro:
         'Seu passo de inicialização, executado no início de cada rodada, precisa garantir que elas existam. Toda instrução é idempotente: repetível sempre sem risco, mesmo que outro provedor tenha criado as compartilhadas antes.',
+      engineIntro:
+        'Escolha o motor da sua instância. Os nomes não mudam de uma aba para outra: mudam só o dialeto e os tipos, e é por isso que um provedor escrito contra um motor se lê igual contra outro.',
+      engineNotes: [
+        'O dialeto de referência, e o que a instância pública roda.',
+        'As mesmas tabelas, com tipos do MySQL. Uma URL precisa caber num VARCHAR indexável, daí o comprimento explícito.',
+        'Sem servidor: seu provedor e a API abrem o mesmo arquivo. Datas e JSON ficam como texto, que a API converte de volta na leitura.',
+        'Uma coleção em vez de uma tabela, e nenhum esquema a declarar — mas duas regras. Um documento repository carrega um _id numérico, tirado da coleção counters, porque o contrato designa uma fonte por um número. E nada cai em cascata: o que você escreve, você limpa.',
+      ],
       repositoryTitle: 'repository — compartilhada, você sobretudo lê dela',
       repositoryBody:
         'Uma linha é uma coisa a acompanhar: um feed de podcast, um subreddit, o que o seu provedor chamar de fonte. A coluna type precisa ser igual ao nome do seu provedor. A coluna config é JSON livre que só o seu script define e interpreta.',

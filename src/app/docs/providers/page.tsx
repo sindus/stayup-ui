@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { LandingHeader } from '@/components/landing/LandingHeader'
-import { DocChecklist, DocNav } from '@/components/docs/DocShell'
+import { DocChecklist, DocNav, DocTabs } from '@/components/docs/DocShell'
 import {
   DiagramArrow,
   DiagramBox,
@@ -15,12 +15,13 @@ import {
   DocSubheading,
   DocTable,
 } from '@/components/docs/DocPieces'
-import { getDoc } from '@/lib/docs'
+import { getDoc, type DocContent } from '@/lib/docs'
 import {
   CHECKLIST_CODE,
   NAMING_ROWS,
-  OPTIONAL_COLUMNS,
   PROVIDER_ANCHORS as A,
+  ENGINES,
+  ENGINE_TABLES,
   SNIPPETS,
 } from '@/lib/docs/shared'
 import { getServerLang } from '@/lib/serverLang'
@@ -179,57 +180,26 @@ export default async function ProvidersPage() {
               {c.tablesIntro}
             </p>
 
-            <DocSubheading>{c.repositoryTitle}</DocSubheading>
-            <DocCode>{SNIPPETS.repositoryTable}</DocCode>
-            <p
-              className="mb-6 text-[14px] leading-relaxed"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              {c.repositoryBody}
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {c.engineIntro}
             </p>
-
-            <DocSubheading>{c.connectorTitle}</DocSubheading>
-            <DocCode>{SNIPPETS.connectorTable}</DocCode>
-            <p
-              className="mb-3 text-[14px] leading-relaxed"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              {c.connectorBody}
-            </p>
-            <ul className="mb-6 space-y-2">
-              {OPTIONAL_COLUMNS.map((col, i) => (
-                <li key={col.name} className="text-[14px] leading-relaxed">
-                  <DocInline>{col.name}</DocInline>{' '}
-                  <span style={{ color: 'var(--muted-foreground)' }}>
-                    {c.optionalDescriptions[i]}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
-            <DocSubheading>{c.registryTitle}</DocSubheading>
-            <DocCode>{SNIPPETS.registryTable}</DocCode>
-            <p
-              className="mb-6 text-[14px] leading-relaxed"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              {c.registryBody}
-            </p>
-
-            <DocSubheading>{c.logTitle}</DocSubheading>
-            <DocCode>{SNIPPETS.logTable}</DocCode>
-            <p
-              className="mb-8 text-[14px] leading-relaxed"
-              style={{ color: 'var(--muted-foreground)' }}
-            >
-              {c.logBody}
-            </p>
+            <DocTabs
+              tabs={ENGINES.map((engine, i) => ({
+                label: engine.label,
+                content: <EngineTables engine={engine.id} c={c} note={c.engineNotes[i]} />,
+              }))}
+            />
 
             <DocSubheading>{c.addingSources.heading}</DocSubheading>
             <p className="mb-4 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
               {c.addingSources.body}
             </p>
-            <DocCode>{SNIPPETS.selectSources}</DocCode>
+            <DocTabs
+              tabs={ENGINES.map((engine) => ({
+                label: engine.label,
+                content: <DocCode>{ENGINE_TABLES[engine.id].selectSources}</DocCode>,
+              }))}
+            />
             <DocCode>{SNIPPETS.addSource}</DocCode>
 
             <DocSubheading>{c.checklist.heading}</DocSubheading>
@@ -240,5 +210,56 @@ export default async function ProvidersPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+/** Les quatre tables d'un provider, dans le dialecte d'un moteur. */
+function EngineTables({
+  engine,
+  c,
+  note,
+}: {
+  engine: keyof typeof ENGINE_TABLES
+  c: DocContent['providers']['contract']
+  note: string
+}) {
+  const t = ENGINE_TABLES[engine]
+
+  return (
+    <>
+      <DocSubheading>{c.repositoryTitle}</DocSubheading>
+      <DocCode>{t.repository}</DocCode>
+      <p className="mb-6 text-[14px] leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+        {c.repositoryBody}
+      </p>
+
+      <DocSubheading>{c.connectorTitle}</DocSubheading>
+      <DocCode>{t.connector}</DocCode>
+      <p className="mb-3 text-[14px] leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+        {c.connectorBody}
+      </p>
+      <ul className="mb-6 space-y-2">
+        {t.optionalColumns.map((col, i) => (
+          <li key={col} className="text-[14px] leading-relaxed">
+            <DocInline>{col}</DocInline>{' '}
+            <span style={{ color: 'var(--muted-foreground)' }}>{c.optionalDescriptions[i]}</span>
+          </li>
+        ))}
+      </ul>
+
+      <DocSubheading>{c.registryTitle}</DocSubheading>
+      <DocCode>{t.registry}</DocCode>
+      <p className="mb-6 text-[14px] leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+        {c.registryBody}
+      </p>
+
+      <DocSubheading>{c.logTitle}</DocSubheading>
+      <DocCode>{t.log}</DocCode>
+      <p className="mb-6 text-[14px] leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+        {c.logBody}
+      </p>
+
+      <DocNote>{note}</DocNote>
+    </>
   )
 }

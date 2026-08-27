@@ -21,7 +21,7 @@ export const es: DocContent = {
       heading: 'La idea, en cuatro frases',
       points: [
         'StayUp te muestra el contenido nuevo de las fuentes que sigues. Lo que cuenta como fuente no está fijado: es lo que algún proveedor sepa ir a buscar.',
-        'Un proveedor es un pequeño programa que busca un tipo de fuente y escribe lo que encuentra en una base de datos PostgreSQL. Cubrir un tipo nuevo de fuente es escribir un proveedor; nada más cambia en StayUp.',
+        'Un proveedor es un pequeño programa que busca un tipo de fuente y escribe lo que encuentra en la base de datos de la instancia. Cubrir un tipo nuevo de fuente es escribir un proveedor; nada más cambia en StayUp.',
         'La API de StayUp lee esa base y se la sirve a las aplicaciones. No fija ningún tipo de fuente en el código: en cada petición pregunta a la base qué proveedores existen en ese momento.',
         'Las aplicaciones leen la API. Cada una puede apuntar a cualquier instancia y, por tanto, a cualquier base — y cada una sabe mostrar un proveedor del que nunca ha oído hablar.',
       ],
@@ -33,8 +33,8 @@ export const es: DocContent = {
           'un feed de podcast · un hilo de foro · una página de estado · cualquier cosa que un programa pueda leer',
         providers: 'Proveedores',
         providersSub: 'un programa pequeño por tipo de fuente',
-        database: 'PostgreSQL',
-        databaseSub: 'todo lo recogido, en un mismo sitio',
+        database: 'La base de datos',
+        databaseSub: 'PostgreSQL, MySQL, SQLite o MongoDB: todo lo recogido, en un mismo sitio',
         api: 'API de StayUp',
         apiSub: 'lee la base, sirve a las aplicaciones',
         apps: 'Web · Escritorio · Móvil',
@@ -82,12 +82,12 @@ export const es: DocContent = {
 
     pieces: {
       heading: 'Las tres piezas',
-      database: 'PostgreSQL',
+      database: 'Una base de datos',
       databaseBody:
-        'Lo contiene todo: las fuentes seguidas, el contenido recogido, las cuentas. Versión 14 o superior, accesible desde donde se ejecute la API.',
+        'Guarda todo: las fuentes seguidas, el contenido recogido, las cuentas. PostgreSQL, MySQL/MariaDB, SQLite o MongoDB: la API se adapta a la que le indiques.',
       api: 'API de StayUp',
       apiBody:
-        'Una capa fina y sin estado sobre esa base. No fija ningún nombre de proveedor en el código: en cada petición pregunta a Postgres qué hay.',
+        'Una capa fina y sin estado sobre esa base. No fija ningún nombre de proveedor en el código: en cada petición pregunta a la base qué hay.',
       providers: 'Proveedores',
       providersBody:
         'Los programas que realmente llenan la base. Sin al menos uno, tu instancia funciona pero no muestra nada.',
@@ -96,10 +96,22 @@ export const es: DocContent = {
     requirements: {
       heading: 'Lo que necesitas',
       items: [
-        'Una base de datos PostgreSQL, versión 14 o superior, accesible desde donde se ejecute la API.',
+        'Una base de datos de la lista de abajo, accesible desde donde se ejecute la API.',
         'Node.js 22 o superior, si no usas Docker.',
         'Opcionalmente una cuenta de Cloudflare, para desplegar en Workers como la instancia de referencia.',
       ],
+    },
+
+    databases: {
+      heading: 'Qué base de datos',
+      intro:
+        'La API no habla SQL directamente. Llama a un contrato de almacenamiento que cumple un adaptador por motor, y el esquema de tu DATABASE_URL elige el adaptador. Vienen cuatro motores:',
+      columnEngine: 'Motor',
+      columnScheme: 'Esquema de URL',
+      columnDriver: 'Controlador a instalar',
+      note: 'Todos los motores pasan la misma suite de conformidad: los mismos veinticuatro comportamientos, verificados en CI contra un PostgreSQL, un MySQL, un SQLite y un MongoDB reales. Eso hace reversible la elección: las tablas, las colecciones y las columnas llevan los mismos nombres en todas partes, así que un proveedor se describe una vez y solo cambia su dialecto.',
+      workersNote:
+        'Una excepción, y no es cosa nuestra: Cloudflare Workers solo abre el tipo de conexión que usa PostgreSQL. Los controladores de MySQL, SQLite y MongoDB necesitan Node: Docker o Node.js a secas, no Workers.',
     },
 
     env: {
@@ -110,7 +122,7 @@ export const es: DocContent = {
       yes: 'sí',
       no: 'no',
       descriptions: [
-        'postgres://user:pass@host:port/dbname. Las builds de Node y Docker también aceptan DB_HOST, DB_PORT, DB_NAME, DB_USER y DB_PASSWORD por separado.',
+        'El esquema elige el motor: postgres://, mysql://, sqlite:// o mongodb://. Las builds de Node y Docker también aceptan DB_HOST, DB_PORT, DB_NAME, DB_USER y DB_PASSWORD por separado, para PostgreSQL.',
         'Secreto aleatorio que firma los tokens de autenticación. Genera uno con openssl rand -hex 32.',
         'La única cuenta de servicio de administración. No hay ninguna fila de admin en la base: quien entre con estas credenciales obtiene el rol de administrador. Los usuarios normales se registran desde las aplicaciones.',
         'URL pública de tu despliegue web. Se usa como destino de redirección OAuth.',
@@ -137,9 +149,15 @@ export const es: DocContent = {
     schema: {
       heading: 'Crear las tablas y tu primera cuenta',
       applyIntro:
-        'Si no te apoyas en la inicialización automática de Compose, aplica el esquema una vez:',
+        'Si no te apoyas en la auto-inicialización de Compose, aplica el esquema una vez a mano. Un fichero por motor, con los mismos nombres de tablas y columnas en todos:',
       applyNote:
-        'Solo añade — CREATE TABLE IF NOT EXISTS — así que puede reejecutarse en cualquier momento, incluso contra una base que ya tiene datos.',
+        'Los ficheros SQL solo añaden — CREATE TABLE IF NOT EXISTS —, así que puedes volver a ejecutarlos cuando quieras, incluso contra una base que ya tiene datos.',
+      engineNotes: [
+        'El esquema de referencia. Versión 14 o superior.',
+        'MySQL 8 o MariaDB 10.2 en adelante: la API ordena el contenido con una función de ventana.',
+        'Nada que alojar: un fichero junto a la API. Va bien para una instancia personal, menos para una a la que las apps acceden desde varios sitios a la vez.',
+        'No hay esquema que aplicar: MongoDB crea la colección en la primera escritura. Solo importan los índices, y la API los crea sola al conectarse; el comando de arriba se limita a adelantarlo.',
+      ],
       userIntro:
         'El acceso de administración es el par de usuario y contraseña de arriba: no hay nada que crear. Para una cuenta normal, sin pasar por un formulario de registro:',
       verifyIntro: 'Después comprueba que responde:',
@@ -196,14 +214,14 @@ export const es: DocContent = {
     what: {
       heading: 'Qué es realmente un proveedor',
       body: 'Ni un plugin ni un módulo que registrar: un programa corriente, en el lenguaje que quieras, ejecutado de forma programada. Lee la lista de fuentes que le corresponden, consulta cada una, se queda con lo nuevo y lo escribe en la base de datos. La API lo recoge sola y las tres aplicaciones lo muestran, sin que cambie una línea de código en ningún sitio.',
-      note: 'Un proveedor nunca llama a la API de StayUp. Habla con PostgreSQL, y solo con PostgreSQL.',
+      note: 'Un proveedor nunca llama a la API de StayUp. Habla con la base de datos, y solo con ella.',
       diagram: {
         title: 'Un proveedor, paso a paso',
         sources: 'Sus fuentes, leídas de la base',
         sourcesItems: 'los feeds de podcast que este proveedor tiene encargado seguir',
         fetch: 'Consultar cada feed',
         compare: 'Quedarse solo con lo que no estaba',
-        store: 'Escribir en PostgreSQL',
+        store: 'Escribir en la base de datos',
         exposed: 'La API lo expone, las aplicaciones lo muestran',
       },
       steps: {
@@ -268,6 +286,14 @@ export const es: DocContent = {
       tablesHeading: 'Las cuatro tablas',
       tablesIntro:
         'Tu paso de inicialización, ejecutado al principio de cada pasada, debe garantizar que existan. Toda instrucción es idempotente: se puede repetir cada vez sin riesgo, incluso si otro proveedor creó antes las compartidas.',
+      engineIntro:
+        'Elige el motor de tu instancia. Los nombres no cambian de una pestaña a otra: solo cambian el dialecto y los tipos, y por eso un proveedor escrito contra un motor se lee igual contra otro.',
+      engineNotes: [
+        'El dialecto de referencia, y lo que corre la instancia pública.',
+        'Las mismas tablas, con tipos de MySQL. Una URL tiene que caber en un VARCHAR indexable, de ahí la longitud explícita.',
+        'Sin servidor: tu proveedor y la API abren el mismo fichero. Las fechas y el JSON se guardan como texto, que la API vuelve a interpretar al leer.',
+        'Una colección en lugar de una tabla, y ningún esquema que declarar, pero dos reglas. Un documento repository lleva un _id numérico, sacado de la colección counters, porque el contrato designa una fuente con un número. Y nada se propaga en cascada: lo que escribes, lo limpias tú.',
+      ],
       repositoryTitle: 'repository — compartida, tú sobre todo la lees',
       repositoryBody:
         'Una fila es una cosa que seguir: un feed de podcast, un subreddit, lo que tu proveedor llame una fuente. La columna type debe coincidir con el nombre de tu proveedor. La columna config es JSON libre que solo tu script define e interpreta.',

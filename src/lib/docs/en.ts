@@ -27,7 +27,7 @@ export const en = {
       heading: 'The idea, in four sentences',
       points: [
         'StayUp shows you new content from the sources you follow. What counts as a source is not fixed — it is whatever some provider knows how to fetch.',
-        'A provider is a small program that fetches one kind of source and writes what it finds into a PostgreSQL database. Covering a new kind of source means writing a provider; nothing else in StayUp changes.',
+        'A provider is a small program that fetches one kind of source and writes what it finds into the instance’s database. Covering a new kind of source means writing a provider; nothing else in StayUp changes.',
         'The StayUp API reads that database and serves it to the apps. It hardcodes no kind of source: on each request it asks the database which providers exist right now.',
         'The apps read the API. Each can be pointed at any instance, so at any database — and each can display a provider it has never heard of.',
       ],
@@ -39,8 +39,8 @@ export const en = {
           'a podcast feed · a forum thread · a status page · anything a program can read',
         providers: 'Providers',
         providersSub: 'one small program per kind of source',
-        database: 'PostgreSQL',
-        databaseSub: 'everything collected, in one place',
+        database: 'The database',
+        databaseSub: 'PostgreSQL, MySQL, SQLite or MongoDB — everything collected, in one place',
         api: 'StayUp API',
         apiSub: 'reads the database, serves the apps',
         apps: 'Web · Desktop · Mobile',
@@ -88,9 +88,9 @@ export const en = {
 
     pieces: {
       heading: 'The three pieces',
-      database: 'PostgreSQL',
+      database: 'A database',
       databaseBody:
-        'Holds everything: the sources being tracked, the content collected, the accounts. Version 14 or later, reachable from wherever the API runs.',
+        'Holds everything: the sources being tracked, the content collected, the accounts. PostgreSQL, MySQL/MariaDB, SQLite or MongoDB — the API adapts to whichever you point it at.',
       api: 'StayUp API',
       apiBody:
         'A thin, stateless layer over that database. It hardcodes no provider name — on each request it asks Postgres what is there.',
@@ -102,10 +102,22 @@ export const en = {
     requirements: {
       heading: 'What you need',
       items: [
-        'A PostgreSQL database, version 14 or later, reachable from wherever the API runs.',
+        'A database from the list below, reachable from wherever the API runs.',
         'Node.js 22 or later, if you are not using Docker.',
         'Optionally a Cloudflare account, to deploy on Workers like the reference instance.',
       ],
+    },
+
+    databases: {
+      heading: 'Which database',
+      intro:
+        'The API does not speak SQL directly. It calls a storage contract that one adapter per engine fulfils, and the scheme of your DATABASE_URL picks the adapter. Four engines ship with it:',
+      columnEngine: 'Engine',
+      columnScheme: 'URL scheme',
+      columnDriver: 'Driver to install',
+      note: 'Every engine passes the same conformance suite — the same twenty-four behaviours, checked in CI against a real PostgreSQL, MySQL, SQLite and MongoDB. That is what makes the choice reversible: the tables, the collections and the columns carry the same names everywhere, so a provider is described once and only its dialect changes.',
+      workersNote:
+        'One exception, and it is not ours: Cloudflare Workers only opens the kind of connection PostgreSQL uses. The MySQL, SQLite and MongoDB drivers need Node — Docker or plain Node.js, not Workers.',
     },
 
     env: {
@@ -116,7 +128,7 @@ export const en = {
       yes: 'yes',
       no: 'no',
       descriptions: [
-        'postgres://user:pass@host:port/dbname. Node and Docker builds also accept DB_HOST, DB_PORT, DB_NAME, DB_USER and DB_PASSWORD separately.',
+        'The scheme picks the engine: postgres://, mysql://, sqlite:// or mongodb://. Node and Docker builds also accept DB_HOST, DB_PORT, DB_NAME, DB_USER and DB_PASSWORD separately, for PostgreSQL.',
         'Random secret used to sign auth tokens. Generate one with openssl rand -hex 32.',
         'The single admin service account. There is no admin row in the database: whoever signs in with these credentials gets the admin role. Regular users register through the apps.',
         'Public URL of your web deployment. Used as the OAuth redirect target.',
@@ -142,9 +154,16 @@ export const en = {
 
     schema: {
       heading: 'Create the tables, and your first account',
-      applyIntro: 'If you are not relying on Compose’s auto-init, apply the schema once yourself:',
+      applyIntro:
+        'If you are not relying on Compose’s auto-init, apply the schema once yourself. One file per engine, same table and column names in all of them:',
       applyNote:
-        'It only ever adds — CREATE TABLE IF NOT EXISTS — so it is safe to re-run at any time, including against a database that already holds data.',
+        'The SQL files only ever add — CREATE TABLE IF NOT EXISTS — so they are safe to re-run at any time, including against a database that already holds data.',
+      engineNotes: [
+        'The reference schema. Version 14 or later.',
+        'MySQL 8 or MariaDB 10.2 and later: the API ranks content with a window function.',
+        'Nothing to host — a file next to the API. Good for a personal instance, not for one the apps hit from several places at once.',
+        'No schema to apply: MongoDB creates a collection on first write. Only the indexes matter, and the API creates them itself when it connects — the command above just does it ahead of time.',
+      ],
       userIntro:
         'Admin access is the username and password pair above: there is nothing to create. For a regular account, without going through a sign-up form:',
       verifyIntro: 'Then check it answers:',
@@ -201,14 +220,14 @@ export const en = {
     what: {
       heading: 'What a provider actually is',
       body: 'Not a plugin, not a module to register: an ordinary program, in any language, run on a schedule. It reads the list of sources meant for it, fetches each one, keeps what is new, and writes it to the database. The API picks it up on its own, and the three apps display it — without a line of code changing anywhere.',
-      note: 'A provider never calls the StayUp API. It talks to PostgreSQL, and only to PostgreSQL.',
+      note: 'A provider never calls the StayUp API. It talks to the database, and only to the database.',
       diagram: {
         title: 'A provider, step by step',
         sources: 'Its sources, read from the database',
         sourcesItems: 'the podcast feeds this provider was told to track',
         fetch: 'Fetch each feed',
         compare: 'Keep only what was not there before',
-        store: 'Write to PostgreSQL',
+        store: 'Write to the database',
         exposed: 'The API exposes it, the apps display it',
       },
       steps: {
@@ -273,6 +292,14 @@ export const en = {
       tablesHeading: 'The four tables',
       tablesIntro:
         'Your init step, run at the start of every execution, must make sure these exist. Every statement is idempotent — safe to run every time, and safe if another provider created the shared ones first.',
+      engineIntro:
+        'Pick the engine your instance runs. The names never change from one tab to the next — only the dialect and the types do, which is why a provider written against one engine reads the same against another.',
+      engineNotes: [
+        'The reference dialect, and what the public instance runs.',
+        'Same tables, MySQL types. A URL has to fit in an indexable VARCHAR, hence the explicit length.',
+        'No server: your provider and the API open the same file. Dates and JSON are stored as text, which the API parses back on read.',
+        'A collection instead of a table, and no schema to declare — but two rules. A repository document carries a numeric _id, drawn from the counters collection, because the contract designates a source by a number. And nothing cascades: what you write, you clean up.',
+      ],
       repositoryTitle: 'repository — shared, you mostly read from it',
       repositoryBody:
         'One row is one thing to track: a podcast feed, a subreddit, whatever your provider calls a source. The type column must equal your provider name. The config column is free-form JSON that only your script defines and interprets.',

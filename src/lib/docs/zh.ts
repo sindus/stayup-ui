@@ -20,7 +20,7 @@ export const zh: DocContent = {
       heading: '四句话讲清楚',
       points: [
         'StayUp 会把你关注的来源的新内容展示给你。什么算作来源并不固定——某个提供方能去抓取的东西，就是来源。',
-        '提供方是一个小程序，它去抓取某一类来源，并把抓到的内容写进一个 PostgreSQL 数据库。要覆盖一类新的来源，就写一个提供方；StayUp 的其他部分不用变。',
+        '提供方是一个小程序，它去抓取某一类来源，并把抓到的内容写进该实例的数据库。要覆盖一类新的来源，就写一个提供方；StayUp 的其他部分不用变。',
         'StayUp API 读取这个数据库，再交给各个应用。它不把任何来源类型写死在代码里：每次请求都会问数据库此刻有哪些提供方。',
         '各个应用读取 API。每一个都能指向任意实例，也就是任意数据库——而且都能显示一个它从未听说过的提供方。',
       ],
@@ -31,8 +31,8 @@ export const zh: DocContent = {
         sourcesItems: '一个播客订阅源 · 一个论坛帖子 · 一个状态页 · 任何程序读得懂的东西',
         providers: '提供方',
         providersSub: '每种来源一个小程序',
-        database: 'PostgreSQL',
-        databaseSub: '收集到的一切，集中在一处',
+        database: '数据库',
+        databaseSub: 'PostgreSQL、MySQL、SQLite 或 MongoDB——收集到的一切都在这里',
         api: 'StayUp API',
         apiSub: '读取数据库，服务各个应用',
         apps: '网页 · 桌面 · 移动',
@@ -76,12 +76,12 @@ export const zh: DocContent = {
 
     pieces: {
       heading: '三个部分',
-      database: 'PostgreSQL',
+      database: '一个数据库',
       databaseBody:
-        '装着一切：被跟踪的来源、收集到的内容、账户。版本 14 及以上，且 API 运行的地方能访问到它。',
+        '存放一切：正在跟踪的来源、收集到的内容、账号。PostgreSQL、MySQL/MariaDB、SQLite 或 MongoDB——你指向哪个，API 就适配哪个。',
       api: 'StayUp API',
       apiBody:
-        '架在该数据库之上的一层轻薄、无状态的东西。它不把任何提供方名字写死在代码里——每次请求都会问 Postgres 里面有什么。',
+        '架在该数据库之上的一层轻薄、无状态的东西。它不把任何提供方名字写死在代码里——每次请求都会问数据库里面有什么。',
       providers: '提供方',
       providersBody: '真正填充数据库的程序。一个都没有的话，你的实例能跑，但什么都不会显示。',
     },
@@ -89,10 +89,22 @@ export const zh: DocContent = {
     requirements: {
       heading: '你需要什么',
       items: [
-        '一个 PostgreSQL 数据库，版本 14 及以上，API 运行的地方能访问到它。',
+        '下面列表中的一种数据库，API 运行的地方能访问到它。',
         '如果不用 Docker，则需要 Node.js 22 及以上。',
         '可选：一个 Cloudflare 账号，用于像参考实例那样部署到 Workers。',
       ],
+    },
+
+    databases: {
+      heading: '选哪种数据库',
+      intro:
+        'API 并不直接说 SQL。它调用一份存储契约，每种引擎由一个适配器来实现，而 DATABASE_URL 的协议头决定用哪个适配器。开箱即用的引擎有四种：',
+      columnEngine: '引擎',
+      columnScheme: 'URL 协议',
+      columnDriver: '需安装的驱动',
+      note: '每种引擎都要通过同一套一致性测试——同样的二十四条行为，在 CI 中跑在真实的 PostgreSQL、MySQL、SQLite 和 MongoDB 上。这让选择可以反悔：表、集合和字段在各处都用同样的名字，所以提供方只需描述一次，变的只是方言。',
+      workersNote:
+        '有一个例外，而且不是我们造成的：Cloudflare Workers 只能建立 PostgreSQL 所用的那类连接。MySQL、SQLite 和 MongoDB 的驱动需要 Node——Docker 或纯 Node.js，Workers 不行。',
     },
 
     env: {
@@ -103,7 +115,7 @@ export const zh: DocContent = {
       yes: '是',
       no: '否',
       descriptions: [
-        'postgres://user:pass@host:port/dbname。Node 和 Docker 构建也接受分开设置的 DB_HOST、DB_PORT、DB_NAME、DB_USER 和 DB_PASSWORD。',
+        '协议头决定引擎：postgres://、mysql://、sqlite:// 或 mongodb://。Node 与 Docker 构建也接受单独的 DB_HOST、DB_PORT、DB_NAME、DB_USER、DB_PASSWORD（仅限 PostgreSQL）。',
         '用于签发认证令牌的随机密钥。可用 openssl rand -hex 32 生成。',
         '唯一的管理服务账号。数据库里并没有管理员这一行：谁用这组凭据登录，谁就获得管理员角色。普通用户则通过应用注册。',
         '你部署的网页端的公开地址，用作 OAuth 回跳目标。',
@@ -128,9 +140,16 @@ export const zh: DocContent = {
 
     schema: {
       heading: '建表，以及你的第一个账户',
-      applyIntro: '如果你不依赖 Compose 的自动初始化，就自己执行一次表结构：',
+      applyIntro:
+        '如果不依赖 Compose 的自动初始化，就自己执行一次建表。每种引擎一个文件，表名和字段名完全一致：',
       applyNote:
-        '它只会新增——只有 CREATE TABLE IF NOT EXISTS——因此任何时候重复执行都安全，哪怕数据库里已经有数据。',
+        'SQL 文件只做新增——CREATE TABLE IF NOT EXISTS——所以随时重跑都安全，哪怕库里已经有数据。',
+      engineNotes: [
+        '基准表结构。版本 14 及以上。',
+        'MySQL 8 或 MariaDB 10.2 及以上：API 用窗口函数给内容排序。',
+        '无需部署——就是 API 旁边的一个文件。适合个人实例，不适合多处同时访问的实例。',
+        '没有表结构要建：MongoDB 在第一次写入时创建集合。真正重要的只有索引，而 API 连接时会自己建好——上面的命令只是提前做了一遍。',
+      ],
       userIntro:
         '管理员入口就是上面那对用户名和密码，没有什么需要创建。若要创建普通账号而不走注册表单：',
       verifyIntro: '然后确认它有响应：',
@@ -183,14 +202,14 @@ export const zh: DocContent = {
     what: {
       heading: '提供方到底是什么',
       body: '既不是插件，也不是需要注册的模块：就是一个普通程序，用什么语言都行，按计划运行。它读取分配给自己的来源列表，逐个抓取，留下新的内容，写入数据库。API 会自行接住，三个应用会显示出来——任何地方都不用改一行代码。',
-      note: '提供方从不调用 StayUp API。它只和 PostgreSQL 打交道。',
+      note: '提供方从不调用 StayUp API。它只和数据库打交道。',
       diagram: {
         title: '一个提供方，逐步来看',
         sources: '从数据库读到的、由它负责的来源',
         sourcesItems: '这个提供方被指定跟踪的播客订阅源',
         fetch: '抓取每个订阅源',
         compare: '只留下此前没有的',
-        store: '写入 PostgreSQL',
+        store: '写入数据库',
         exposed: 'API 对外提供，应用负责显示',
       },
       steps: {
@@ -255,6 +274,14 @@ export const zh: DocContent = {
       tablesHeading: '四张表',
       tablesIntro:
         '你的初始化步骤会在每次执行开始时运行，它必须确保这些表存在。所有语句都是幂等的——每次都执行也安全，即使共享表已被别的提供方先建好也没问题。',
+      engineIntro:
+        '选中你这套实例所用的引擎。切换标签时名字不会变——变的只有方言和类型，正因为如此，针对一种引擎写的提供方，换一种引擎读起来是一样的。',
+      engineNotes: [
+        '基准方言，也是公开实例正在跑的那一种。',
+        '同样的表，MySQL 的类型。URL 必须放得进可建索引的 VARCHAR，所以这里写明了长度。',
+        '没有服务端：你的提供方和 API 打开的是同一个文件。日期和 JSON 都存成文本，API 读取时再还原。',
+        '用集合而不是表，也没有表结构要声明——但有两条规矩。repository 文档带一个数字型 _id，取自 counters 集合，因为契约是用数字来指代一个来源的。另外没有任何级联：你写进去的，得你自己清理。',
+      ],
       repositoryTitle: 'repository —— 共享，你主要是读它',
       repositoryBody:
         '一行代表一个要跟踪的东西：一个播客订阅源、一个 subreddit，或者你的提供方所定义的任何“来源”。type 列必须等于你的提供方名字。config 列是自由格式的 JSON，只由你的脚本定义和解释。',

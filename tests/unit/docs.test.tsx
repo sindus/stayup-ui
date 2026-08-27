@@ -4,9 +4,11 @@ import { getDoc } from '@/lib/docs'
 import { en } from '@/lib/docs/en'
 import {
   CHECKLIST_CODE,
+  ENGINES,
+  ENGINE_TABLES,
   ENV_VARS,
   NAMING_ROWS,
-  OPTIONAL_COLUMNS,
+  SCHEMA_COMMANDS,
   SNIPPETS,
 } from '@/lib/docs/shared'
 import { DocChecklist, DocNav, DocTabs } from '@/components/docs/DocShell'
@@ -108,8 +110,11 @@ describe('documentation dictionaries', () => {
       expect(doc.selfHosting.env.descriptions, lang).toHaveLength(ENV_VARS.length)
       expect(doc.providers.creating.naming.rows, lang).toHaveLength(NAMING_ROWS.length)
       expect(doc.providers.contract.optionalDescriptions, lang).toHaveLength(
-        OPTIONAL_COLUMNS.length,
+        ENGINE_TABLES.postgres.optionalColumns.length,
       )
+      // Un onglet par moteur : une note manquante laisserait un panneau muet.
+      expect(doc.providers.contract.engineNotes, lang).toHaveLength(ENGINES.length)
+      expect(doc.selfHosting.schema.engineNotes, lang).toHaveLength(ENGINES.length)
       expect(doc.providers.contract.checklist.items, lang).toHaveLength(CHECKLIST_CODE.length)
     }
   })
@@ -167,9 +172,27 @@ describe('shared snippets', () => {
     }
   })
 
-  it('keeps the connector table name parameterized', () => {
-    expect(SNIPPETS.connectorTable).toContain('connector_<name>')
-    expect(SNIPPETS.selectSources).toContain("type = '<name>'")
+  // Ce que la doc promet : d'un moteur à l'autre, seuls le dialecte et les types
+  // changent, jamais les noms — sinon un provider serait à réécrire par base.
+  it('names the same things whichever engine is shown', () => {
+    for (const engine of ENGINES) {
+      const t = ENGINE_TABLES[engine.id]
+      expect(t.connector, engine.label).toContain('connector_<name>')
+      expect(t.registry, engine.label).toContain('provider_registry')
+      expect(t.repository, engine.label).toContain('repository')
+      expect(t.log, engine.label).toContain('log')
+      expect(t.selectSources, engine.label).toContain('<name>')
+      expect(
+        t.optionalColumns.map((col) => col.split(/[ :]/)[0]),
+        engine.label,
+      ).toEqual(['datetime', 'version'])
+    }
+  })
+
+  it('gives every supported engine a way to create the schema', () => {
+    for (const engine of ENGINES) {
+      expect(SCHEMA_COMMANDS[engine.id], engine.label).toBeTruthy()
+    }
   })
 })
 

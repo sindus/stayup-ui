@@ -13,7 +13,13 @@ import {
   DocTable,
 } from '@/components/docs/DocPieces'
 import { getDoc } from '@/lib/docs'
-import { ENV_VARS, SELF_HOSTING_ANCHORS as A, SNIPPETS } from '@/lib/docs/shared'
+import {
+  ENGINES,
+  ENV_VARS,
+  SCHEMA_COMMANDS,
+  SELF_HOSTING_ANCHORS as A,
+  SNIPPETS,
+} from '@/lib/docs/shared'
 import { getServerLang } from '@/lib/serverLang'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -36,6 +42,7 @@ export default async function SelfHostingPage() {
             { id: A.why, label: d.why.heading },
             { id: A.pieces, label: d.pieces.heading },
             { id: A.requirements, label: d.requirements.heading },
+            { id: A.databases, label: d.databases.heading },
             { id: A.env, label: d.env.heading },
             { id: A.deploy, label: d.deploy.heading },
             { id: A.schema, label: d.schema.heading },
@@ -95,6 +102,30 @@ export default async function SelfHostingPage() {
             <DocList items={d.requirements.items} />
           </DocSection>
 
+          <DocSection id={A.databases} title={d.databases.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.databases.intro}
+            </p>
+            <DocTable
+              columns={[
+                d.databases.columnEngine,
+                d.databases.columnScheme,
+                d.databases.columnDriver,
+              ]}
+              rows={ENGINES.map((engine) => [
+                engine.label,
+                <DocInline key={engine.id}>{engine.schemes}</DocInline>,
+                engine.driver === '—' ? (
+                  '—'
+                ) : (
+                  <DocInline key={`${engine.id}-driver`}>{engine.driver}</DocInline>
+                ),
+              ])}
+            />
+            <DocNote>{d.databases.note}</DocNote>
+            <DocNote tone="sky">{d.databases.workersNote}</DocNote>
+          </DocSection>
+
           <DocSection id={A.env} title={d.env.heading}>
             <DocTable
               columns={[d.env.columnVariable, d.env.columnRequired, d.env.columnDescription]}
@@ -144,7 +175,22 @@ export default async function SelfHostingPage() {
             <p className="mb-4 text-[15px]" style={{ color: 'var(--fg-soft)' }}>
               {d.schema.applyIntro}
             </p>
-            <DocCode>{SNIPPETS.schema}</DocCode>
+            <DocTabs
+              tabs={ENGINES.map((engine, i) => ({
+                label: engine.label,
+                content: (
+                  <>
+                    <DocCode>{SCHEMA_COMMANDS[engine.id]}</DocCode>
+                    <p
+                      className="text-[14px] leading-relaxed"
+                      style={{ color: 'var(--muted-foreground)' }}
+                    >
+                      {d.schema.engineNotes[i]}
+                    </p>
+                  </>
+                ),
+              }))}
+            />
             <DocNote>{d.schema.applyNote}</DocNote>
 
             <p className="mb-4 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>

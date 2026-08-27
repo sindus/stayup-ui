@@ -57,6 +57,17 @@ test.describe('Self-hosting page', () => {
     await expect(page.getByText('docker compose up -d db api')).not.toBeVisible()
   })
 
+  test('gives the schema command of the engine you pick', async ({ page }) => {
+    const schema = page.locator('#schema')
+    await expect(schema.getByText('src/db/schema.sql')).toBeVisible()
+
+    await schema.getByRole('tab', { name: 'MongoDB' }).click()
+
+    // MongoDB n'a pas de schéma à appliquer : la commande ne pose que les index.
+    await expect(schema.getByText('createIndex')).toBeVisible()
+    await expect(schema.getByText('src/db/schema.sql')).not.toBeVisible()
+  })
+
   test('leads back to the documentation index', async ({ page }) => {
     await page.locator('main').getByRole('link', { name: /^←/ }).click()
     await expect(page).toHaveURL('/docs')
@@ -90,6 +101,24 @@ test.describe('Providers page', () => {
     await expect(item).toHaveAttribute('aria-pressed', 'false')
     await item.click()
     await expect(item).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  // La promesse de la doc : les mêmes noms d'un moteur à l'autre, seul le
+  // dialecte change. Un onglet muet la trahirait sans que rien n'échoue ailleurs.
+  test('shows the same tables in the dialect of each engine', async ({ page }) => {
+    const contract = page.locator('#technical-contract')
+    await expect(contract.getByText('SERIAL PRIMARY KEY').first()).toBeVisible()
+
+    await contract.getByRole('tab', { name: 'MongoDB' }).first().click()
+
+    await expect(contract.getByText("db.createCollection('connector_<name>')")).toBeVisible()
+    await expect(contract.getByText('SERIAL PRIMARY KEY')).toHaveCount(0)
+
+    await contract.getByRole('tab', { name: 'MySQL / MariaDB' }).first().click()
+
+    await expect(contract.getByText('AUTO_INCREMENT').first()).toBeVisible()
+    // Le nom de la table ne bouge pas d'un moteur à l'autre : c'est tout l'intérêt.
+    await expect(contract.getByText('connector_<name>').first()).toBeVisible()
   })
 
   test('points at the self-hosting guide for where to write', async ({ page }) => {
