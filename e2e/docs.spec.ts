@@ -53,3 +53,29 @@ test.describe('Self-hosting documentation', () => {
     ).toBeVisible()
   })
 })
+
+// Régression : l'en-tête est partagé avec la page de doc, où #features et
+// #download ne correspondent à aucune section. Les liens doivent donc ramener
+// vers l'accueil, tout en continuant à défiler quand on y est déjà.
+test.describe('Header anchors', () => {
+  for (const [label, anchor] of [
+    ['Fonctionnalités', 'features'],
+    ['Télécharger', 'download'],
+  ] as const) {
+    test(`"${label}" leads back to the landing section from the docs`, async ({ page }) => {
+      await page.goto('/docs/self-hosting')
+      await page.getByRole('banner').getByRole('link', { name: label }).click()
+
+      await expect(page).toHaveURL(`/#${anchor}`)
+      await expect(page.locator(`#${anchor}`)).toBeInViewport()
+    })
+
+    test(`"${label}" still scrolls when already on the landing page`, async ({ page }) => {
+      await page.goto('/')
+      await page.getByRole('banner').getByRole('link', { name: label }).click()
+
+      await expect(page).toHaveURL(`/#${anchor}`)
+      await expect(page.locator(`#${anchor}`)).toBeInViewport()
+    })
+  }
+})

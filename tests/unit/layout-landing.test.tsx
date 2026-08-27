@@ -109,10 +109,12 @@ describe('UserMenu', () => {
 })
 
 describe('LandingHeader', () => {
-  it('links to the features and download anchors', () => {
+  // Ancres absolues : l'en-tête sert aussi la page de doc, où ces sections
+  // n'existent pas — une ancre nue n'y menait nulle part.
+  it('links to the features and download anchors on the landing page', () => {
     renderWithLang(<LandingHeader />)
-    expect(screen.getByRole('link', { name: 'Features' })).toHaveAttribute('href', '#features')
-    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '#download')
+    expect(screen.getByRole('link', { name: 'Features' })).toHaveAttribute('href', '/#features')
+    expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '/#download')
   })
 
   it('links to the self-hosting documentation', () => {
