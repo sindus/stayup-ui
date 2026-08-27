@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { en } from '@/lib/translations'
 
 const cookieGet = vi.fn()
 const cookieSet = vi.fn()
@@ -11,7 +12,18 @@ const redirect = vi.fn((url: string) => {
 })
 vi.mock('next/navigation', () => ({ redirect: (url: string) => redirect(url) }))
 
+class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 const api = {
+  ApiError,
   addUserRepository: vi.fn(),
   subscribeScrap: vi.fn(),
   validateFlux: vi.fn(),
@@ -52,14 +64,14 @@ describe('POST /api/fluxes', () => {
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'changelog', identifier: 'a/b' }))
     expect(res.status).toBe(401)
-    expect(await res.json()).toEqual({ error: 'Unauthorized' })
+    expect(await res.json()).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns 400 on a schema violation', async () => {
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'changelog', identifier: '' }))
     expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('Données invalides')
+    expect((await res.json()).error).toBe(en.errors.invalidData)
   })
 
   it('returns 400 for an unknown provider', async () => {
@@ -83,27 +95,41 @@ describe('POST /api/fluxes', () => {
     })
   })
 
+  // validateFlux renvoie une clé de traduction, pas une phrase toute faite.
   it('returns 404 when validation rejects the identifier', async () => {
-    api.validateFlux.mockResolvedValue({ valid: false, reason: 'Dépôt inexistant' })
+    api.validateFlux.mockResolvedValue({ valid: false, reason: 'githubRepoNotFound' })
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'changelog', identifier: 'nope/nope' }))
     expect(res.status).toBe(404)
-    expect((await res.json()).error).toBe('Dépôt inexistant')
+    expect((await res.json()).error).toBe(en.errors.githubRepoNotFound)
   })
 
-  it('maps an "abonné" API error to 409', async () => {
-    api.addUserRepository.mockRejectedValue(new Error('Déjà abonné à ce flux'))
+  // Le message de l'API est en anglais quelle que soit la langue : on branche sur le
+  // statut HTTP, seul contrat stable, et on traduit ici.
+  it('maps a 409 from the API to an already-following message', async () => {
+    api.addUserRepository.mockRejectedValue(new ApiError(409, 'Already subscribed'))
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
     expect(res.status).toBe(409)
+    expect((await res.json()).error).toBe(en.errors.alreadySubscribed)
   })
 
-  it('maps any other API error to 500', async () => {
+  it('maps a 409 about another provider to its own message', async () => {
+    api.addUserRepository.mockRejectedValue(
+      new ApiError(409, 'This URL is already registered under another provider'),
+    )
+    const { POST } = await import('@/app/api/fluxes/route')
+    const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toBe(en.errors.urlOtherProvider)
+  })
+
+  it('maps any other API error to 500 without leaking its raw message', async () => {
     api.addUserRepository.mockRejectedValue(new Error('boom'))
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
     expect(res.status).toBe(500)
-    expect((await res.json()).error).toBe('boom')
+    expect((await res.json()).error).toBe(en.errors.generic)
   })
 
   it('subscribes to a scrap repository', async () => {
@@ -114,17 +140,11 @@ describe('POST /api/fluxes', () => {
   })
 
   it('returns 409 when already subscribed to the scrap repository', async () => {
-    api.subscribeScrap.mockRejectedValue(new Error('Already subscribed'))
+    api.subscribeScrap.mockRejectedValue(new ApiError(409, 'Already subscribed'))
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 5 }))
     expect(res.status).toBe(409)
-  })
-
-  it('returns 409 when the API reports the French "abonné" error', async () => {
-    api.subscribeScrap.mockRejectedValue(new Error('Déjà abonné'))
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 5 }))
-    expect(res.status).toBe(409)
+    expect((await res.json()).error).toBe(en.errors.alreadySubscribed)
   })
 
   it('returns 500 on any other scrap subscription error', async () => {

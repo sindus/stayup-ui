@@ -96,14 +96,32 @@ describe('ChangePasswordForm', () => {
     const user = userEvent.setup()
     renderWithLang(<ChangePasswordForm />)
 
+    await user.type(screen.getByLabelText('Current password'), 'the-old-one')
     await user.type(screen.getByLabelText('New password'), 'longenough1')
     await user.type(screen.getByLabelText('Confirm new password'), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Change password' }))
 
     await waitFor(() =>
-      expect(updateProfileAction).toHaveBeenCalledWith({ password: 'longenough1' }),
+      expect(updateProfileAction).toHaveBeenCalledWith({
+        password: 'longenough1',
+        currentPassword: 'the-old-one',
+      }),
     )
     await waitFor(() => expect(screen.getByLabelText('New password')).toHaveValue(''))
+  })
+
+  // L'API refuse un changement sans le mot de passe actuel : le formulaire doit
+  // l'exiger avant même l'aller-retour réseau.
+  it('refuses to submit without the current password', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<ChangePasswordForm />)
+
+    await user.type(screen.getByLabelText('New password'), 'longenough1')
+    await user.type(screen.getByLabelText('Confirm new password'), 'longenough1')
+    await user.click(screen.getByRole('button', { name: 'Change password' }))
+
+    expect(await screen.findByText('Enter your current password')).toBeInTheDocument()
+    expect(updateProfileAction).not.toHaveBeenCalled()
   })
 
   it('rejects a password shorter than 8 characters', async () => {
@@ -135,6 +153,7 @@ describe('ChangePasswordForm', () => {
     const user = userEvent.setup()
     renderWithLang(<ChangePasswordForm />)
 
+    await user.type(screen.getByLabelText('Current password'), 'the-old-one')
     await user.type(screen.getByLabelText('New password'), 'longenough1')
     await user.type(screen.getByLabelText('Confirm new password'), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Change password' }))

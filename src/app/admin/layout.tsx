@@ -1,13 +1,16 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { getAdminSession } from '@/lib/session'
+import { getAdminSession, getAdminToken, isAdminTokenValid } from '@/lib/session'
 import { adminLogoutAction } from '@/lib/auth-actions'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AuroraMark } from '@/components/ui/aurora-mark'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await getAdminSession()
-  if (!session || session.role !== 'admin') redirect('/admin/login')
+  // `session.role` vient d'un payload non signé : il ne prouve rien. La porte, c'est
+  // l'API, seule à pouvoir vérifier la signature du token.
+  const [session, token] = await Promise.all([getAdminSession(), getAdminToken()])
+  if (!session || session.role !== 'admin' || !token) redirect('/admin/login')
+  if (!(await isAdminTokenValid(token))) redirect('/admin/login')
 
   const initial = session.email?.charAt(0)?.toUpperCase() ?? 'A'
 

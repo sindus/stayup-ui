@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { en } from '@/lib/translations'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -72,7 +73,7 @@ describe('loginAction', () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) })
 
     const { loginAction } = await import('@/lib/auth-actions')
-    expect(await loginAction('a@b.c', 'wrong')).toEqual({ error: 'Identifiants incorrects.' })
+    expect(await loginAction('a@b.c', 'wrong')).toEqual({ error: en.errors.invalidCredentials })
     expect(cookieSet).not.toHaveBeenCalled()
   })
 
@@ -105,20 +106,22 @@ describe('registerAction', () => {
 
     const { registerAction } = await import('@/lib/auth-actions')
     expect(await registerAction('Ada', 'ada@example.com', 'pw')).toEqual({
-      error: 'Cette adresse e-mail est déjà utilisée.',
+      error: en.errors.emailTaken,
     })
   })
 
-  it('surfaces the API error message when present', async () => {
+  // Le message brut de l'API est en anglais quelle que soit la langue du visiteur :
+  // on affiche celui de ce déploiement plutôt que de le relayer.
+  it('reports a translated failure instead of the raw API message', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 400,
-      json: async () => ({ error: 'Mot de passe trop court' }),
+      json: async () => ({ error: 'Password too short' }),
     })
 
     const { registerAction } = await import('@/lib/auth-actions')
     expect(await registerAction('Ada', 'ada@example.com', 'x')).toEqual({
-      error: 'Mot de passe trop court',
+      error: en.errors.generic,
     })
   })
 
@@ -133,7 +136,7 @@ describe('registerAction', () => {
 
     const { registerAction } = await import('@/lib/auth-actions')
     expect(await registerAction('Ada', 'ada@example.com', 'pw')).toEqual({
-      error: "Une erreur est survenue lors de l'inscription.",
+      error: en.errors.generic,
     })
   })
 })
@@ -168,7 +171,7 @@ describe('adminLoginAction', () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 401, json: async () => ({}) })
 
     const { adminLoginAction } = await import('@/lib/auth-actions')
-    expect(await adminLoginAction('root', 'nope')).toEqual({ error: 'Identifiants incorrects.' })
+    expect(await adminLoginAction('root', 'nope')).toEqual({ error: en.errors.invalidCredentials })
     expect(cookieSet).not.toHaveBeenCalled()
   })
 })
@@ -194,7 +197,9 @@ describe('updateProfileAction', () => {
     cookieGet.mockReturnValue(undefined)
 
     const { updateProfileAction } = await import('@/lib/auth-actions')
-    expect(await updateProfileAction({ name: 'Ada' })).toEqual({ error: 'Non authentifié.' })
+    expect(await updateProfileAction({ name: 'Ada' })).toEqual({
+      error: en.errors.notAuthenticated,
+    })
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
@@ -211,15 +216,45 @@ describe('updateProfileAction', () => {
     expect(init.headers.Authorization).toMatch(/^Bearer /)
   })
 
-  it('surfaces the API error message', async () => {
+  it('maps a 409 to the taken-email message', async () => {
     cookieGet.mockReturnValue({ value: makeToken() })
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ error: 'Email déjà pris' }),
+      status: 409,
+      json: async () => ({ error: 'Email already in use' }),
     })
 
     const { updateProfileAction } = await import('@/lib/auth-actions')
-    expect(await updateProfileAction({ email: 'x@y.z' })).toEqual({ error: 'Email déjà pris' })
+    expect(await updateProfileAction({ email: 'x@y.z' })).toEqual({ error: en.errors.emailTaken })
+  })
+
+  // L'API refuse un changement de mot de passe sans l'actuel : le 401 doit se lire
+  // comme « mot de passe actuel incorrect », pas comme une session perdue.
+  it('maps a 401 to the wrong-current-password message', async () => {
+    cookieGet.mockReturnValue({ value: makeToken() })
+    mockFetch.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: 'Invalid credentials' }),
+    })
+
+    const { updateProfileAction } = await import('@/lib/auth-actions')
+    expect(await updateProfileAction({ password: 'pw', currentPassword: 'nope' })).toEqual({
+      error: en.errors.wrongCurrentPassword,
+    })
+  })
+
+  it('forwards the current password to the API', async () => {
+    cookieGet.mockReturnValue({ value: makeToken() })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) })
+
+    const { updateProfileAction } = await import('@/lib/auth-actions')
+    await updateProfileAction({ password: 'new-one', currentPassword: 'old-one' })
+
+    expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
+      password: 'new-one',
+      currentPassword: 'old-one',
+    })
   })
 
   it('falls back to a generic message when the error body is unreadable', async () => {
@@ -233,7 +268,7 @@ describe('updateProfileAction', () => {
 
     const { updateProfileAction } = await import('@/lib/auth-actions')
     expect(await updateProfileAction({ password: 'pw' })).toEqual({
-      error: 'Erreur lors de la mise à jour.',
+      error: en.errors.updateFailed,
     })
   })
 })

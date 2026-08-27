@@ -147,3 +147,32 @@ describe('config', () => {
     expect(config.matcher).toEqual(['/((?!api|_next/static|_next/image|favicon.ico).*)'])
   })
 })
+
+// Le middleware ne fait que des redirections de confort — le payload n'est pas
+// signé — mais il doit au moins refuser un token périmé.
+describe('admin token expiry', () => {
+  function tokenWithExp(role: string, exp: number) {
+    const body = Buffer.from(JSON.stringify({ sub: 'u1', role, exp })).toString('base64url')
+    return `header.${body}.sig`
+  }
+
+  it('sends an expired admin token back to the login page', () => {
+    const expired = tokenWithExp('admin', Math.floor(Date.now() / 1000) - 10)
+    middleware(makeRequest('/admin/users', { admin: expired }))
+    expect(redirectPath()).toBe('/admin/login')
+  })
+
+  it('lets a live admin token through', () => {
+    const live = tokenWithExp('admin', Math.floor(Date.now() / 1000) + 3600)
+    middleware(makeRequest('/admin/users', { admin: live }))
+    expect(next).toHaveBeenCalled()
+    expect(redirectTo).not.toHaveBeenCalled()
+  })
+
+  it('does not bounce an expired admin token away from the login page', () => {
+    const expired = tokenWithExp('admin', Math.floor(Date.now() / 1000) - 10)
+    middleware(makeRequest('/admin/login', { admin: expired }))
+    expect(next).toHaveBeenCalled()
+    expect(redirectTo).not.toHaveBeenCalled()
+  })
+})

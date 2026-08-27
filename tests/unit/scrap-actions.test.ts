@@ -1,4 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { en } from '@/lib/translations'
+
+// Les messages d'erreur passent par getServerTranslations(), qui lit le cookie de
+// langue : sans ce mock, `cookies()` sort du scope de requête et lève.
+vi.mock('next/headers', () => ({
+  cookies: async () => ({ get: vi.fn() }),
+}))
 
 const getToken = vi.fn()
 vi.mock('@/lib/session', () => ({ getToken: () => getToken() }))
@@ -32,7 +39,7 @@ describe('subscribeScrapAction', () => {
   it('returns an error when unauthenticated', async () => {
     getToken.mockResolvedValue(null)
     const { subscribeScrapAction } = await import('@/lib/scrap-actions')
-    expect(await subscribeScrapAction(7)).toEqual({ error: 'Non authentifié' })
+    expect(await subscribeScrapAction(7)).toEqual({ error: en.errors.notAuthenticated })
     expect(subscribeScrap).not.toHaveBeenCalled()
   })
 
@@ -56,7 +63,7 @@ describe('unsubscribeScrapAction', () => {
   it('returns an error when unauthenticated', async () => {
     getToken.mockResolvedValue(null)
     const { unsubscribeScrapAction } = await import('@/lib/scrap-actions')
-    expect(await unsubscribeScrapAction(9)).toEqual({ error: 'Non authentifié' })
+    expect(await unsubscribeScrapAction(9)).toEqual({ error: en.errors.notAuthenticated })
     expect(unsubscribeScrap).not.toHaveBeenCalled()
   })
 

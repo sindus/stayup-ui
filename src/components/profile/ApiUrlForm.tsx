@@ -14,17 +14,17 @@ export function ApiUrlForm({ currentApiUrl }: { currentApiUrl: string }) {
   const { t } = useLanguage()
   const [value, setValue] = useState(currentApiUrl)
   const [pending, setPending] = useState<'save' | 'reset' | null>(null)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<'invalid' | 'private' | null>(null)
   const [success, setSuccess] = useState(false)
 
   async function handleSave() {
     setPending('save')
-    setError(false)
+    setError(null)
     setSuccess(false)
     const result = await setApiUrlAction(value)
     setPending(null)
     if (result.error) {
-      setError(true)
+      setError(result.error)
     } else {
       setSuccess(true)
       router.refresh()
@@ -33,7 +33,7 @@ export function ApiUrlForm({ currentApiUrl }: { currentApiUrl: string }) {
 
   async function handleReset() {
     setPending('reset')
-    setError(false)
+    setError(null)
     setSuccess(false)
     await resetApiUrlAction()
     setPending(null)
@@ -53,7 +53,11 @@ export function ApiUrlForm({ currentApiUrl }: { currentApiUrl: string }) {
             onChange={(e) => setValue(e.target.value)}
           />
         </div>
-        {error && <p className="text-sm text-destructive">{t.profile.apiUrlInvalid}</p>}
+        {error && (
+          <p className="text-sm text-destructive">
+            {error === 'private' ? t.errors.privateApiUrl : t.profile.apiUrlInvalid}
+          </p>
+        )}
         {success && (
           <p className="text-sm" style={{ color: 'var(--sage)' }}>
             {t.profile.apiUrlSaved}

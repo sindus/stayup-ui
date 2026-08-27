@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { en } from '@/lib/translations'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -44,7 +45,7 @@ describe('adminDeleteUserAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminDeleteUserAction } = await import('@/lib/admin-actions')
-    expect(await adminDeleteUserAction('u1')).toEqual({ error: 'Non authentifié' })
+    expect(await adminDeleteUserAction('u1')).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns the API error message on failure', async () => {
@@ -73,16 +74,20 @@ describe('adminUpdateUserAction', () => {
     getAdminToken.mockResolvedValue(null)
     const { adminUpdateUserAction } = await import('@/lib/admin-actions')
     expect(await adminUpdateUserAction('u1', { name: 'Ada' })).toEqual({
-      error: 'Non authentifié',
+      error: en.errors.notAuthenticated,
     })
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
-  it('surfaces the API error message', async () => {
+  // Le message brut de l'API n'est plus relayé : il est en anglais quelle que soit
+  // la langue du visiteur. On renvoie le message traduit de ce déploiement.
+  it('reports a translated failure instead of the raw API message', async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'Email pris' }) })
 
     const { adminUpdateUserAction } = await import('@/lib/admin-actions')
-    expect(await adminUpdateUserAction('u1', { email: 'x@y.z' })).toEqual({ error: 'Email pris' })
+    expect(await adminUpdateUserAction('u1', { email: 'x@y.z' })).toEqual({
+      error: en.errors.updateFailed,
+    })
     expect(revalidatePath).not.toHaveBeenCalled()
   })
 
@@ -96,7 +101,7 @@ describe('adminUpdateUserAction', () => {
 
     const { adminUpdateUserAction } = await import('@/lib/admin-actions')
     expect(await adminUpdateUserAction('u1', { name: 'x' })).toEqual({
-      error: 'Erreur lors de la mise à jour',
+      error: en.errors.updateFailed,
     })
   })
 })
@@ -112,7 +117,9 @@ describe('adminDeleteUserFluxAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminDeleteUserFluxAction } = await import('@/lib/admin-actions')
-    expect(await adminDeleteUserFluxAction('u1', 'link1')).toEqual({ error: 'Non authentifié' })
+    expect(await adminDeleteUserFluxAction('u1', 'link1')).toEqual({
+      error: en.errors.notAuthenticated,
+    })
   })
 
   it('returns the API error message on failure', async () => {
@@ -133,7 +140,7 @@ describe('adminDeleteRepositoryAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminDeleteRepositoryAction } = await import('@/lib/admin-actions')
-    expect(await adminDeleteRepositoryAction(3)).toEqual({ error: 'Non authentifié' })
+    expect(await adminDeleteRepositoryAction(3)).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns the API error message on failure', async () => {
@@ -154,7 +161,7 @@ describe('adminClearRepositoryDataAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminClearRepositoryDataAction } = await import('@/lib/admin-actions')
-    expect(await adminClearRepositoryDataAction(4)).toEqual({ error: 'Non authentifié' })
+    expect(await adminClearRepositoryDataAction(4)).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns the API error message on failure', async () => {
@@ -177,7 +184,9 @@ describe('adminCreateRepositoryAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminCreateRepositoryAction } = await import('@/lib/admin-actions')
-    expect(await adminCreateRepositoryAction(payload)).toEqual({ error: 'Non authentifié' })
+    expect(await adminCreateRepositoryAction(payload)).toEqual({
+      error: en.errors.notAuthenticated,
+    })
   })
 
   it('returns the API error message on failure', async () => {
@@ -221,7 +230,7 @@ describe('adminRejectScrapRequestAction', () => {
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
     const { adminRejectScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminRejectScrapRequestAction('r1')).toEqual({ error: 'Non authentifié' })
+    expect(await adminRejectScrapRequestAction('r1')).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns the API error message on failure', async () => {
@@ -247,7 +256,7 @@ describe('adminApproveScrapRequestAction', () => {
     getAdminToken.mockResolvedValue(null)
     const { adminApproveScrapRequestAction } = await import('@/lib/admin-actions')
     expect(await adminApproveScrapRequestAction('r1', payload)).toEqual({
-      error: 'Non authentifié',
+      error: en.errors.notAuthenticated,
     })
   })
 

@@ -151,7 +151,7 @@ describe('validateFlux', () => {
     const { validateFlux } = await import('@/lib/api-client')
     const result = await validateFlux('changelog', 'fake/nonexistent-repo-xyz')
     expect(result.valid).toBe(false)
-    expect(result.reason).toContain('GitHub')
+    expect(result.reason).toBe('githubRepoNotFound')
   })
 
   it('returns valid:true for youtube provider without API call', async () => {
@@ -395,5 +395,59 @@ describe('documentation API helpers', () => {
   it('are no longer exported', async () => {
     const mod = await import('@/lib/api-client')
     expect(Object.keys(mod).filter((k) => /Doc/i.test(k))).toEqual([])
+  })
+})
+
+describe('apiFetch — rejeu et cache', () => {
+  it('does not replay a POST that failed with a 500', async () => {
+    // Le serveur a pu traiter la requête avant l'erreur : la rejouer créerait un
+    // doublon d'abonnement.
+    mockFetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) })
+
+    const { addUserRepository } = await import('@/lib/api-client')
+    await expect(
+      addUserRepository('u1', 'token', { provider: 'rss', url: 'https://x.dev', config: {} }),
+    ).rejects.toThrow()
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('replays a GET that failed with a 500', async () => {
+    mockFetch
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) })
+
+    const { getConnectorProviders } = await import('@/lib/api-client')
+    await getConnectorProviders('token')
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('carries the HTTP status on the thrown error', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 409,
+      json: async () => ({ error: 'Already subscribed' }),
+    })
+
+    const { ApiError, subscribeScrap } = await import('@/lib/api-client')
+    await expect(subscribeScrap(1, 'token')).rejects.toMatchObject({
+      status: 409,
+    })
+    expect(ApiError).toBeDefined()
+  })
+
+  it('never sets both cache and next.revalidate on the same request', async () => {
+    // Les deux options s'excluent : les poser ensemble laissait une réponse
+    // `no-store` être revalidée à 60 s.
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ repositories: [], connectors: {} }),
+    })
+
+    const { getUserFeed } = await import('@/lib/api-client')
+    await getUserFeed('u1', 'token')
+
+    const init = mockFetch.mock.calls[0][1]
+    expect(init.cache).toBe('no-store')
+    expect(init.next).toBeUndefined()
   })
 })

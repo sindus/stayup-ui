@@ -1,6 +1,18 @@
 import type { ConnectorItem, ScrapRepository, ScrapRequest } from '@/types'
 import { getApiUrl } from './apiUrl'
 
+/** Erreur d'appel API porteuse du statut HTTP : brancher sur le texte du message
+ *  rendait le code dépendant de la langue et du libellé exact renvoyés par l'API. */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 async function apiFetch<T>(
   path: string,
   token: string,
@@ -9,6 +21,17 @@ async function apiFetch<T>(
 ): Promise<T> {
   const isGet = !init?.method || init.method === 'GET'
   const baseUrl = await getApiUrl()
+
+  // `cache` et `next.revalidate` s'excluent : les poser tous les deux (ce que faisait
+  // le spread de `init` avant celui du cache) laissait une réponse `no-store` être
+  // revalidée à 60 s — un feed figé après l'ajout d'un flux.
+  const cacheOptions: RequestInit =
+    init && ('cache' in init || 'next' in init)
+      ? {}
+      : isGet
+        ? ({ next: { revalidate: 60 } } as RequestInit)
+        : { cache: 'no-store' }
+
   let res: Response
   try {
     res = await fetch(`${baseUrl}${path}`, {
@@ -19,17 +42,21 @@ async function apiFetch<T>(
         ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
         ...init?.headers,
       },
-      ...(isGet ? { next: { revalidate: 60 } } : { cache: 'no-store' }),
+      ...cacheOptions,
     })
   } catch (err) {
-    if (attempt === 0) return apiFetch<T>(path, token, init, 1)
+    // Un POST/DELETE peut avoir été traité avant la coupure : le rejouer créerait
+    // un doublon. Seules les lectures sont réessayées.
+    if (isGet && attempt === 0) return apiFetch<T>(path, token, init, 1)
     throw err
   }
 
   if (!res.ok) {
-    if (res.status >= 500 && attempt === 0) return apiFetch<T>(path, token, init, 1)
+    if (isGet && res.status >= 500 && attempt === 0) {
+      return apiFetch<T>(path, token, init, 1)
+    }
     const body = (await res.json().catch(() => ({}))) as { error?: string }
-    throw new Error(body.error ?? `StayUp API error ${res.status}: ${path}`)
+    throw new ApiError(res.status, body.error ?? `StayUp API error ${res.status}: ${path}`)
   }
   return res.json() as Promise<T>
 }
@@ -224,16 +251,30 @@ export async function validateGithubRepo(identifier: string): Promise<boolean> {
   }
 }
 
+export type FluxValidationError =
+  | 'githubRepoNotFound'
+  | 'invalidRssUrl'
+  | 'invalidScrapUrl'
+  | 'invalidUrl'
+
+function isValidUrl(value: string): boolean {
+  try {
+    new URL(value)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Renvoie une clé de `t.errors` plutôt qu'un message : la traduction se fait au
+ *  point d'affichage, qui seul connaît la langue du visiteur. */
 export async function validateFlux(
   provider: string,
   identifier: string,
-): Promise<{ valid: boolean; reason?: string }> {
+): Promise<{ valid: boolean; reason?: FluxValidationError }> {
   if (provider === 'changelog') {
     const exists = await validateGithubRepo(identifier)
-    if (!exists) {
-      return { valid: false, reason: "Ce dépôt GitHub n'existe pas ou est privé." }
-    }
-    return { valid: true }
+    return exists ? { valid: true } : { valid: false, reason: 'githubRepoNotFound' }
   }
 
   if (provider === 'youtube') {
@@ -241,29 +282,14 @@ export async function validateFlux(
   }
 
   if (provider === 'rss') {
-    try {
-      new URL(identifier)
-      return { valid: true }
-    } catch {
-      return { valid: false, reason: "L'URL du flux RSS n'est pas valide." }
-    }
+    return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidRssUrl' }
   }
 
   if (provider === 'scrap') {
-    try {
-      new URL(identifier)
-      return { valid: true }
-    } catch {
-      return { valid: false, reason: "L'URL de la page à scraper n'est pas valide." }
-    }
+    return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidScrapUrl' }
   }
 
   // Provider inconnu du client (ajouté côté base de données uniquement) : on ne
   // connaît pas sa forme d'identifiant, on exige une URL complète et valide.
-  try {
-    new URL(identifier)
-    return { valid: true }
-  } catch {
-    return { valid: false, reason: "L'URL n'est pas valide." }
-  }
+  return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidUrl' }
 }

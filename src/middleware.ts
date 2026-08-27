@@ -3,6 +3,16 @@ import { NextResponse } from 'next/server'
 import { COOKIE_NAME, ADMIN_COOKIE_NAME } from '@/lib/constants'
 import { decodeJwtPayload } from '@/lib/jwt'
 
+// Redirections de confort uniquement : le payload n'est pas signé, donc `role` n'est
+// pas une preuve. L'accès réel est refermé par app/admin/layout.tsx, qui fait valider
+// le token par l'API.
+function isLiveAdminToken(token: string | undefined): boolean {
+  if (!token) return false
+  const { role, exp } = decodeJwtPayload(token)
+  if (exp !== undefined && exp * 1000 <= Date.now()) return false
+  return role === 'admin'
+}
+
 const PROTECTED_PATHS = ['/feed', '/profile']
 const AUTH_PATHS = ['/login', '/register']
 
@@ -13,14 +23,14 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith('/admin')) {
     if (pathname === '/admin/login') {
-      if (adminToken && decodeJwtPayload(adminToken).role === 'admin') {
+      if (isLiveAdminToken(adminToken)) {
         return NextResponse.redirect(new URL('/admin', request.url))
       }
       return NextResponse.next()
     }
-    if (!adminToken) return NextResponse.redirect(new URL('/admin/login', request.url))
-    const payload = decodeJwtPayload(adminToken)
-    if (payload.role !== 'admin') return NextResponse.redirect(new URL('/admin/login', request.url))
+    if (!isLiveAdminToken(adminToken)) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
     return NextResponse.next()
   }
 

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { getServerTranslations } from './serverLang'
 import { getApiUrl } from './apiUrl'
 import { getAdminToken } from './session'
 import {
@@ -17,7 +18,7 @@ import type { ScrapRequest } from '@/types'
 
 export async function adminDeleteUserAction(userId: string): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await adminDeleteUser(userId, token)
     revalidatePath('/admin/users')
@@ -32,7 +33,7 @@ export async function adminUpdateUserAction(
   data: { name?: string; email?: string; password?: string },
 ): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
 
   const apiUrl = await getApiUrl()
   const res = await fetch(`${apiUrl}/ui/users/${userId}`, {
@@ -46,8 +47,11 @@ export async function adminUpdateUserAction(
   })
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    return { error: body.error ?? 'Erreur lors de la mise à jour' }
+    const t = await getServerTranslations()
+    // Le message de l'API est en anglais quel que soit le visiteur : on branche sur
+    // le statut plutôt que de relayer son texte.
+    if (res.status === 409) return { error: t.errors.emailTaken }
+    return { error: t.errors.updateFailed }
   }
 
   revalidatePath(`/admin/users/${userId}`)
@@ -60,7 +64,7 @@ export async function adminDeleteUserFluxAction(
   linkId: string,
 ): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await deleteUserRepository(userId, linkId, token)
     revalidatePath(`/admin/users/${userId}`)
@@ -72,7 +76,7 @@ export async function adminDeleteUserFluxAction(
 
 export async function adminDeleteRepositoryAction(repoId: number): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await adminDeleteRepository(repoId, token)
     revalidatePath('/admin/repositories')
@@ -84,7 +88,7 @@ export async function adminDeleteRepositoryAction(repoId: number): Promise<{ err
 
 export async function adminClearRepositoryDataAction(repoId: number): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await adminClearRepositoryData(repoId, token)
     revalidatePath('/admin/repositories')
@@ -100,7 +104,7 @@ export async function adminCreateRepositoryAction(data: {
   config: Record<string, unknown>
 }): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await adminCreateRepository(data, token)
     revalidatePath('/admin/repositories')
@@ -120,7 +124,7 @@ export async function adminRejectScrapRequestAction(
   requestId: string,
 ): Promise<{ error?: string }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     await adminRejectScrapRequest(requestId, token)
     revalidatePath('/admin/scrap-requests')
@@ -135,7 +139,7 @@ export async function adminApproveScrapRequestAction(
   data: { url: string; config: Record<string, unknown> },
 ): Promise<{ error?: string; repository_id?: number }> {
   const token = await getAdminToken()
-  if (!token) return { error: 'Non authentifié' }
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
     const result = await adminApproveScrapRequest(requestId, data, token)
     revalidatePath('/admin/scrap-requests')

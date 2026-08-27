@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getApiUrl } from './apiUrl'
+import { getServerTranslations } from './serverLang'
 import { COOKIE_NAME, ADMIN_COOKIE_NAME, decodeToken, getToken } from './session'
 
 // Admin sessions use their own cookie (ADMIN_COOKIE_NAME) so a browser can
@@ -25,6 +26,7 @@ async function setTokenCookie(name: string, token: string) {
 }
 
 export async function loginAction(email: string, password: string): Promise<{ error?: string }> {
+  const t = await getServerTranslations()
   const apiUrl = await getApiUrl()
   const res = await fetch(`${apiUrl}/auth/login`, {
     method: 'POST',
@@ -34,7 +36,7 @@ export async function loginAction(email: string, password: string): Promise<{ er
   })
 
   if (!res.ok) {
-    return { error: 'Identifiants incorrects.' }
+    return { error: t.errors.invalidCredentials }
   }
 
   const { token } = (await res.json()) as { token: string }
@@ -47,6 +49,7 @@ export async function registerAction(
   email: string,
   password: string,
 ): Promise<{ error?: string }> {
+  const t = await getServerTranslations()
   const apiUrl = await getApiUrl()
   const res = await fetch(`${apiUrl}/auth/register`, {
     method: 'POST',
@@ -56,11 +59,8 @@ export async function registerAction(
   })
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    if (res.status === 409) return { error: 'Cette adresse e-mail est déjà utilisée.' }
-    return {
-      error: body.error ?? "Une erreur est survenue lors de l'inscription.",
-    }
+    if (res.status === 409) return { error: t.errors.emailTaken }
+    return { error: t.errors.generic }
   }
 
   const { token } = (await res.json()) as { token: string }
@@ -72,6 +72,7 @@ export async function adminLoginAction(
   username: string,
   password: string,
 ): Promise<{ error?: string }> {
+  const t = await getServerTranslations()
   const apiUrl = await getApiUrl()
   const res = await fetch(`${apiUrl}/auth/login`, {
     method: 'POST',
@@ -81,7 +82,7 @@ export async function adminLoginAction(
   })
 
   if (!res.ok) {
-    return { error: 'Identifiants incorrects.' }
+    return { error: t.errors.invalidCredentials }
   }
 
   const { token } = (await res.json()) as { token: string }
@@ -105,9 +106,11 @@ export async function updateProfileAction(data: {
   name?: string
   email?: string
   password?: string
+  currentPassword?: string
 }): Promise<{ error?: string }> {
+  const t = await getServerTranslations()
   const token = await getToken()
-  if (!token) return { error: 'Non authentifié.' }
+  if (!token) return { error: t.errors.notAuthenticated }
 
   const session = decodeToken(token)
   const apiUrl = await getApiUrl()
@@ -123,8 +126,9 @@ export async function updateProfileAction(data: {
   })
 
   if (!res.ok) {
-    const body = (await res.json().catch(() => ({}))) as { error?: string }
-    return { error: body.error ?? 'Erreur lors de la mise à jour.' }
+    if (res.status === 401) return { error: t.errors.wrongCurrentPassword }
+    if (res.status === 409) return { error: t.errors.emailTaken }
+    return { error: t.errors.updateFailed }
   }
 
   return {}

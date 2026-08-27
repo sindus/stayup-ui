@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { addUserRepository, subscribeScrap, validateFlux } from '@/lib/api-client'
+import { ApiError, addUserRepository, subscribeScrap, validateFlux } from '@/lib/api-client'
+import { getServerTranslations } from '@/lib/serverLang'
 import { COOKIE_NAME, decodeToken } from '@/lib/session'
 import { normalizeIdentifier, toRepositoryUrl } from '@/lib/utils'
 import { z } from 'zod'
@@ -36,7 +37,8 @@ const createFluxSchema = z
 export async function POST(request: Request) {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const t = await getServerTranslations()
+  if (!token) return NextResponse.json({ error: t.errors.notAuthenticated }, { status: 401 })
 
   const session = decodeToken(token)
 
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
   const parsed = createFluxSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Données invalides', details: parsed.error.issues },
+      { error: t.errors.invalidData, details: parsed.error.issues },
       { status: 400 },
     )
   }
@@ -55,11 +57,7 @@ export async function POST(request: Request) {
       await subscribeScrap(parsed.data.scrapRepoId as number, token)
       return NextResponse.json({ success: true }, { status: 201 })
     } catch (err) {
-      const message = (err as Error).message
-      if (message.toLowerCase().includes('already') || message.includes('abonné')) {
-        return NextResponse.json({ error: 'Vous êtes déjà abonné à ce flux.' }, { status: 409 })
-      }
-      return NextResponse.json({ error: message ?? 'Une erreur est survenue.' }, { status: 500 })
+      return NextResponse.json(...toResponse(err, t))
     }
   }
 
@@ -69,7 +67,7 @@ export async function POST(request: Request) {
 
   const { valid, reason } = await validateFlux(provider, identifier)
   if (!valid) {
-    return NextResponse.json({ error: reason }, { status: 404 })
+    return NextResponse.json({ error: t.errors[reason ?? 'invalidUrl'] }, { status: 404 })
   }
 
   const url = toRepositoryUrl(identifier, provider)
@@ -83,10 +81,28 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ flux: { ...repository, identifier } }, { status: 201 })
   } catch (err) {
-    const message = (err as Error).message
-    if (message.includes('abonné')) {
-      return NextResponse.json({ error: message }, { status: 409 })
-    }
-    return NextResponse.json({ error: message ?? 'Une erreur est survenue.' }, { status: 500 })
+    return NextResponse.json(...toResponse(err, t))
   }
+}
+
+// L'API répond en anglais ('Already subscribed') : l'ancien test `message.includes(
+// 'abonné')` ne matchait jamais et renvoyait un 500 avec la phrase brute. On branche
+// sur le statut HTTP, seul contrat stable, et on traduit ici.
+function toResponse(
+  err: unknown,
+  t: Awaited<ReturnType<typeof getServerTranslations>>,
+): [{ error: string }, { status: number }] {
+  const status = err instanceof ApiError ? err.status : 500
+  if (status === 409) {
+    const message = err instanceof ApiError ? err.message : ''
+    return [
+      {
+        error: message.includes('another provider')
+          ? t.errors.urlOtherProvider
+          : t.errors.alreadySubscribed,
+      },
+      { status: 409 },
+    ]
+  }
+  return [{ error: t.errors.generic }, { status: status >= 400 ? status : 500 }]
 }

@@ -160,3 +160,60 @@ describe('getAdminToken', () => {
     expect(mockGet).toHaveBeenCalledWith('stayup_admin_token')
   })
 })
+
+describe('decodeToken — expiration', () => {
+  it('rejects an expired token', async () => {
+    const { decodeToken } = await import('@/lib/session')
+    const expired = makeToken({
+      sub: 'u1',
+      role: 'user',
+      exp: Math.floor(Date.now() / 1000) - 10,
+    })
+    expect(() => decodeToken(expired)).toThrow()
+  })
+
+  it('accepts a token that is still valid', async () => {
+    const { decodeToken } = await import('@/lib/session')
+    const live = makeToken({
+      sub: 'u1',
+      role: 'user',
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    })
+    expect(decodeToken(live).userId).toBe('u1')
+  })
+})
+
+// Le payload d'un token n'est pas signé de ce côté : seule l'API peut dire si un
+// cookie « admin » est authentique. Sans ça, un payload fabriqué ouvrait /admin.
+describe('isAdminTokenValid', () => {
+  const fetchMock = vi.fn()
+
+  beforeEach(() => {
+    fetchMock.mockReset()
+    vi.stubGlobal('fetch', fetchMock)
+  })
+
+  it('accepts a token the API confirms as admin', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ role: 'admin' }) })
+    const { isAdminTokenValid } = await import('@/lib/session')
+    expect(await isAdminTokenValid('whatever')).toBe(true)
+  })
+
+  it('rejects a forged token the API refuses', async () => {
+    fetchMock.mockResolvedValue({ ok: false, json: async () => ({}) })
+    const { isAdminTokenValid } = await import('@/lib/session')
+    expect(await isAdminTokenValid('forged')).toBe(false)
+  })
+
+  it('rejects a valid token that is not admin', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => ({ role: 'user' }) })
+    const { isAdminTokenValid } = await import('@/lib/session')
+    expect(await isAdminTokenValid('user-token')).toBe(false)
+  })
+
+  it('rejects rather than throws when the API is unreachable', async () => {
+    fetchMock.mockRejectedValue(new Error('offline'))
+    const { isAdminTokenValid } = await import('@/lib/session')
+    expect(await isAdminTokenValid('any')).toBe(false)
+  })
+})

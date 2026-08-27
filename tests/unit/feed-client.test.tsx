@@ -26,7 +26,6 @@ function item(id: number): TaggedItem {
       id,
       repository_id: 1,
       content: `release ${id}`,
-      diff: null,
       datetime: `2026-03-0${id}T10:00:00Z`,
       executed_at: `2026-03-0${id}T11:00:00Z`,
       success: true,
