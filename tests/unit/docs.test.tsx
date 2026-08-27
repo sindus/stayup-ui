@@ -114,6 +114,31 @@ describe('documentation dictionaries', () => {
     }
   })
 
+  // La doc doit décrire l'architecture — une API au-dessus de providers quelconques —
+  // et non le catalogue que l'instance de référence fait tourner. Les quatre
+  // collecteurs actuels ne sont qu'un exemple parmi d'autres, et d'autres viendront.
+  it('describes the architecture, not the reference instance’s catalogue', () => {
+    const NAMES = /YouTube|GitHub|\bRSS\b|changelog/i
+    for (const lang of LANGUAGES) {
+      const doc = getDoc(lang)
+
+      // La page de concept ne nomme aucun provider : sinon on lit « StayUp, c'est
+      // ces quatre-là » au lieu de « StayUp accepte n'importe lequel ».
+      expect(JSON.stringify(doc.home), `${lang} — index`).not.toMatch(NAMES)
+
+      // Idem pour l'auto-hébergement, à ceci près que l'OAuth GitHub y est
+      // légitime : c'est un fournisseur d'identité, pas une source de contenu.
+      const selfHosting = JSON.stringify(doc.selfHosting).replace(/[^"]*Google[^"]*/g, '')
+      const oauthOnly = selfHosting.match(NAMES) ?? []
+      expect(oauthOnly.length, `${lang} — self-hosting`).toBeLessThanOrEqual(1)
+
+      // La page providers peut renvoyer une fois vers un collecteur existant
+      // comme exemple à lire — pas en dresser la liste.
+      const mentions = JSON.stringify(doc.providers).match(new RegExp(NAMES, 'gi')) ?? []
+      expect(mentions.length, `${lang} — providers: ${mentions.join(', ')}`).toBeLessThanOrEqual(1)
+    }
+  })
+
   // Le reproche fait à l'ancienne page : elle mélangeait deux publics et ouvrait
   // sur du SQL. Chaque parcours doit désormais tenir seul, et le contrat technique
   // rester cantonné à la page des providers.

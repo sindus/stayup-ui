@@ -20,16 +20,17 @@ export const pt: DocContent = {
     concept: {
       heading: 'A ideia, em quatro frases',
       points: [
-        'O StayUp mostra o conteúdo novo das fontes que você acompanha — os lançamentos de um projeto no GitHub, um canal do YouTube, um feed RSS, uma página web.',
-        'Um provedor é um pequeno programa que busca um tipo de fonte e escreve o que encontra em um banco PostgreSQL.',
-        'A API do StayUp lê esse banco e o serve aos aplicativos. Ela não sabe nada sobre YouTube nem RSS: apenas relata o que o banco contém.',
-        'Os aplicativos — web, desktop, celular — leem a API. Cada um pode apontar para qualquer instância e, portanto, para qualquer banco.',
+        'O StayUp mostra o conteúdo novo das fontes que você acompanha. O que conta como fonte não é fixo: é o que algum provedor souber buscar.',
+        'Um provedor é um pequeno programa que busca um tipo de fonte e escreve o que encontra em um banco PostgreSQL. Cobrir um novo tipo de fonte é escrever um provedor; nada mais muda no StayUp.',
+        'A API do StayUp lê esse banco e o serve aos aplicativos. Ela não fixa nenhum tipo de fonte no código: a cada requisição pergunta ao banco quais provedores existem naquele momento.',
+        'Os aplicativos leem a API. Cada um pode apontar para qualquer instância e, portanto, para qualquer banco — e cada um sabe exibir um provedor de que nunca ouviu falar.',
       ],
-      note: 'É todo o desenho. O resto é detalhe.',
+      note: 'O conjunto de fontes é aberto por construção. Uma instância mostra exatamente os provedores que rodam contra o seu banco: nenhuma lista embutida, nada a registrar.',
       diagram: {
         title: 'De uma fonte até a sua tela',
         sources: 'Fontes externas',
-        sourcesItems: 'um repo do GitHub · um canal do YouTube · um feed RSS · uma página web',
+        sourcesItems:
+          'um feed de podcast · um tópico de fórum · uma página de status · qualquer coisa que um programa consiga ler',
         providers: 'Provedores',
         providersSub: 'um programa pequeno por tipo de fonte',
         database: 'PostgreSQL',
@@ -190,16 +191,16 @@ export const pt: DocContent = {
     },
     eyebrow: 'Provedores',
     title: 'Conectar uma nova fonte',
-    lede: 'Um provedor é um programa que busca um tipo de fonte e guarda o que encontra. Nada mais no StayUp precisa mudar para que ele apareça.',
+    lede: 'Um provedor é um programa que busca um tipo de fonte e guarda o que encontra. É a única coisa que você escreve para estender o StayUp: a API e os três aplicativos o reconhecem sozinhos.',
 
     what: {
       heading: 'O que um provedor realmente é',
       body: 'Não é um plugin nem um módulo a registrar: um programa comum, na linguagem que você quiser, executado de forma agendada. Ele lê a lista de fontes destinadas a ele, busca cada uma, guarda o que é novo e escreve no banco. A API o reconhece sozinha e os três aplicativos o exibem, sem que uma linha de código mude em lugar nenhum.',
       note: 'Um provedor nunca chama a API do StayUp. Ele fala com o PostgreSQL, e só com o PostgreSQL.',
       diagram: {
-        title: 'Um provedor RSS, passo a passo',
+        title: 'Um provedor, passo a passo',
         sources: 'Suas fontes, lidas do banco',
-        sourcesItems: 'example.com/feed.xml · another.com/rss · news.com/feed',
+        sourcesItems: 'os feeds de podcast que este provedor foi incumbido de acompanhar',
         fetch: 'Buscar cada feed',
         compare: 'Guardar só o que não estava lá',
         store: 'Escrever no PostgreSQL',
@@ -224,8 +225,8 @@ export const pt: DocContent = {
     },
 
     existing: {
-      heading: 'Reaproveite um antes de escrever o seu',
-      body: 'Já existem quatro provedores: lançamentos do GitHub, YouTube, RSS e a raspagem de uma página web simples. Cada um é um repositório pequeno e independente que você pode apontar para o seu próprio banco, e cada um é um exemplo que funciona. O de RSS é o mais curto; leia-o junto com esta página.',
+      heading: 'Exemplos para ler',
+      body: 'Já existem alguns provedores como repositórios independentes. São os que a instância de referência por acaso roda, não uma definição do que o StayUp cobre. Leia um como exemplo funcionando do contrato abaixo, e aponte-o para o seu próprio banco se ele lhe servir. O de RSS é o mais curto.',
     },
 
     creating: {

@@ -20,16 +20,17 @@ export const fr: DocContent = {
     concept: {
       heading: 'L’idée, en quatre phrases',
       points: [
-        'StayUp t’affiche le contenu nouveau des sources que tu suis — les releases d’un projet GitHub, une chaîne YouTube, un flux RSS, une page web.',
-        'Un provider est un petit programme qui va chercher un type de source, et écrit ce qu’il trouve dans une base PostgreSQL.',
-        'L’API StayUp lit cette base et la sert aux applications. Elle ne connaît ni YouTube ni RSS : elle rapporte simplement ce que la base contient.',
-        'Les applications — web, desktop, mobile — lisent l’API. Chacune peut pointer vers n’importe quelle instance, donc vers n’importe quelle base.',
+        'StayUp t’affiche le contenu nouveau des sources que tu suis. Ce qui compte comme source n’est pas figé : c’est ce qu’un provider sait aller chercher.',
+        'Un provider est un petit programme qui va chercher un type de source et écrit ce qu’il trouve dans une base PostgreSQL. Couvrir un nouveau type de source, c’est écrire un provider ; rien d’autre ne change dans StayUp.',
+        'L’API StayUp lit cette base et la sert aux applications. Elle ne code aucun type de source en dur : à chaque requête, elle demande à la base quels providers existent à cet instant.',
+        'Les applications lisent l’API. Chacune peut pointer vers n’importe quelle instance, donc vers n’importe quelle base — et chacune sait afficher un provider dont elle n’a jamais entendu parler.',
       ],
-      note: 'C’est toute la conception. Tout ce qui suit n’est que du détail.',
+      note: 'L’ensemble des sources est ouvert par construction. Une instance affiche exactement les providers qui tournent sur sa base — aucune liste intégrée, rien à déclarer.',
       diagram: {
         title: 'D’une source jusqu’à ton écran',
         sources: 'Sources externes',
-        sourcesItems: 'un dépôt GitHub · une chaîne YouTube · un flux RSS · une page web',
+        sourcesItems:
+          'un flux de podcast · un fil de forum · une page de statut · tout ce qu’un programme sait lire',
         providers: 'Providers',
         providersSub: 'un petit programme par type de source',
         database: 'PostgreSQL',
@@ -190,16 +191,16 @@ export const fr: DocContent = {
     },
     eyebrow: 'Providers',
     title: 'Brancher une nouvelle source',
-    lede: 'Un provider est un programme qui va chercher un type de source et stocke ce qu’il trouve. Rien d’autre dans StayUp n’a besoin de changer pour qu’il apparaisse.',
+    lede: 'Un provider est un programme qui va chercher un type de source et stocke ce qu’il trouve. C’est la seule chose que tu écris pour étendre StayUp — l’API et les trois applications le récupèrent toutes seules.',
 
     what: {
       heading: 'Ce qu’est vraiment un provider',
       body: 'Ni un plugin, ni un module à enregistrer : un programme ordinaire, dans le langage que tu veux, lancé à intervalle régulier. Il lit la liste des sources qui lui sont destinées, va chercher chacune d’elles, garde ce qui est nouveau, et l’écrit dans la base. L’API le récupère toute seule, et les trois applications l’affichent — sans qu’une ligne de code change nulle part.',
       note: 'Un provider n’appelle jamais l’API StayUp. Il parle à PostgreSQL, et à PostgreSQL uniquement.',
       diagram: {
-        title: 'Un provider RSS, étape par étape',
+        title: 'Un provider, étape par étape',
         sources: 'Ses sources, lues dans la base',
-        sourcesItems: 'example.com/feed.xml · another.com/rss · news.com/feed',
+        sourcesItems: 'les flux de podcast que ce provider a pour mission de suivre',
         fetch: 'Récupérer chaque flux',
         compare: 'Ne garder que ce qui n’y était pas',
         store: 'Écrire dans PostgreSQL',
@@ -224,8 +225,8 @@ export const fr: DocContent = {
     },
 
     existing: {
-      heading: 'En réutiliser un avant d’en écrire un',
-      body: 'Quatre providers existent déjà — les releases GitHub, YouTube, RSS, et le scraping d’une simple page web. Chacun est un petit dépôt autonome que tu peux faire pointer vers ta propre base, et chacun est un exemple qui marche. Celui du RSS est le plus court : lis-le en parallèle de cette page.',
+      heading: 'Des exemples à lire',
+      body: 'Quelques providers existent déjà sous forme de dépôts autonomes. Ce sont ceux que l’instance de référence fait tourner — pas une définition de ce que StayUp couvre. Lis-en un comme exemple concret du contrat ci-dessous, et fais-le pointer vers ta propre base s’il te convient. Celui du RSS est le plus court.',
     },
 
     creating: {

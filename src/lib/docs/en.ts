@@ -26,16 +26,17 @@ export const en = {
     concept: {
       heading: 'The idea, in four sentences',
       points: [
-        'StayUp shows you new content from the sources you follow — a GitHub project’s releases, a YouTube channel, an RSS feed, a web page.',
-        'A provider is a small program that goes and fetches one kind of source, and writes what it finds into a PostgreSQL database.',
-        'The StayUp API reads that database and serves it to the apps. It knows nothing about YouTube or RSS: it simply reports what the database contains.',
-        'The apps — web, desktop, mobile — read the API. Each can be pointed at any API instance, so at any database.',
+        'StayUp shows you new content from the sources you follow. What counts as a source is not fixed — it is whatever some provider knows how to fetch.',
+        'A provider is a small program that fetches one kind of source and writes what it finds into a PostgreSQL database. Covering a new kind of source means writing a provider; nothing else in StayUp changes.',
+        'The StayUp API reads that database and serves it to the apps. It hardcodes no kind of source: on each request it asks the database which providers exist right now.',
+        'The apps read the API. Each can be pointed at any instance, so at any database — and each can display a provider it has never heard of.',
       ],
-      note: 'That is the whole design. Everything below is detail.',
+      note: 'The set of sources is open by construction. An instance shows exactly the providers that run against its database — no built-in list, nothing to register.',
       diagram: {
         title: 'From a source to your screen',
         sources: 'External sources',
-        sourcesItems: 'a GitHub repo · a YouTube channel · an RSS feed · a web page',
+        sourcesItems:
+          'a podcast feed · a forum thread · a status page · anything a program can read',
         providers: 'Providers',
         providersSub: 'one small program per kind of source',
         database: 'PostgreSQL',
@@ -195,16 +196,16 @@ export const en = {
     },
     eyebrow: 'Providers',
     title: 'Plug in a new source',
-    lede: 'A provider is a program that fetches one kind of source and stores what it finds. Nothing else in StayUp needs to change for it to show up.',
+    lede: 'A provider is a program that fetches one kind of source and stores what it finds. It is the only thing you write to extend StayUp — the API and the three apps pick it up on their own.',
 
     what: {
       heading: 'What a provider actually is',
       body: 'Not a plugin, not a module to register: an ordinary program, in any language, run on a schedule. It reads the list of sources meant for it, fetches each one, keeps what is new, and writes it to the database. The API picks it up on its own, and the three apps display it — without a line of code changing anywhere.',
       note: 'A provider never calls the StayUp API. It talks to PostgreSQL, and only to PostgreSQL.',
       diagram: {
-        title: 'An RSS provider, step by step',
+        title: 'A provider, step by step',
         sources: 'Its sources, read from the database',
-        sourcesItems: 'example.com/feed.xml · another.com/rss · news.com/feed',
+        sourcesItems: 'the podcast feeds this provider was told to track',
         fetch: 'Fetch each feed',
         compare: 'Keep only what was not there before',
         store: 'Write to PostgreSQL',
@@ -229,8 +230,8 @@ export const en = {
     },
 
     existing: {
-      heading: 'Reuse one before writing one',
-      body: 'Four providers already exist — GitHub releases, YouTube, RSS, and scraping a plain web page. Each is a small standalone repository you can point at your own database, and each is a working example. The RSS one is the shortest; read it alongside this page.',
+      heading: 'Worked examples to read',
+      body: 'A handful of providers already exist as standalone repositories. They are what the reference instance happens to run — not a definition of what StayUp covers. Read one as a working example of the contract below, and point it at your own database if it happens to suit you. The RSS one is the shortest.',
     },
 
     creating: {

@@ -20,16 +20,17 @@ export const es: DocContent = {
     concept: {
       heading: 'La idea, en cuatro frases',
       points: [
-        'StayUp te muestra el contenido nuevo de las fuentes que sigues: las publicaciones de un proyecto de GitHub, un canal de YouTube, un feed RSS, una página web.',
-        'Un proveedor es un pequeño programa que va a buscar un tipo de fuente y escribe lo que encuentra en una base de datos PostgreSQL.',
-        'La API de StayUp lee esa base y se la sirve a las aplicaciones. No sabe nada de YouTube ni de RSS: simplemente informa de lo que hay en la base.',
-        'Las aplicaciones — web, escritorio, móvil — leen la API. Cada una puede apuntar a cualquier instancia y, por tanto, a cualquier base de datos.',
+        'StayUp te muestra el contenido nuevo de las fuentes que sigues. Lo que cuenta como fuente no está fijado: es lo que algún proveedor sepa ir a buscar.',
+        'Un proveedor es un pequeño programa que busca un tipo de fuente y escribe lo que encuentra en una base de datos PostgreSQL. Cubrir un tipo nuevo de fuente es escribir un proveedor; nada más cambia en StayUp.',
+        'La API de StayUp lee esa base y se la sirve a las aplicaciones. No fija ningún tipo de fuente en el código: en cada petición pregunta a la base qué proveedores existen en ese momento.',
+        'Las aplicaciones leen la API. Cada una puede apuntar a cualquier instancia y, por tanto, a cualquier base — y cada una sabe mostrar un proveedor del que nunca ha oído hablar.',
       ],
-      note: 'Ese es todo el diseño. Lo demás son detalles.',
+      note: 'El conjunto de fuentes es abierto por construcción. Una instancia muestra exactamente los proveedores que se ejecutan contra su base: ninguna lista integrada, nada que registrar.',
       diagram: {
         title: 'De una fuente hasta tu pantalla',
         sources: 'Fuentes externas',
-        sourcesItems: 'un repo de GitHub · un canal de YouTube · un feed RSS · una página web',
+        sourcesItems:
+          'un feed de podcast · un hilo de foro · una página de estado · cualquier cosa que un programa pueda leer',
         providers: 'Proveedores',
         providersSub: 'un programa pequeño por tipo de fuente',
         database: 'PostgreSQL',
@@ -190,16 +191,16 @@ export const es: DocContent = {
     },
     eyebrow: 'Proveedores',
     title: 'Conectar una nueva fuente',
-    lede: 'Un proveedor es un programa que busca un tipo de fuente y guarda lo que encuentra. Nada más en StayUp necesita cambiar para que aparezca.',
+    lede: 'Un proveedor es un programa que busca un tipo de fuente y guarda lo que encuentra. Es lo único que escribes para extender StayUp: la API y las tres aplicaciones lo recogen solas.',
 
     what: {
       heading: 'Qué es realmente un proveedor',
       body: 'Ni un plugin ni un módulo que registrar: un programa corriente, en el lenguaje que quieras, ejecutado de forma programada. Lee la lista de fuentes que le corresponden, consulta cada una, se queda con lo nuevo y lo escribe en la base de datos. La API lo recoge sola y las tres aplicaciones lo muestran, sin que cambie una línea de código en ningún sitio.',
       note: 'Un proveedor nunca llama a la API de StayUp. Habla con PostgreSQL, y solo con PostgreSQL.',
       diagram: {
-        title: 'Un proveedor RSS, paso a paso',
+        title: 'Un proveedor, paso a paso',
         sources: 'Sus fuentes, leídas de la base',
-        sourcesItems: 'example.com/feed.xml · another.com/rss · news.com/feed',
+        sourcesItems: 'los feeds de podcast que este proveedor tiene encargado seguir',
         fetch: 'Consultar cada feed',
         compare: 'Quedarse solo con lo que no estaba',
         store: 'Escribir en PostgreSQL',
@@ -224,8 +225,8 @@ export const es: DocContent = {
     },
 
     existing: {
-      heading: 'Reutilizar uno antes de escribir el tuyo',
-      body: 'Ya existen cuatro proveedores: publicaciones de GitHub, YouTube, RSS y el raspado de una página web sencilla. Cada uno es un repositorio pequeño e independiente que puedes apuntar a tu propia base, y cada uno es un ejemplo que funciona. El de RSS es el más corto; léelo junto a esta página.',
+      heading: 'Ejemplos que puedes leer',
+      body: 'Ya existen unos cuantos proveedores como repositorios independientes. Son los que la instancia de referencia ejecuta, no una definición de lo que StayUp cubre. Lee uno como ejemplo funcionando del contrato de abajo, y apúntalo a tu propia base si te encaja. El de RSS es el más corto.',
     },
 
     creating: {
