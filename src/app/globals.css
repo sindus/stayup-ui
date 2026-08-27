@@ -317,3 +317,17 @@
   color: var(--peach);
   border-bottom: 1px solid var(--peach-mid);
 }
+
+/* Sélecteur de langue. Le déclencheur reste transparent pour se fondre dans
+   l'en-tête, mais forcer un fond sur un <select> fait perdre au navigateur sa
+   palette sombre pour la liste déroulante : elle retombait en blanc, et les
+   libellés — clairs, hérités de la page — devenaient illisibles. On peint donc
+   les <option> explicitement. */
+.language-select {
+  background-color: transparent;
+  color: var(--fg);
+}
+.language-select option {
+  background-color: var(--surface);
+  color: var(--fg);
+}

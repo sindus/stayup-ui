@@ -22,7 +22,7 @@ export function LanguageSwitcher() {
       value={lang}
       onChange={(e) => setLang(e.target.value as Language)}
       aria-label={t.common.language}
-      className="bg-transparent text-sm leading-none px-1 py-0.5 rounded opacity-65 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      className="language-select text-sm leading-none px-1 py-0.5 rounded opacity-65 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
     >
       {(Object.keys(LANGUAGE_LABELS) as Language[]).map((code) => (
         <option key={code} value={code}>
