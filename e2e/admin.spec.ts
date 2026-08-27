@@ -13,7 +13,7 @@ test.describe('Admin login page', () => {
     await page.getByLabel('Identifiant').fill('wrongadmin')
     await page.getByLabel('Mot de passe').fill('wrongpassword')
     await page.getByRole('button', { name: /se connecter/i }).click()
-    await expect(page.getByText(/identifiants incorrects/i)).toBeVisible()
+    await expect(page.getByText(/mot de passe incorrect/i)).toBeVisible()
   })
 
   test('validates required fields', async ({ page }) => {

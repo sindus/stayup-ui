@@ -11,6 +11,7 @@ export const de: Translations = {
     header: {
       signIn: 'Anmelden',
       features: 'Funktionen',
+      docs: 'Doku',
       download: 'Download',
       getStarted: 'Loslegen',
     },

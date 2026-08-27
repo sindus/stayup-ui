@@ -31,9 +31,12 @@ describe('translation dictionaries', () => {
     }
   })
 
-  it('no longer exposes documentation keys', () => {
-    const paths = Object.values(dictionaries).flatMap((dict) => keyPaths(dict))
-    expect(paths.filter((p) => /doc/i.test(p))).toEqual([])
+  // Le lien « Docs » a été rétabli quand la page d'auto-hébergement est arrivée :
+  // ce test vérifiait son absence, il vérifie maintenant sa présence partout.
+  it('exposes the documentation link in every language', () => {
+    for (const [lang, dict] of Object.entries(dictionaries)) {
+      expect(dict.landing.header.docs, lang).toBeTruthy()
+    }
   })
 
   it('lists only the four supported feed providers', () => {

@@ -11,6 +11,7 @@ export const ja: Translations = {
     header: {
       signIn: 'サインイン',
       features: '機能',
+      docs: 'ドキュメント',
       download: 'ダウンロード',
       getStarted: 'はじめる',
     },

@@ -10,6 +10,7 @@ export const zh: Translations = {
     header: {
       signIn: '登录',
       features: '功能',
+      docs: '文档',
       download: '下载',
       getStarted: '开始使用',
     },

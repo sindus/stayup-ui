@@ -115,9 +115,9 @@ describe('LandingHeader', () => {
     expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '#download')
   })
 
-  it('no longer links to the documentation', () => {
+  it('links to the self-hosting documentation', () => {
     renderWithLang(<LandingHeader />)
-    expect(screen.queryByRole('link', { name: 'Docs' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs/self-hosting')
   })
 
   it('exposes the sign-in and start links', () => {

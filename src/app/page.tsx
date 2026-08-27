@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { HeroSection } from '@/components/landing/HeroSection'
 import { FeaturesSection } from '@/components/landing/FeaturesSection'
 import { DownloadSection } from '@/components/landing/DownloadSection'
@@ -59,6 +60,9 @@ export default async function LandingPage() {
             <a href="#download" className="hover:text-fg transition-colors">
               {t.landing.header.download}
             </a>
+            <Link href="/docs/self-hosting" className="hover:text-fg transition-colors">
+              {t.landing.header.docs}
+            </Link>
           </nav>
         </div>
       </footer>

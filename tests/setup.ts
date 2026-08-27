@@ -26,6 +26,22 @@ if (!globalThis.ResizeObserver) {
   }
 }
 
+// jsdom ships no IntersectionObserver, which the documentation's table of contents
+// uses to highlight the section currently under the header.
+if (!globalThis.IntersectionObserver) {
+  globalThis.IntersectionObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return []
+    }
+    root = null
+    rootMargin = ''
+    thresholds = []
+  } as unknown as typeof IntersectionObserver
+}
+
 // jsdom does not implement the Blob URL APIs used by the feed export button.
 if (!URL.createObjectURL) {
   URL.createObjectURL = vi.fn(() => 'blob:mock')

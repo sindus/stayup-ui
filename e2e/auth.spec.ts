@@ -15,7 +15,7 @@ test.describe('Authentication', () => {
     await page.getByLabel('E-mail').fill('wrong@example.com')
     await page.getByLabel('Mot de passe').fill('wrongpassword')
     await page.getByRole('button', { name: /se connecter/i }).click()
-    await expect(page.getByText(/identifiants incorrects/i)).toBeVisible()
+    await expect(page.getByText(/mot de passe incorrect/i)).toBeVisible()
   })
 
   test('register page shows all fields', async ({ page }) => {

@@ -9,6 +9,7 @@ export const en = {
     header: {
       signIn: 'Sign in',
       features: 'Features',
+      docs: 'Docs',
       download: 'Download',
       getStarted: 'Get started',
     },

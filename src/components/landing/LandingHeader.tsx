@@ -22,6 +22,7 @@ export function LandingHeader() {
   const navLinks = [
     { label: t.landing.header.features, href: '#features' },
     { label: t.landing.header.download, href: '#download' },
+    { label: t.landing.header.docs, href: '/docs/self-hosting' },
     { label: 'Changelog', href: 'https://github.com/stayup-app/stayup-desktop/releases' },
     { label: 'GitHub', href: 'https://github.com/stayup-app' },
   ]
