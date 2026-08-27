@@ -1,14 +1,14 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { act, cleanup, render, screen, fireEvent } from '@testing-library/react'
-import { getSelfHostingDoc } from '@/lib/docs/selfHosting'
-import { en } from '@/lib/docs/selfHosting/en'
+import { getDoc } from '@/lib/docs'
+import { en } from '@/lib/docs/en'
 import {
   CHECKLIST_CODE,
   ENV_VARS,
   NAMING_ROWS,
   OPTIONAL_COLUMNS,
   SNIPPETS,
-} from '@/lib/docs/selfHosting/shared'
+} from '@/lib/docs/shared'
 import { DocChecklist, DocNav, DocTabs } from '@/components/docs/DocShell'
 import {
   DiagramArrow,
@@ -43,10 +43,10 @@ function stringPaths(value: unknown, prefix = ''): [string, string][] {
   return []
 }
 
-describe('self-hosting doc dictionaries', () => {
+describe('documentation dictionaries', () => {
   it('covers every supported language', () => {
     for (const lang of LANGUAGES) {
-      expect(getSelfHostingDoc(lang), lang).toBeTruthy()
+      expect(getDoc(lang), lang).toBeTruthy()
     }
   })
 
@@ -54,7 +54,7 @@ describe('self-hosting doc dictionaries', () => {
     const reference = stringPaths(en).map(([path]) => path)
     for (const lang of LANGUAGES) {
       expect(
-        stringPaths(getSelfHostingDoc(lang)).map(([p]) => p),
+        stringPaths(getDoc(lang)).map(([p]) => p),
         lang,
       ).toEqual(reference)
     }
@@ -62,7 +62,7 @@ describe('self-hosting doc dictionaries', () => {
 
   it('leaves no empty string anywhere', () => {
     for (const lang of LANGUAGES) {
-      const empty = stringPaths(getSelfHostingDoc(lang))
+      const empty = stringPaths(getDoc(lang))
         .filter(([, value]) => value.trim() === '')
         .map(([path]) => path)
       expect(empty, lang).toEqual([])
@@ -72,9 +72,18 @@ describe('self-hosting doc dictionaries', () => {
   // Une traduction laissée à l'identique de l'anglais est presque toujours un oubli.
   // Les seules exceptions légitimes sont les noms propres et les mots partagés.
   it('actually translates the prose away from English', () => {
-    const SHARED = new Set(['eyebrow', 'overview.diagram.database', 'overview.diagram.api'])
+    // Noms propres et termes partagés : identiques d'une langue à l'autre.
+    const SHARED = new Set([
+      'home.concept.diagram.database',
+      'home.concept.diagram.api',
+      'home.concept.diagram.sourcesItems',
+      'home.concept.diagram.apps',
+      'selfHosting.pieces.database',
+      'selfHosting.pieces.api',
+      'providers.what.diagram.sourcesItems',
+    ])
     for (const lang of LANGUAGES.filter((l) => l !== 'en')) {
-      const doc = getSelfHostingDoc(lang)
+      const doc = getDoc(lang)
       const untranslated = stringPaths(doc).filter(([path, value]) => {
         if (SHARED.has(path)) return false
         const english = stringPaths(en).find(([p]) => p === path)?.[1]
@@ -89,17 +98,37 @@ describe('self-hosting doc dictionaries', () => {
 
   it('keeps the deployment tab labels aligned with the snippets', () => {
     for (const lang of LANGUAGES) {
-      expect(getSelfHostingDoc(lang).part1.deploy.tabs, lang).toHaveLength(3)
+      expect(getDoc(lang).selfHosting.deploy.tabs, lang).toHaveLength(3)
     }
   })
 
   it('matches the shared tables row for row', () => {
     for (const lang of LANGUAGES) {
-      const doc = getSelfHostingDoc(lang)
-      expect(doc.part1.env.descriptions, lang).toHaveLength(ENV_VARS.length)
-      expect(doc.part2.naming.rows, lang).toHaveLength(NAMING_ROWS.length)
-      expect(doc.part2.tables.optionalDescriptions, lang).toHaveLength(OPTIONAL_COLUMNS.length)
-      expect(doc.part2.checklist.items, lang).toHaveLength(CHECKLIST_CODE.length)
+      const doc = getDoc(lang)
+      expect(doc.selfHosting.env.descriptions, lang).toHaveLength(ENV_VARS.length)
+      expect(doc.providers.creating.naming.rows, lang).toHaveLength(NAMING_ROWS.length)
+      expect(doc.providers.contract.optionalDescriptions, lang).toHaveLength(
+        OPTIONAL_COLUMNS.length,
+      )
+      expect(doc.providers.contract.checklist.items, lang).toHaveLength(CHECKLIST_CODE.length)
+    }
+  })
+
+  // Le reproche fait à l'ancienne page : elle mélangeait deux publics et ouvrait
+  // sur du SQL. Chaque parcours doit désormais tenir seul, et le contrat technique
+  // rester cantonné à la page des providers.
+  it('keeps the two journeys separate', () => {
+    for (const lang of LANGUAGES) {
+      const doc = getDoc(lang)
+      const selfHostingText = JSON.stringify(doc.selfHosting)
+      // Le contrat de provider n'a rien à faire ici. Mentionner le schéma reste
+      // légitime : c'est ce qui explique qu'on peut le rejouer sans risque.
+      for (const table of ['connector_', 'provider_registry']) {
+        expect(selfHostingText, `${lang} — ${table} hors de la page providers`).not.toContain(table)
+      }
+      // L'index n'explique que le concept : il ne doit pas non plus verser dans
+      // les détails d'implémentation.
+      expect(JSON.stringify(doc.home), lang).not.toContain('connector_')
     }
   })
 })

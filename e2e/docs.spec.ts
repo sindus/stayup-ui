@@ -1,22 +1,51 @@
 import { test, expect } from '@playwright/test'
 
 // La configuration Playwright épingle le cookie de langue sur le français.
-test.describe('Self-hosting documentation', () => {
+
+test.describe('Documentation index', () => {
+  test('opens on the concept, not on implementation details', async ({ page }) => {
+    await page.goto('/docs')
+
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    // Le reproche fait à l'ancienne page : elle ouvrait sur du SQL.
+    await expect(page.getByText('CREATE TABLE')).toHaveCount(0)
+    await expect(page.getByText('connector_')).toHaveCount(0)
+  })
+
+  test('routes to each of the two journeys', async ({ page }) => {
+    await page.goto('/docs')
+    await page
+      .locator('main')
+      .getByRole('link', { name: /self-hosting|héberg/i })
+      .first()
+      .click()
+    await expect(page).toHaveURL('/docs/self-hosting')
+
+    await page.goto('/docs')
+    await page
+      .locator('main')
+      .getByRole('link', { name: /provider/i })
+      .first()
+      .click()
+    await expect(page).toHaveURL('/docs/providers')
+  })
+
+  test('is what the header Docs link points at', async ({ page }) => {
+    await page.goto('/')
+    await page.getByRole('banner').getByRole('link', { name: 'Docs' }).click()
+    await expect(page).toHaveURL('/docs')
+  })
+})
+
+test.describe('Self-hosting page', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/docs/self-hosting')
   })
 
-  test('renders the page in the visitor language', async ({ page }) => {
-    await expect(
-      page.getByRole('heading', { level: 1, name: /auto-héberger stayup/i }),
-    ).toBeVisible()
-    await expect(page.getByText(/les instances ne se coordonnent pas/i)).toBeVisible()
-  })
-
-  test('shows SQL untranslated', async ({ page }) => {
-    await expect(
-      page.getByText('CREATE TABLE IF NOT EXISTS provider_registry').first(),
-    ).toBeVisible()
+  test('stays clear of the provider contract', async ({ page }) => {
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.getByText('connector_')).toHaveCount(0)
+    await expect(page.getByText('provider_registry')).toHaveCount(0)
   })
 
   test('switches deployment tabs', async ({ page }) => {
@@ -28,6 +57,34 @@ test.describe('Self-hosting documentation', () => {
     await expect(page.getByText('docker compose up -d db api')).not.toBeVisible()
   })
 
+  test('leads back to the documentation index', async ({ page }) => {
+    await page.locator('main').getByRole('link', { name: /^←/ }).click()
+    await expect(page).toHaveURL('/docs')
+  })
+})
+
+test.describe('Providers page', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/docs/providers')
+  })
+
+  test('explains the idea before the SQL', async ({ page }) => {
+    const body = await page.locator('main').innerText()
+    const conceptAt = body.indexOf('PostgreSQL')
+    const sqlAt = body.indexOf('CREATE TABLE')
+
+    expect(conceptAt).toBeGreaterThan(-1)
+    expect(sqlAt).toBeGreaterThan(-1)
+    // Le contrat technique arrive après l'explication, jamais avant.
+    expect(sqlAt).toBeGreaterThan(conceptAt)
+  })
+
+  test('keeps SQL untranslated', async ({ page }) => {
+    await expect(
+      page.getByText('CREATE TABLE IF NOT EXISTS provider_registry').first(),
+    ).toBeVisible()
+  })
+
   test('ticks a checklist item', async ({ page }) => {
     const item = page.getByRole('button', { name: /connector_<name>/ })
     await expect(item).toHaveAttribute('aria-pressed', 'false')
@@ -35,26 +92,13 @@ test.describe('Self-hosting documentation', () => {
     await expect(item).toHaveAttribute('aria-pressed', 'true')
   })
 
-  test('is reachable from the landing header and the footer', async ({ page }) => {
-    await page.goto('/')
-    // Le lien existe aussi en pied de page : on vise celui de l'en-tête.
-    await page.getByRole('banner').getByRole('link', { name: 'Docs' }).click()
+  test('points at the self-hosting guide for where to write', async ({ page }) => {
+    await page.locator('#where-it-writes').getByRole('link').click()
     await expect(page).toHaveURL('/docs/self-hosting')
-
-    await page.goto('/')
-    await page.getByRole('contentinfo').getByRole('link', { name: 'Docs' }).click()
-    await expect(page).toHaveURL('/docs/self-hosting')
-  })
-
-  test('follows the language switcher', async ({ page }) => {
-    await page.getByLabel('Langue').selectOption('en')
-    await expect(
-      page.getByRole('heading', { level: 1, name: /self-hosting stayup/i }),
-    ).toBeVisible()
   })
 })
 
-// Régression : l'en-tête est partagé avec la page de doc, où #features et
+// Régression : l'en-tête est partagé avec les pages de doc, où #features et
 // #download ne correspondent à aucune section. Les liens doivent donc ramener
 // vers l'accueil, tout en continuant à défiler quand on y est déjà.
 test.describe('Header anchors', () => {

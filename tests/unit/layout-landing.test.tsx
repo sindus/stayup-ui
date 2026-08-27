@@ -117,9 +117,11 @@ describe('LandingHeader', () => {
     expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute('href', '/#download')
   })
 
-  it('links to the self-hosting documentation', () => {
+  // Le lien mène à l'index des parcours, pas directement à l'auto-hébergement :
+  // quelqu'un qui vient écrire un provider n'a rien à y faire.
+  it('links to the documentation index', () => {
     renderWithLang(<LandingHeader />)
-    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs/self-hosting')
+    expect(screen.getByRole('link', { name: 'Docs' })).toHaveAttribute('href', '/docs')
   })
 
   it('exposes the sign-in and start links', () => {

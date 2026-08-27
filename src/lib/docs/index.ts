@@ -12,6 +12,6 @@ export type { DocContent }
 
 const DOCS: Record<Language, DocContent> = { en, fr, de, es, it, pt, ja, zh }
 
-export function getSelfHostingDoc(lang: Language): DocContent {
+export function getDoc(lang: Language): DocContent {
   return DOCS[lang]
 }

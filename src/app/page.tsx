@@ -60,7 +60,7 @@ export default async function LandingPage() {
             <a href="#download" className="hover:text-fg transition-colors">
               {t.landing.header.download}
             </a>
-            <Link href="/docs/self-hosting" className="hover:text-fg transition-colors">
+            <Link href="/docs" className="hover:text-fg transition-colors">
               {t.landing.header.docs}
             </Link>
           </nav>

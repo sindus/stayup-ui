@@ -2,20 +2,29 @@
 // identifiants de providers. Les garder ici évite qu'une traduction ne dérive et
 // ne publie une commande qui ne marche pas.
 
-export const DOC_ANCHORS = {
-  overview: 'overview',
-  selfHosting: 'self-hosting',
+// Ancres de sommaire, par page.
+export const HOME_ANCHORS = {
+  concept: 'concept',
+  paths: 'paths',
+} as const
+
+export const SELF_HOSTING_ANCHORS = {
+  why: 'why',
+  pieces: 'pieces',
   requirements: 'requirements',
-  env: 'environment-variables',
-  deploy: 'deployment',
+  env: 'configuration',
+  deploy: 'deploy',
   schema: 'schema',
   pointing: 'pointing-a-client',
-  providers: 'providers',
-  contract: 'contract',
-  naming: 'naming',
-  tables: 'tables',
-  eachRun: 'each-run',
-  checklist: 'checklist',
+  troubleshooting: 'troubleshooting',
+} as const
+
+export const PROVIDER_ANCHORS = {
+  what: 'what-is-a-provider',
+  access: 'where-it-writes',
+  existing: 'existing-providers',
+  creating: 'writing-your-own',
+  contract: 'technical-contract',
 } as const
 
 export const ENV_VARS = [
