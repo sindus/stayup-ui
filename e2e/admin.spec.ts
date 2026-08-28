@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test'
 
 test.describe('Admin login page', () => {
-  test('shows username and password form', async ({ page }) => {
+  test('shows the e-mail and password form', async ({ page }) => {
     await page.goto('/admin/login')
-    await expect(page.getByLabel('Identifiant')).toBeVisible()
+    await expect(page.getByLabel('Email')).toBeVisible()
     await expect(page.getByLabel('Mot de passe')).toBeVisible()
     await expect(page.getByRole('button', { name: /se connecter/i })).toBeVisible()
   })
 
   test('shows error on wrong credentials', async ({ page }) => {
     await page.goto('/admin/login')
-    await page.getByLabel('Identifiant').fill('wrongadmin')
+    await page.getByLabel('Email').fill('wrong@example.com')
     await page.getByLabel('Mot de passe').fill('wrongpassword')
     await page.getByRole('button', { name: /se connecter/i }).click()
     await expect(page.getByText(/mot de passe incorrect/i)).toBeVisible()
@@ -19,7 +19,7 @@ test.describe('Admin login page', () => {
   test('validates required fields', async ({ page }) => {
     await page.goto('/admin/login')
     await page.getByRole('button', { name: /se connecter/i }).click()
-    await expect(page.getByText(/identifiant requis/i)).toBeVisible()
+    await expect(page.getByText(/email invalide/i)).toBeVisible()
     await expect(page.getByText(/mot de passe requis/i)).toBeVisible()
   })
 })

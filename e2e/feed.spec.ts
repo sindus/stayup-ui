@@ -40,9 +40,10 @@ test.describe('Feed page (authenticated)', () => {
 
   test('add flux dialog has provider selector and identifier input', async ({ page }) => {
     await page.getByRole('button', { name: /ajouter un flux/i }).click()
-    await expect(
-      page.getByRole('dialog').getByRole('button', { name: 'GitHub', exact: true }),
-    ).toBeVisible()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog.getByRole('button', { name: 'GitHub', exact: true })).toBeVisible()
+    // The dialog may open on the "existing flux" tab; switch to "add a new one".
+    await dialog.getByRole('button', { name: /ajouter un nouveau/i }).click()
     await expect(page.getByLabel(/dépôt github/i)).toBeVisible()
   })
 
