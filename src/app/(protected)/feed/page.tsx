@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
-import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getCachedUserFeed, getCachedTemplates } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
 import { FeedClientView } from '@/components/feed/FeedClientView'
 import type { TaggedItem } from '@/types'
@@ -20,10 +20,13 @@ export default async function FeedPage() {
   const cookieStore = await cookies()
   const token = cookieStore.get('stayup_token')?.value ?? ''
 
-  const feedData = await getCachedUserFeed(session!.userId, token).catch(() => ({
-    repositories: [],
-    connectors: {},
-  }))
+  const [feedData, templates] = await Promise.all([
+    getCachedUserFeed(session!.userId, token).catch(() => ({
+      repositories: [],
+      connectors: {},
+    })),
+    getCachedTemplates(token),
+  ])
 
   const items: TaggedItem[] = Object.entries(feedData.connectors ?? {})
     .flatMap(([provider, providerItems]) => providerItems.map((item) => ({ provider, item })))
@@ -31,5 +34,5 @@ export default async function FeedPage() {
       (a, b) => new Date(getItemDate(b)).getTime() - new Date(getItemDate(a)).getTime(),
     ) as TaggedItem[]
 
-  return <FeedClientView items={items} repositories={feedData.repositories} />
+  return <FeedClientView items={items} repositories={feedData.repositories} templates={templates} />
 }

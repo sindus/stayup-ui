@@ -5,16 +5,22 @@ import { getServerTranslations } from './serverLang'
 import { getApiUrl } from './apiUrl'
 import { getAdminToken } from './session'
 import {
+  adminChangeOwnPassword,
   adminClearRepositoryData,
+  adminCreateAdmin,
   adminCreateRepository,
+  adminDeleteAdmin,
   adminDeleteRepository,
   adminDeleteUser,
-  adminListScrapRequests,
-  adminApproveScrapRequest,
-  adminRejectScrapRequest,
+  adminListFluxRequests,
+  adminApproveFluxRequest,
+  adminRejectFluxRequest,
+  adminListProviders,
+  adminSetProviderApproval,
+  adminUpdateAdmin,
   deleteUserRepository,
 } from './api-client'
-import type { ScrapRequest } from '@/types'
+import type { FluxRequest } from '@/types'
 
 export async function adminDeleteUserAction(userId: string): Promise<{ error?: string }> {
   const token = await getAdminToken()
@@ -22,6 +28,65 @@ export async function adminDeleteUserAction(userId: string): Promise<{ error?: s
   try {
     await adminDeleteUser(userId, token)
     revalidatePath('/admin/users')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+// ─── Admin accounts (super-admin only) ────────────────────────────────────────
+
+export async function adminCreateAdminAction(data: {
+  email: string
+  name: string
+  password: string
+}): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminCreateAdmin(data, token)
+    revalidatePath('/admin/admins')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminUpdateAdminAction(
+  id: string,
+  data: { name?: string; email?: string; password?: string },
+): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminUpdateAdmin(id, data, token)
+    revalidatePath('/admin/admins')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminDeleteAdminAction(id: string): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminDeleteAdmin(id, token)
+    revalidatePath('/admin/admins')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminChangeOwnPasswordAction(data: {
+  currentPassword: string
+  password: string
+}): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminChangeOwnPassword(data, token)
     return {}
   } catch (err) {
     return { error: (err as Error).message }
@@ -114,37 +179,60 @@ export async function adminCreateRepositoryAction(data: {
   }
 }
 
-export async function adminListScrapRequestsAction(): Promise<ScrapRequest[]> {
+export async function adminListFluxRequestsAction(): Promise<FluxRequest[]> {
   const token = await getAdminToken()
   if (!token) return []
-  return adminListScrapRequests(token).catch(() => [])
+  return adminListFluxRequests(token).catch(() => [])
 }
 
-export async function adminRejectScrapRequestAction(
-  requestId: string,
-): Promise<{ error?: string }> {
+export async function adminRejectFluxRequestAction(requestId: string): Promise<{ error?: string }> {
   const token = await getAdminToken()
   if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
-    await adminRejectScrapRequest(requestId, token)
-    revalidatePath('/admin/scrap-requests')
+    await adminRejectFluxRequest(requestId, token)
+    revalidatePath('/admin/flux-requests')
     return {}
   } catch (err) {
     return { error: (err as Error).message }
   }
 }
 
-export async function adminApproveScrapRequestAction(
+export async function adminApproveFluxRequestAction(
   requestId: string,
-  data: { url: string; config: Record<string, unknown> },
+  data: { config?: Record<string, unknown> },
 ): Promise<{ error?: string; repository_id?: number }> {
   const token = await getAdminToken()
   if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
   try {
-    const result = await adminApproveScrapRequest(requestId, data, token)
-    revalidatePath('/admin/scrap-requests')
+    const result = await adminApproveFluxRequest(requestId, data, token)
+    revalidatePath('/admin/flux-requests')
     revalidatePath('/admin/repositories')
     return { repository_id: result.repository_id }
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+// ─── Providers (mode d'approbation de flux) ───────────────────────────────────
+
+export async function adminListProvidersAction(): Promise<
+  { name: string; displayName: string; flux_approval: 'auto' | 'manual' }[]
+> {
+  const token = await getAdminToken()
+  if (!token) return []
+  return adminListProviders(token).catch(() => [])
+}
+
+export async function adminSetProviderApprovalAction(
+  name: string,
+  flux_approval: 'auto' | 'manual',
+): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminSetProviderApproval(name, flux_approval, token)
+    revalidatePath('/admin/providers')
+    return {}
   } catch (err) {
     return { error: (err as Error).message }
   }

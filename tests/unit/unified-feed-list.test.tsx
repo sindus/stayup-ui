@@ -4,12 +4,13 @@ import userEvent from '@testing-library/user-event'
 import { UnifiedFeedList } from '@/components/feed/UnifiedFeedList'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { TaggedItem } from '@/types'
+import { TEMPLATES } from './_templates'
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
 const REPOS = [
-  { repository_id: 1, url: 'https://github.com/facebook/react/' },
-  { repository_id: 2, url: 'https://www.youtube.com/@fireship' },
+  { repository_id: 1, url: 'https://github.com/facebook/react/', provider: 'changelog' },
+  { repository_id: 2, url: 'https://www.youtube.com/@fireship', provider: 'youtube' },
 ]
 
 function changelog(overrides = {}): TaggedItem {
@@ -80,6 +81,7 @@ function renderList(props: Partial<React.ComponentProps<typeof UnifiedFeedList>>
         selectedIndex={null}
         onSelect={vi.fn()}
         repositories={REPOS}
+        templates={TEMPLATES}
         {...props}
       />
     </LanguageProvider>,
@@ -106,10 +108,7 @@ describe('UnifiedFeedList', () => {
   })
 
   it('dims items that are already read', () => {
-    renderList({
-      items: [changelog()],
-      readIds: new Set(['changelog:1']),
-    })
+    renderList({ items: [changelog()], readIds: new Set(['changelog:1']) })
     expect(screen.getByText('v19.1.0').closest('div.flex.gap-3')).toHaveStyle({ opacity: '0.45' })
   })
 
@@ -121,35 +120,49 @@ describe('UnifiedFeedList', () => {
     })
     expect(screen.getByText('v19.1.0').closest('div.flex.gap-3')).toHaveStyle({ opacity: '1' })
   })
+
+  it('renders a generic entry for a provider with no template', () => {
+    const item = {
+      provider: 'podcast',
+      item: {
+        id: 9,
+        repository_id: 9,
+        content: 'A brand new episode',
+        executed_at: '2026-03-05T00:00:00Z',
+      },
+    } as TaggedItem
+    renderList({ items: [item] })
+    expect(screen.getByText('A brand new episode')).toBeInTheDocument()
+    expect(screen.getByText('Podcast')).toBeInTheDocument()
+  })
 })
 
-describe('changelog entries', () => {
-  it('shows the repo path, version and a stripped content preview', () => {
+describe('changelog entries (template: row)', () => {
+  it('shows the repo slug, version and a stripped content snippet', () => {
     renderList({ items: [changelog()] })
-
-    expect(screen.getByText('facebook/react/')).toBeInTheDocument()
+    expect(screen.getByText('facebook/react')).toBeInTheDocument()
     expect(screen.getByText('v19.1.0')).toBeInTheDocument()
-    expect(screen.getByText(/Fixes something important/)).toBeInTheDocument()
+    expect(screen.getByText(/Fixes\s+something important/)).toBeInTheDocument()
   })
 
-  it('falls back to executed_at when datetime is null', () => {
+  it('still renders with datetime null', () => {
     renderList({ items: [changelog({ datetime: null })] })
     expect(screen.getByText('v19.1.0')).toBeInTheDocument()
   })
 
-  it('omits the preview when there is no content', () => {
+  it('omits the snippet when there is no content', () => {
     renderList({ items: [changelog({ content: '' })] })
     expect(screen.queryByText(/Fixes/)).not.toBeInTheDocument()
   })
 
-  it('falls back to the translated "repository" label for an unknown repository', () => {
+  it('shows a dash title when the source repository is unknown', () => {
     renderList({ items: [changelog({ repository_id: 999 })], repositories: [] })
     expect(screen.getByText('v19.1.0')).toBeInTheDocument()
-    expect(screen.getByText('repository')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 })
 
-describe('youtube entries', () => {
+describe('youtube entries (template: media)', () => {
   it('shows the title, channel handle and thumbnail', () => {
     renderList({
       items: [
@@ -162,13 +175,12 @@ describe('youtube entries', () => {
         ),
       ],
     })
-
     expect(screen.getByText('React 19 is here')).toBeInTheDocument()
     expect(screen.getByText('@fireship')).toBeInTheDocument()
     expect(screen.getByAltText('React 19 is here')).toBeInTheDocument()
   })
 
-  it('renders a placeholder icon when there is no thumbnail', () => {
+  it('renders a placeholder when there is no thumbnail', () => {
     renderList({
       items: [youtube(JSON.stringify({ title: 'No thumb', thumbnail: '', url: '' }))],
     })
@@ -176,12 +188,12 @@ describe('youtube entries', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
-  it('falls back to the untitled label when the content is not JSON', () => {
+  it('renders a dash when the content is not JSON', () => {
     renderList({ items: [youtube('not json')] })
-    expect(screen.getByText('Untitled')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 
-  it('derives the channel name from a /channel/ URL', () => {
+  it('keeps the channel path for a /channel/ URL', () => {
     renderList({
       items: [
         youtube(
@@ -189,30 +201,22 @@ describe('youtube entries', () => {
         ),
       ],
     })
-    expect(screen.getByText('UC1')).toBeInTheDocument()
-  })
-
-  it('falls back to the raw value for an unparseable channel URL', () => {
-    renderList({
-      items: [youtube(JSON.stringify({ title: 'X', thumbnail: '', url: 'not-a-url' }))],
-    })
-    expect(screen.getByText('not-a-url')).toBeInTheDocument()
+    expect(screen.getByText('channel/UC1')).toBeInTheDocument()
   })
 })
 
-describe('rss entries', () => {
+describe('rss entries (template: row)', () => {
   it('shows the title and the source hostname without www.', () => {
     renderList({
       items: [rss(JSON.stringify({ title: 'Modern CSS', link: 'https://www.css-tricks.com/a' }))],
     })
-
     expect(screen.getByText('Modern CSS')).toBeInTheDocument()
     expect(screen.getByText('css-tricks.com')).toBeInTheDocument()
   })
 
-  it('falls back to the untitled label for unparseable content', () => {
+  it('renders a dash for unparseable content', () => {
     renderList({ items: [rss('nope')] })
-    expect(screen.getByText('Untitled')).toBeInTheDocument()
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 
   it('omits the source when there is no link', () => {
@@ -226,10 +230,9 @@ describe('rss entries', () => {
   })
 })
 
-describe('scrap entries', () => {
+describe('scrap entries (template: row)', () => {
   it('shows a content preview and the source host from object params', () => {
     renderList({ items: [scrap({ url: 'https://example.com/blog' })] })
-
     expect(screen.getByText('Scraped body text')).toBeInTheDocument()
     expect(screen.getByText('example.com')).toBeInTheDocument()
   })

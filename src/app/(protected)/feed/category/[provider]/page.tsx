@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getCachedUserFeed, getCachedTemplates } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
 import { FeedClientView } from '@/components/feed/FeedClientView'
 import type { TaggedItem } from '@/types'
@@ -23,6 +23,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
     )
   }
 
+  const templates = await getCachedTemplates(token)
+
   // La liste des providers valides est 100% dynamique : c'est la présence de la clé
   // dans le feed (donc d'une table connector_<provider> côté API) qui fait foi.
   if (!(provider in feedData.connectors)) notFound()
@@ -30,5 +32,5 @@ export default async function CategoryPage({ params }: { params: Promise<{ provi
   const rawItems = feedData.connectors[provider] ?? []
   const items = rawItems.map((item) => ({ provider, item })) as TaggedItem[]
 
-  return <FeedClientView items={items} repositories={feedData.repositories} />
+  return <FeedClientView items={items} repositories={feedData.repositories} templates={templates} />
 }

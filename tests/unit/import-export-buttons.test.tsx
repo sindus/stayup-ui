@@ -70,7 +70,7 @@ describe('import', () => {
       '/api/fluxes',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ provider: 'rss', identifier: 'blog.example.com/feed.xml' }),
+        body: JSON.stringify({ provider: 'rss', url: 'https://blog.example.com/feed.xml' }),
       }),
     )
     expect(refresh).toHaveBeenCalled()
@@ -98,7 +98,7 @@ describe('import', () => {
   })
 
   it('marks a scrap entry unavailable when no matching repository is subscribable', async () => {
-    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ repos: [] }) })
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ fluxes: [] }) })
     const user = userEvent.setup()
     renderButtons([])
 
@@ -116,15 +116,15 @@ describe('import', () => {
 
     await waitFor(() => expect(screen.getByText(/1 unavailable/)).toBeInTheDocument())
     expect(mockFetch).toHaveBeenCalledTimes(1)
-    expect(mockFetch).toHaveBeenCalledWith('/api/scrap')
+    expect(mockFetch).toHaveBeenCalledWith('/api/providers/scrap/fluxes')
   })
 
   it('subscribes to a matching scrap repository', async () => {
     mockFetch.mockImplementation((url: string) => {
-      if (url === '/api/scrap') {
+      if (url === '/api/providers/scrap/fluxes') {
         return Promise.resolve({
           ok: true,
-          json: async () => ({ repos: [{ id: 7, url: 'https://news.ycombinator.com' }] }),
+          json: async () => ({ fluxes: [{ id: 7, url: 'https://news.ycombinator.com' }] }),
         })
       }
       return Promise.resolve({ ok: true, json: async () => ({}) })
@@ -146,10 +146,10 @@ describe('import', () => {
 
     await waitFor(() => expect(screen.getByText(/1 added/)).toBeInTheDocument())
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/fluxes',
+      '/api/providers/scrap/fluxes',
       expect.objectContaining({
         method: 'POST',
-        body: JSON.stringify({ provider: 'scrap', scrapRepoId: 7 }),
+        body: JSON.stringify({ id: 7 }),
       }),
     )
   })

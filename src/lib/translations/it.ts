@@ -251,7 +251,7 @@ export const it: Translations = {
     loading: 'Caricamento…',
     requiredError: 'Questo campo è obbligatorio',
     selectError: 'Seleziona un feed',
-    makeRequest: 'Invia una richiesta',
+    makeRequest: 'Aggiungine uno nuovo',
     chooseExisting: 'Scegli un feed esistente',
     requestUrl: 'URL da scansionare',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -271,6 +271,7 @@ export const it: Translations = {
     readArticle: "Leggi l'articolo",
     visitWebsite: 'Visita il sito',
     thumbnail: 'Miniatura',
+    openLink: 'Apri link',
   },
   profile: {
     newEmail: 'Nuovo indirizzo email',

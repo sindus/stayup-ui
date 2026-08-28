@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 const schema = z.object({
-  username: z.string().min(1, 'Identifiant requis'),
+  username: z.string().email('Email invalide'),
   password: z.string().min(1, 'Mot de passe requis'),
 })
 
@@ -33,8 +33,8 @@ export function AdminLoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Identifiant</Label>
-        <Input id="username" autoComplete="username" {...register('username')} />
+        <Label htmlFor="username">Email</Label>
+        <Input id="username" type="email" autoComplete="email" {...register('username')} />
         {errors.username && <p className="text-sm text-destructive">{errors.username.message}</p>}
       </div>
       <div className="space-y-2">

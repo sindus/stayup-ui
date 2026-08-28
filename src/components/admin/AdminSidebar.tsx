@@ -2,21 +2,28 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, GitBranch, Inbox } from 'lucide-react'
+import { Users, GitBranch, Inbox, SlidersHorizontal, ShieldCheck, KeyRound } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
   { label: 'Utilisateurs', href: '/admin/users', icon: Users },
   { label: 'Flux', href: '/admin/repositories', icon: GitBranch },
-  { label: 'Demandes scrap', href: '/admin/scrap-requests', icon: Inbox },
+  { label: 'Providers', href: '/admin/providers', icon: SlidersHorizontal },
+  { label: 'Demandes de flux', href: '/admin/flux-requests', icon: Inbox },
 ]
 
-export function AdminSidebar() {
+// Réservé au super admin : la gestion des autres administrateurs.
+const SUPER_ITEMS = [{ label: 'Admins', href: '/admin/admins', icon: ShieldCheck }]
+
+const ACCOUNT_ITEM = { label: 'Mon compte', href: '/admin/settings', icon: KeyRound }
+
+export function AdminSidebar({ isSuper = false }: { isSuper?: boolean }) {
   const pathname = usePathname()
+  const items = [...NAV_ITEMS, ...(isSuper ? SUPER_ITEMS : []), ACCOUNT_ITEM]
 
   return (
     <>
-      {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+      {items.map(({ label, href, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(href + '/')
         return (
           <Link

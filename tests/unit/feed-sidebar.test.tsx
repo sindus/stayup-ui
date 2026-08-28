@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { FeedSidebar } from '@/components/feed/FeedSidebar'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { UserRepository } from '@/types'
+import { TEMPLATES } from './_templates'
 
 let pathname = '/feed'
 const refresh = vi.fn()
@@ -32,7 +33,7 @@ function flux(overrides: Partial<UserRepository> = {}): UserRepository {
 function renderSidebar(props: Partial<React.ComponentProps<typeof FeedSidebar>> = {}) {
   return render(
     <LanguageProvider initialLang="en">
-      <FeedSidebar fluxes={[]} {...props} />
+      <FeedSidebar fluxes={[]} templates={TEMPLATES} {...props} />
     </LanguageProvider>,
   )
 }
@@ -69,7 +70,7 @@ describe('FeedSidebar', () => {
       ],
     })
 
-    expect(screen.getByRole('link', { name: /GitHub/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Changelog/ })).toHaveAttribute(
       'href',
       '/feed/category/changelog',
     )
@@ -92,7 +93,7 @@ describe('FeedSidebar', () => {
   it('marks the active category', () => {
     pathname = '/feed/category/changelog'
     renderSidebar({ fluxes: [flux()] })
-    expect(screen.getByRole('link', { name: /GitHub/ }).className).toContain('font-medium')
+    expect(screen.getByRole('link', { name: /Changelog/ }).className).toContain('font-medium')
   })
 
   it('marks the active feed', () => {
@@ -107,7 +108,7 @@ describe('FeedSidebar', () => {
       unreadCountByRepoId: { 1: 3, 2: 4 },
     })
 
-    expect(screen.getByRole('link', { name: /GitHub 7/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Changelog 7/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /facebook\/react 3/ })).toBeInTheDocument()
   })
 
@@ -122,7 +123,7 @@ describe('FeedSidebar', () => {
 
     expect(screen.getByRole('link', { name: 'facebook/react' })).toBeInTheDocument()
 
-    const chevron = screen.getByRole('button', { name: 'GitHub' })
+    const chevron = screen.getByRole('button', { name: 'Changelog' })
     await user.click(chevron)
     expect(screen.queryByRole('link', { name: 'facebook/react' })).not.toBeInTheDocument()
 

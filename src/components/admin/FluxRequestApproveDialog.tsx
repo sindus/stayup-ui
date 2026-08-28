@@ -11,20 +11,21 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/context/LanguageContext'
-import { adminApproveScrapRequestAction } from '@/lib/admin-actions'
+import { adminApproveFluxRequestAction } from '@/lib/admin-actions'
 import { ScrapConfigFields } from './ScrapConfigFields'
-import type { ScrapRequest } from '@/types'
+import type { FluxRequest } from '@/types'
 
-interface ScrapRequestApproveDialogProps {
-  request: ScrapRequest
+interface FluxRequestApproveDialogProps {
+  request: FluxRequest
   onClose: () => void
 }
 
-export function ScrapRequestApproveDialog({ request, onClose }: ScrapRequestApproveDialogProps) {
+export function FluxRequestApproveDialog({ request, onClose }: FluxRequestApproveDialogProps) {
   const router = useRouter()
   const { t } = useLanguage()
 
-  const [url, setUrl] = useState(request.url)
+  // Le scraping web garde ses champs de config ; les autres providers n'en ont pas.
+  const isScrap = request.provider === 'scrap'
   const [form, setForm] = useState({
     articles_selector: '',
     content_selector: '',
@@ -41,15 +42,18 @@ export function ScrapRequestApproveDialog({ request, onClose }: ScrapRequestAppr
     setPending(true)
     setError(null)
 
-    const config: Record<string, unknown> = {
-      articles_selector: form.articles_selector,
-      content_selector: form.content_selector,
-      max_scraps: Number(form.max_scraps),
-      retention_days: Number(form.retention_days),
+    let config: Record<string, unknown> | undefined
+    if (isScrap) {
+      config = {
+        articles_selector: form.articles_selector,
+        content_selector: form.content_selector,
+        max_scraps: Number(form.max_scraps),
+        retention_days: Number(form.retention_days),
+      }
+      if (exclude.length > 0) config.exclude = exclude
     }
-    if (exclude.length > 0) config.exclude = exclude
 
-    const result = await adminApproveScrapRequestAction(request.id, { url, config })
+    const result = await adminApproveFluxRequestAction(request.id, config ? { config } : {})
     setPending(false)
 
     if (result.error) {
@@ -77,28 +81,23 @@ export function ScrapRequestApproveDialog({ request, onClose }: ScrapRequestAppr
             <p className="text-xs text-muted-foreground">
               {t.admin.requestFrom} : <span className="font-medium">{request.user_email}</span>
             </p>
+            <p className="text-xs">
+              <span className="text-muted-foreground">{request.provider}</span>{' '}
+              <span className="font-mono">{request.url}</span>
+            </p>
 
             {error && <p className="text-xs text-destructive">{error}</p>}
 
-            <div className="space-y-1">
-              <label className="text-xs font-medium">{t.admin.urlLabel}</label>
-              <input
-                required
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="w-full rounded-md border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            {isScrap && (
+              <ScrapConfigFields
+                form={form}
+                setForm={setForm}
+                exclude={exclude}
+                setExclude={setExclude}
+                excludeInput={excludeInput}
+                setExcludeInput={setExcludeInput}
               />
-            </div>
-
-            <ScrapConfigFields
-              form={form}
-              setForm={setForm}
-              exclude={exclude}
-              setExclude={setExclude}
-              excludeInput={excludeInput}
-              setExcludeInput={setExcludeInput}
-            />
+            )}
           </div>
 
           <DialogFooter>

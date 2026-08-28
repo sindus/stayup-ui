@@ -1,4 +1,4 @@
-import type { ConnectorItem, ScrapRepository, ScrapRequest } from '@/types'
+import type { ConnectorItem, FluxRequest, ProviderFlux } from '@/types'
 import { getApiUrl } from './apiUrl'
 
 /** Erreur d'appel API porteuse du statut HTTP : brancher sur le texte du message
@@ -66,6 +66,10 @@ async function apiFetch<T>(
 export interface ConnectorProvider {
   name: string
   displayName: string
+  /** `auto` : l'ajout d'un flux est immédiat ; `manual` : il passe par une demande. */
+  fluxApproval?: 'auto' | 'manual'
+  /** Manifeste d'affichage brut (provider_registry.template), relayé tel quel. */
+  template?: unknown
 }
 
 export async function getConnectorProviders(token: string): Promise<ConnectorProvider[]> {
@@ -95,12 +99,18 @@ export async function getUserFeed(userId: string, token: string): Promise<UserFe
   })
 }
 
+/** L'API répond soit `{ repository }` (flux créé), soit `202 { status: 'pending' }`
+ *  quand le provider est en mode `manual` : la demande part en file d'approbation. */
+export type AddRepositoryResult =
+  | { repository: UserRepositoryItem; status?: undefined }
+  | { status: 'pending'; request: FluxRequest }
+
 export async function addUserRepository(
   userId: string,
   token: string,
   data: { provider: string; url: string; config: Record<string, unknown> },
-): Promise<{ repository: UserRepositoryItem }> {
-  return apiFetch<{ repository: UserRepositoryItem }>(`/ui/users/${userId}/repositories`, token, {
+): Promise<AddRepositoryResult> {
+  return apiFetch<AddRepositoryResult>(`/ui/users/${userId}/repositories`, token, {
     method: 'POST',
     body: JSON.stringify(data),
   })
@@ -153,6 +163,60 @@ export async function adminDeleteUser(userId: string, token: string): Promise<vo
   })
 }
 
+// ─── Admin accounts (super-admin only) ─────────────────────────────────────────
+
+export interface AdminAccount {
+  id: string
+  email: string
+  name: string
+  is_super: boolean
+  created_at: string
+}
+
+export async function adminListAdmins(token: string): Promise<AdminAccount[]> {
+  const data = await apiFetch<{ admins: AdminAccount[] }>('/ui/admins', token, {
+    cache: 'no-store',
+  })
+  return data.admins
+}
+
+export async function adminCreateAdmin(
+  body: { email: string; name: string; password: string },
+  token: string,
+): Promise<{ admin: AdminAccount }> {
+  return apiFetch<{ admin: AdminAccount }>('/ui/admins', token, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminUpdateAdmin(
+  id: string,
+  body: { name?: string; email?: string; password?: string },
+  token: string,
+): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/admins/${id}`, token, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function adminDeleteAdmin(id: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/admins/${id}`, token, {
+    method: 'DELETE',
+  })
+}
+
+export async function adminChangeOwnPassword(
+  body: { currentPassword: string; password: string },
+  token: string,
+): Promise<void> {
+  await apiFetch<{ success: boolean }>('/ui/admins/me', token, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
 export async function adminListRepositories(token: string): Promise<AdminRepository[]> {
   const data = await apiFetch<{ repositories: AdminRepository[] }>('/ui/repositories', token, {
     cache: 'no-store',
@@ -172,58 +236,70 @@ export async function adminClearRepositoryData(repoId: number, token: string): P
   })
 }
 
-export async function adminRejectScrapRequest(requestId: string, token: string): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/ui/scrap-requests/${requestId}/reject`, token, {
-    method: 'POST',
-  })
-}
+// ─── Provider fluxes (liste des flux existants + abonnement) ───────────────────
 
-// ─── Scrap ─────────────────────────────────────────────────────────────────────
-
-export async function getScrapRepos(token: string): Promise<ScrapRepository[]> {
-  const data = await apiFetch<{ repos: ScrapRepository[] }>('/scrap', token, {
+export async function getProviderFluxes(provider: string, token: string): Promise<ProviderFlux[]> {
+  const data = await apiFetch<{ fluxes: ProviderFlux[] }>(`/providers/${provider}/fluxes`, token, {
     cache: 'no-store',
   })
-  return data.repos
+  return data.fluxes
 }
 
-export async function subscribeScrap(repoId: number, token: string): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/scrap/${repoId}/subscribe`, token, {
+export async function subscribeFlux(provider: string, id: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
     method: 'POST',
   })
 }
 
-export async function unsubscribeScrap(repoId: number, token: string): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/scrap/${repoId}/subscribe`, token, {
+export async function unsubscribeFlux(provider: string, id: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
     method: 'DELETE',
   })
 }
 
-export async function createScrapRequest(
-  body: { url: string },
+// ─── Admin — providers & flux requests ────────────────────────────────────────
+
+export async function adminListProviders(
   token: string,
-): Promise<{ id: string }> {
-  return apiFetch<{ id: string }>('/scrap/requests', token, {
-    method: 'POST',
-    body: JSON.stringify(body),
+): Promise<{ name: string; displayName: string; flux_approval: 'auto' | 'manual' }[]> {
+  const data = await apiFetch<{
+    providers: { name: string; displayName: string; flux_approval: 'auto' | 'manual' }[]
+  }>('/ui/providers', token, { cache: 'no-store' })
+  return data.providers
+}
+
+export async function adminSetProviderApproval(
+  name: string,
+  flux_approval: 'auto' | 'manual',
+  token: string,
+): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/providers/${name}`, token, {
+    method: 'PATCH',
+    body: JSON.stringify({ flux_approval }),
   })
 }
 
-export async function adminListScrapRequests(token: string): Promise<ScrapRequest[]> {
-  const data = await apiFetch<{ requests: ScrapRequest[] }>('/ui/scrap-requests', token, {
+export async function adminListFluxRequests(token: string): Promise<FluxRequest[]> {
+  const data = await apiFetch<{ requests: FluxRequest[] }>('/ui/flux-requests', token, {
     cache: 'no-store',
   })
   return data.requests
 }
 
-export async function adminApproveScrapRequest(
+export async function adminApproveFluxRequest(
   requestId: string,
-  body: { url: string; config: Record<string, unknown> },
+  body: { config?: Record<string, unknown> },
   token: string,
 ): Promise<{ repository_id: number }> {
-  return apiFetch<{ repository_id: number }>(`/ui/scrap-requests/${requestId}/approve`, token, {
+  return apiFetch<{ repository_id: number }>(`/ui/flux-requests/${requestId}/approve`, token, {
     method: 'POST',
     body: JSON.stringify(body),
+  })
+}
+
+export async function adminRejectFluxRequest(requestId: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/flux-requests/${requestId}/reject`, token, {
+    method: 'POST',
   })
 }
 
@@ -235,61 +311,4 @@ export async function adminCreateRepository(
     method: 'POST',
     body: JSON.stringify(body),
   })
-}
-
-// ─── Validation ────────────────────────────────────────────────────────────────
-
-export async function validateGithubRepo(identifier: string): Promise<boolean> {
-  try {
-    const res = await fetch(`https://api.github.com/repos/${identifier}`, {
-      headers: { Accept: 'application/vnd.github.v3+json' },
-      next: { revalidate: 300 },
-    })
-    return res.status === 200
-  } catch {
-    return false
-  }
-}
-
-export type FluxValidationError =
-  | 'githubRepoNotFound'
-  | 'invalidRssUrl'
-  | 'invalidScrapUrl'
-  | 'invalidUrl'
-
-function isValidUrl(value: string): boolean {
-  try {
-    new URL(value)
-    return true
-  } catch {
-    return false
-  }
-}
-
-/** Renvoie une clé de `t.errors` plutôt qu'un message : la traduction se fait au
- *  point d'affichage, qui seul connaît la langue du visiteur. */
-export async function validateFlux(
-  provider: string,
-  identifier: string,
-): Promise<{ valid: boolean; reason?: FluxValidationError }> {
-  if (provider === 'changelog') {
-    const exists = await validateGithubRepo(identifier)
-    return exists ? { valid: true } : { valid: false, reason: 'githubRepoNotFound' }
-  }
-
-  if (provider === 'youtube') {
-    return { valid: true }
-  }
-
-  if (provider === 'rss') {
-    return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidRssUrl' }
-  }
-
-  if (provider === 'scrap') {
-    return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidScrapUrl' }
-  }
-
-  // Provider inconnu du client (ajouté côté base de données uniquement) : on ne
-  // connaît pas sa forme d'identifiant, on exige une URL complète et valide.
-  return isValidUrl(identifier) ? { valid: true } : { valid: false, reason: 'invalidUrl' }
 }

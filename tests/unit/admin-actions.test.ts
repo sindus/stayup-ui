@@ -21,9 +21,11 @@ const api = {
   adminCreateRepository: vi.fn(),
   adminDeleteRepository: vi.fn(),
   adminDeleteUser: vi.fn(),
-  adminListScrapRequests: vi.fn(),
-  adminApproveScrapRequest: vi.fn(),
-  adminRejectScrapRequest: vi.fn(),
+  adminListFluxRequests: vi.fn(),
+  adminApproveFluxRequest: vi.fn(),
+  adminRejectFluxRequest: vi.fn(),
+  adminListProviders: vi.fn(),
+  adminSetProviderApproval: vi.fn(),
   deleteUserRepository: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
@@ -196,74 +198,98 @@ describe('adminCreateRepositoryAction', () => {
   })
 })
 
-describe('adminListScrapRequestsAction', () => {
+describe('adminListFluxRequestsAction', () => {
   it('returns the requests', async () => {
     const requests = [{ id: 'r1', url: 'https://a.b' }]
-    api.adminListScrapRequests.mockResolvedValue(requests)
+    api.adminListFluxRequests.mockResolvedValue(requests)
 
-    const { adminListScrapRequestsAction } = await import('@/lib/admin-actions')
-    expect(await adminListScrapRequestsAction()).toEqual(requests)
+    const { adminListFluxRequestsAction } = await import('@/lib/admin-actions')
+    expect(await adminListFluxRequestsAction()).toEqual(requests)
   })
 
   it('returns an empty array when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
-    const { adminListScrapRequestsAction } = await import('@/lib/admin-actions')
-    expect(await adminListScrapRequestsAction()).toEqual([])
-    expect(api.adminListScrapRequests).not.toHaveBeenCalled()
+    const { adminListFluxRequestsAction } = await import('@/lib/admin-actions')
+    expect(await adminListFluxRequestsAction()).toEqual([])
+    expect(api.adminListFluxRequests).not.toHaveBeenCalled()
   })
 
   it('swallows API failures and returns an empty array', async () => {
-    api.adminListScrapRequests.mockRejectedValue(new Error('down'))
-    const { adminListScrapRequestsAction } = await import('@/lib/admin-actions')
-    expect(await adminListScrapRequestsAction()).toEqual([])
+    api.adminListFluxRequests.mockRejectedValue(new Error('down'))
+    const { adminListFluxRequestsAction } = await import('@/lib/admin-actions')
+    expect(await adminListFluxRequestsAction()).toEqual([])
   })
 })
 
-describe('adminRejectScrapRequestAction', () => {
+describe('adminRejectFluxRequestAction', () => {
   it('rejects the request and revalidates the list', async () => {
-    const { adminRejectScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminRejectScrapRequestAction('r1')).toEqual({})
-    expect(api.adminRejectScrapRequest).toHaveBeenCalledWith('r1', 'token')
-    expect(revalidatePath).toHaveBeenCalledWith('/admin/scrap-requests')
+    const { adminRejectFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminRejectFluxRequestAction('r1')).toEqual({})
+    expect(api.adminRejectFluxRequest).toHaveBeenCalledWith('r1', 'token')
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/flux-requests')
   })
 
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
-    const { adminRejectScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminRejectScrapRequestAction('r1')).toEqual({ error: en.errors.notAuthenticated })
+    const { adminRejectFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminRejectFluxRequestAction('r1')).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns the API error message on failure', async () => {
-    api.adminRejectScrapRequest.mockRejectedValue(new Error('already handled'))
-    const { adminRejectScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminRejectScrapRequestAction('r1')).toEqual({ error: 'already handled' })
+    api.adminRejectFluxRequest.mockRejectedValue(new Error('already handled'))
+    const { adminRejectFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminRejectFluxRequestAction('r1')).toEqual({ error: 'already handled' })
   })
 })
 
-describe('adminApproveScrapRequestAction', () => {
-  const payload = { url: 'https://example.com', config: {} }
+describe('adminApproveFluxRequestAction', () => {
+  const payload = { config: {} }
 
   it('returns the new repository id and revalidates both pages', async () => {
-    api.adminApproveScrapRequest.mockResolvedValue({ repository_id: 12 })
+    api.adminApproveFluxRequest.mockResolvedValue({ repository_id: 12 })
 
-    const { adminApproveScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminApproveScrapRequestAction('r1', payload)).toEqual({ repository_id: 12 })
-    expect(revalidatePath).toHaveBeenCalledWith('/admin/scrap-requests')
+    const { adminApproveFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminApproveFluxRequestAction('r1', payload)).toEqual({ repository_id: 12 })
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/flux-requests')
     expect(revalidatePath).toHaveBeenCalledWith('/admin/repositories')
   })
 
   it('returns an error when unauthenticated', async () => {
     getAdminToken.mockResolvedValue(null)
-    const { adminApproveScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminApproveScrapRequestAction('r1', payload)).toEqual({
+    const { adminApproveFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminApproveFluxRequestAction('r1', payload)).toEqual({
       error: en.errors.notAuthenticated,
     })
   })
 
   it('returns the API error message on failure', async () => {
-    api.adminApproveScrapRequest.mockRejectedValue(new Error('bad config'))
-    const { adminApproveScrapRequestAction } = await import('@/lib/admin-actions')
-    expect(await adminApproveScrapRequestAction('r1', payload)).toEqual({ error: 'bad config' })
+    api.adminApproveFluxRequest.mockRejectedValue(new Error('bad config'))
+    const { adminApproveFluxRequestAction } = await import('@/lib/admin-actions')
+    expect(await adminApproveFluxRequestAction('r1', payload)).toEqual({ error: 'bad config' })
+  })
+})
+
+describe('provider approval actions', () => {
+  it('lists providers, empty array when unauthenticated', async () => {
+    api.adminListProviders.mockResolvedValue([{ name: 'rss' }])
+    const { adminListProvidersAction } = await import('@/lib/admin-actions')
+    expect(await adminListProvidersAction()).toEqual([{ name: 'rss' }])
+
+    getAdminToken.mockResolvedValue(null)
+    expect(await adminListProvidersAction()).toEqual([])
+  })
+
+  it('sets the approval mode and revalidates the providers page', async () => {
+    const { adminSetProviderApprovalAction } = await import('@/lib/admin-actions')
+    expect(await adminSetProviderApprovalAction('rss', 'manual')).toEqual({})
+    expect(api.adminSetProviderApproval).toHaveBeenCalledWith('rss', 'manual', 'token')
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/providers')
+  })
+
+  it('returns the API error message on failure', async () => {
+    api.adminSetProviderApproval.mockRejectedValue(new Error('nope'))
+    const { adminSetProviderApprovalAction } = await import('@/lib/admin-actions')
+    expect(await adminSetProviderApprovalAction('rss', 'auto')).toEqual({ error: 'nope' })
   })
 })
 

@@ -5,8 +5,9 @@ import { UsersTable } from '@/components/admin/UsersTable'
 import { EditUserDialog } from '@/components/admin/EditUserDialog'
 import { RepositoriesTable } from '@/components/admin/RepositoriesTable'
 import { UserFluxesTable } from '@/components/admin/UserFluxesTable'
+import { AdminsTable } from '@/components/admin/AdminsTable'
 import { LanguageProvider } from '@/context/LanguageContext'
-import type { AdminUser, AdminRepository, UserRepositoryItem } from '@/lib/api-client'
+import type { AdminUser, AdminRepository, UserRepositoryItem, AdminAccount } from '@/lib/api-client'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
@@ -19,6 +20,10 @@ const actions = vi.hoisted(() => ({
   adminDeleteRepositoryAction: vi.fn(),
   adminClearRepositoryDataAction: vi.fn(),
   adminDeleteUserFluxAction: vi.fn(),
+  adminDeleteAdminAction: vi.fn(),
+  adminUpdateAdminAction: vi.fn(),
+  adminCreateAdminAction: vi.fn(),
+  adminChangeOwnPasswordAction: vi.fn(),
 }))
 vi.mock('@/lib/admin-actions', () => actions)
 
@@ -315,5 +320,46 @@ describe('UserFluxesTable', () => {
 
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
     expect(actions.adminDeleteUserFluxAction).not.toHaveBeenCalled()
+  })
+})
+
+const ADMINS: AdminAccount[] = [
+  {
+    id: 'a-super',
+    email: 'root@stayup.test',
+    name: 'Root',
+    is_super: true,
+    created_at: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'a-ops',
+    email: 'ops@stayup.test',
+    name: 'Ops',
+    is_super: false,
+    created_at: '2026-02-01T00:00:00Z',
+  },
+]
+
+describe('AdminsTable', () => {
+  it('shows the empty state', () => {
+    withLang(<AdminsTable admins={[]} currentAdminId="x" />)
+    expect(screen.getByText('Aucun administrateur')).toBeInTheDocument()
+  })
+
+  it('locks the super admin and the current admin against deletion', () => {
+    withLang(<AdminsTable admins={ADMINS} currentAdminId="a-ops" />)
+    // Neither row exposes a Delete button: a-super is super, a-ops is "me".
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+    expect(screen.getByText('Super admin')).toBeInTheDocument()
+  })
+
+  it('deletes a plain admin after confirmation', async () => {
+    const user = userEvent.setup()
+    withLang(<AdminsTable admins={ADMINS} currentAdminId="a-super" />)
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+    await waitFor(() => expect(actions.adminDeleteAdminAction).toHaveBeenCalledWith('a-ops'))
   })
 })

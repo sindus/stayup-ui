@@ -42,7 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5">
-          <AdminSidebar />
+          <AdminSidebar isSuper={session.isSuper} />
         </nav>
 
         {/* Footer user card */}

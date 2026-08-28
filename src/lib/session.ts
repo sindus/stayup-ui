@@ -9,6 +9,8 @@ export interface AppSession {
   name: string
   email: string
   role: string
+  /** Vrai pour un super admin (habilité à gérer les autres admins). */
+  isSuper: boolean
 }
 
 /** Décode le payload d'un token. La signature n'est pas vérifiée — seule l'API
@@ -21,6 +23,7 @@ export function decodeToken(token: string): AppSession {
     name: string
     email: string
     role: string
+    is_super?: boolean
     exp?: number
   }
   if (payload.exp !== undefined && payload.exp * 1000 <= Date.now()) {
@@ -31,6 +34,7 @@ export function decodeToken(token: string): AppSession {
     name: payload.name ?? '',
     email: payload.email ?? '',
     role: payload.role ?? 'user',
+    isSuper: payload.is_super === true,
   }
 }
 

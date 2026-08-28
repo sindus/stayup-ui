@@ -247,7 +247,7 @@ export const en = {
     loading: 'Loading…',
     requiredError: 'This field is required',
     selectError: 'Select a feed',
-    makeRequest: 'Make a request',
+    makeRequest: 'Add a new one',
     chooseExisting: 'Choose an existing feed',
     requestUrl: 'URL to scrape',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -266,6 +266,7 @@ export const en = {
     readArticle: 'Read article',
     visitWebsite: 'Visit website',
     thumbnail: 'Thumbnail',
+    openLink: 'Open link',
   },
   profile: {
     newEmail: 'New email address',

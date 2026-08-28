@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, type ReactNode } from 'react'
 import { ReadProvider, useReadContext } from '@/context/FeedReadContext'
 import { FeedSidebar } from './FeedSidebar'
 import type { UserRepository, TaggedItem } from '@/types'
+import type { ProviderMeta } from '@/lib/providerTemplate'
 
 function useDragResize(initial: number, min: number, max: number) {
   const [width, setWidth] = useState(initial)
@@ -37,10 +38,11 @@ function useDragResize(initial: number, min: number, max: number) {
 interface FeedClientLayoutProps {
   fluxes: UserRepository[]
   allItems: TaggedItem[]
+  templates: Record<string, ProviderMeta>
   children: ReactNode
 }
 
-function FeedClientLayoutInner({ fluxes, allItems, children }: FeedClientLayoutProps) {
+function FeedClientLayoutInner({ fluxes, allItems, templates, children }: FeedClientLayoutProps) {
   const { readIds } = useReadContext()
   const { width: sidebarWidth, handleMouseDown: handleSidebarDrag } = useDragResize(220, 150, 420)
 
@@ -55,7 +57,12 @@ function FeedClientLayoutInner({ fluxes, allItems, children }: FeedClientLayoutP
 
   return (
     <div className="flex min-h-0 flex-1 overflow-hidden">
-      <FeedSidebar fluxes={fluxes} unreadCountByRepoId={unreadCountByRepoId} width={sidebarWidth} />
+      <FeedSidebar
+        fluxes={fluxes}
+        templates={templates}
+        unreadCountByRepoId={unreadCountByRepoId}
+        width={sidebarWidth}
+      />
       <div
         className="w-[4px] shrink-0 cursor-col-resize hover:bg-accent transition-colors"
         style={{ borderRight: '1px solid hsl(var(--border))' }}
@@ -66,10 +73,10 @@ function FeedClientLayoutInner({ fluxes, allItems, children }: FeedClientLayoutP
   )
 }
 
-export function FeedClientLayout({ fluxes, allItems, children }: FeedClientLayoutProps) {
+export function FeedClientLayout({ fluxes, allItems, templates, children }: FeedClientLayoutProps) {
   return (
     <ReadProvider>
-      <FeedClientLayoutInner fluxes={fluxes} allItems={allItems}>
+      <FeedClientLayoutInner fluxes={fluxes} allItems={allItems} templates={templates}>
         {children}
       </FeedClientLayoutInner>
     </ReadProvider>

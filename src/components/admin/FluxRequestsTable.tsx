@@ -13,11 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ScrapRequestApproveDialog } from './ScrapRequestApproveDialog'
-import { adminRejectScrapRequestAction } from '@/lib/admin-actions'
-import type { ScrapRequest } from '@/types'
+import { FluxRequestApproveDialog } from './FluxRequestApproveDialog'
+import { adminRejectFluxRequestAction } from '@/lib/admin-actions'
+import type { FluxRequest } from '@/types'
 
-function StatusBadge({ status }: { status: ScrapRequest['status'] }) {
+function StatusBadge({ status }: { status: FluxRequest['status'] }) {
   if (status === 'pending') {
     return (
       <Badge style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}>En attente</Badge>
@@ -32,15 +32,15 @@ function StatusBadge({ status }: { status: ScrapRequest['status'] }) {
   return <Badge variant="secondary">{status}</Badge>
 }
 
-export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
+export function FluxRequestsTable({ requests }: { requests: FluxRequest[] }) {
   const router = useRouter()
   const { t } = useLanguage()
-  const [approveTarget, setApproveTarget] = useState<ScrapRequest | null>(null)
+  const [approveTarget, setApproveTarget] = useState<FluxRequest | null>(null)
   const [rejectPending, setRejectPending] = useState<string | null>(null)
 
   async function handleReject(requestId: string) {
     setRejectPending(requestId)
-    await adminRejectScrapRequestAction(requestId)
+    await adminRejectFluxRequestAction(requestId)
     setRejectPending(null)
     router.refresh()
   }
@@ -55,6 +55,7 @@ export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
         <TableHeader>
           <TableRow>
             <TableHead>Statut</TableHead>
+            <TableHead>Provider</TableHead>
             <TableHead>{t.admin.url}</TableHead>
             <TableHead>{t.admin.email}</TableHead>
             <TableHead>{t.admin.createdOn}</TableHead>
@@ -67,6 +68,7 @@ export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
               <TableCell>
                 <StatusBadge status={req.status} />
               </TableCell>
+              <TableCell className="text-sm">{req.provider}</TableCell>
               <TableCell className="max-w-xs truncate font-mono text-xs">{req.url}</TableCell>
               <TableCell className="text-sm">{req.user_email}</TableCell>
               <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
@@ -96,7 +98,7 @@ export function ScrapRequestsTable({ requests }: { requests: ScrapRequest[] }) {
       </Table>
 
       {approveTarget && (
-        <ScrapRequestApproveDialog request={approveTarget} onClose={() => setApproveTarget(null)} />
+        <FluxRequestApproveDialog request={approveTarget} onClose={() => setApproveTarget(null)} />
       )}
     </>
   )

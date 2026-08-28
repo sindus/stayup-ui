@@ -228,7 +228,7 @@ describe('DownloadSection', () => {
 })
 
 describe('AdminSidebar', () => {
-  it('lists users, feeds and scraping requests', () => {
+  it('lists users, feeds, providers and flux requests', () => {
     pathname = '/admin/users'
     render(<AdminSidebar />)
     expect(screen.getByRole('link', { name: 'Utilisateurs' })).toHaveAttribute(
@@ -239,10 +239,19 @@ describe('AdminSidebar', () => {
       'href',
       '/admin/repositories',
     )
-    expect(screen.getByRole('link', { name: 'Demandes scrap' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Providers' })).toHaveAttribute(
       'href',
-      '/admin/scrap-requests',
+      '/admin/providers',
     )
+    expect(screen.getByRole('link', { name: 'Demandes de flux' })).toHaveAttribute(
+      'href',
+      '/admin/flux-requests',
+    )
+  })
+
+  it('shows the Admins entry only for a super admin', () => {
+    render(<AdminSidebar isSuper />)
+    expect(screen.getByRole('link', { name: 'Admins' })).toHaveAttribute('href', '/admin/admins')
   })
 
   it('no longer lists a documentation entry', () => {

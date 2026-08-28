@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Download, Upload } from 'lucide-react'
 import { buildOpml, parseOpml, type OpmlFlux } from '@/lib/opml'
-import { extractIdentifier } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { UserRepository } from '@/types'
 
@@ -45,30 +44,31 @@ export function ImportExportButtons({ fluxes }: ImportExportButtonsProps) {
     URL.revokeObjectURL(url)
   }
 
-  async function resolveScrapRepoId(url: string): Promise<number | null> {
-    const res = await fetch('/api/scrap')
+  // `scrap` (et tout provider `manual`) : on ne crée pas de flux à l'import, on
+  // s'abonne à un flux déjà validé s'il en existe un pour cette URL.
+  async function resolveFluxId(provider: string, url: string): Promise<number | null> {
+    const res = await fetch(`/api/providers/${provider}/fluxes`)
     if (!res.ok) return null
-    const data = (await res.json()) as { repos?: { id: number; url: string }[] }
-    return data.repos?.find((r) => r.url === url)?.id ?? null
+    const data = (await res.json()) as { fluxes?: { id: number; url: string }[] }
+    return data.fluxes?.find((f) => f.url === url)?.id ?? null
   }
 
   async function importEntry(entry: OpmlFlux): Promise<'added' | 'unavailable' | 'failed'> {
     if (entry.provider === 'scrap') {
-      const scrapRepoId = await resolveScrapRepoId(entry.url)
-      if (scrapRepoId === null) return 'unavailable'
-      const res = await fetch('/api/fluxes', {
+      const id = await resolveFluxId('scrap', entry.url)
+      if (id === null) return 'unavailable'
+      const res = await fetch('/api/providers/scrap/fluxes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider: 'scrap', scrapRepoId }),
+        body: JSON.stringify({ id }),
       })
       return res.ok ? 'added' : 'failed'
     }
 
-    const identifier = extractIdentifier(entry.url, entry.provider)
     const res = await fetch('/api/fluxes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ provider: entry.provider, identifier }),
+      body: JSON.stringify({ provider: entry.provider, url: entry.url }),
     })
     return res.ok ? 'added' : 'failed'
   }

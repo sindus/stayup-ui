@@ -261,7 +261,7 @@ export const fr: Translations = {
     loading: 'Chargement…',
     requiredError: 'Ce champ est requis',
     selectError: 'Sélectionnez un flux',
-    makeRequest: 'Faire une demande',
+    makeRequest: 'Ajouter un nouveau',
     chooseExisting: 'Choisir un flux existant',
     requestUrl: 'URL de la page à scraper',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -281,6 +281,7 @@ export const fr: Translations = {
     readArticle: "Lire l'article",
     visitWebsite: 'Visiter le site',
     thumbnail: 'Miniature',
+    openLink: 'Ouvrir le lien',
   },
   profile: {
     newEmail: 'Nouvelle adresse e-mail',

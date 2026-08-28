@@ -243,7 +243,7 @@ export const zh: Translations = {
     loading: '加载中…',
     requiredError: '此字段为必填项',
     selectError: '请选择一个订阅源',
-    makeRequest: '提交请求',
+    makeRequest: '新增',
     chooseExisting: '选择现有订阅源',
     requestUrl: '要抓取的URL',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -262,6 +262,7 @@ export const zh: Translations = {
     readArticle: '阅读文章',
     visitWebsite: '访问网站',
     thumbnail: '缩略图',
+    openLink: '打开链接',
   },
   profile: {
     newEmail: '新电子邮箱',

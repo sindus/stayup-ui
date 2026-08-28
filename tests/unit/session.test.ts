@@ -39,6 +39,7 @@ describe('decodeToken', () => {
       name: 'Ada',
       email: 'ada@example.com',
       role: 'admin',
+      isSuper: false,
     })
   })
 
@@ -49,7 +50,14 @@ describe('decodeToken', () => {
       name: '',
       email: '',
       role: 'user',
+      isSuper: false,
     })
+  })
+
+  it('reads the is_super claim for a super admin', async () => {
+    const { decodeToken } = await import('@/lib/session')
+    const token = makeToken({ sub: 'root', role: 'admin', is_super: true })
+    expect(decodeToken(token).isSuper).toBe(true)
   })
 
   it('throws on a malformed payload', async () => {
@@ -75,6 +83,7 @@ describe('getSession', () => {
       name: 'Bob',
       email: 'bob@example.com',
       role: 'user',
+      isSuper: false,
     })
   })
 
@@ -123,6 +132,7 @@ describe('getAdminSession', () => {
       name: 'Root',
       email: 'root@example.com',
       role: 'admin',
+      isSuper: false,
     })
   })
 

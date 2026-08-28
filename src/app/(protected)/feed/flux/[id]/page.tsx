@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
-import { getCachedUserFeed } from '@/lib/feed-cache'
+import { getCachedUserFeed, getCachedTemplates } from '@/lib/feed-cache'
 import { getSession } from '@/lib/session'
 import { FeedClientView } from '@/components/feed/FeedClientView'
 import type { Provider, TaggedItem } from '@/types'
@@ -25,11 +25,13 @@ export default async function FluxPage({ params }: { params: Promise<{ id: strin
   const repo = feedData.repositories.find((r) => r.id === id)
   if (!repo) notFound()
 
+  const templates = await getCachedTemplates(token)
+
   const provider = repo.provider as Provider
   const allItems = feedData.connectors[provider] ?? []
   const items = allItems
     .filter((item) => item.repository_id === repo.repository_id)
     .map((item) => ({ provider, item })) as TaggedItem[]
 
-  return <FeedClientView items={items} repositories={feedData.repositories} />
+  return <FeedClientView items={items} repositories={feedData.repositories} templates={templates} />
 }

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession, getToken } from '@/lib/session'
-import { getScrapRepos } from '@/lib/api-client'
+import { getProviderFluxes } from '@/lib/api-client'
 import { ScrapList } from '@/components/feed/ScrapList'
 
 export default async function ScrapPage() {
@@ -8,7 +8,7 @@ export default async function ScrapPage() {
   if (!session) redirect('/login')
 
   const token = await getToken()
-  const repos = await getScrapRepos(token as string).catch(() => [])
+  const repos = await getProviderFluxes('scrap', token as string).catch(() => [])
 
   return (
     <div className="space-y-6">

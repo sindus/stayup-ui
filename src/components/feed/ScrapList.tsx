@@ -4,9 +4,9 @@ import { useTransition } from 'react'
 import { subscribeScrapAction, unsubscribeScrapAction } from '@/lib/scrap-actions'
 import { useLanguage } from '@/context/LanguageContext'
 import { Button } from '@/components/ui/button'
-import type { ScrapRepository } from '@/types'
+import type { ProviderFlux } from '@/types'
 
-function ScrapCard({ repo }: { repo: ScrapRepository }) {
+function ScrapCard({ repo }: { repo: ProviderFlux }) {
   const { t } = useLanguage()
   const [isPending, startTransition] = useTransition()
 
@@ -24,7 +24,7 @@ function ScrapCard({ repo }: { repo: ScrapRepository }) {
     <div className="rounded-[14px] border border-border bg-card p-4 space-y-3 transition-colors hover:border-peach/30">
       <div className="space-y-1">
         <p className="text-sm font-medium truncate">{repo.url}</p>
-        {repo.config.articles_selector && (
+        {typeof repo.config.articles_selector === 'string' && (
           <p className="text-xs text-muted-foreground font-mono truncate">
             {repo.config.articles_selector}
           </p>
@@ -43,7 +43,7 @@ function ScrapCard({ repo }: { repo: ScrapRepository }) {
   )
 }
 
-export function ScrapList({ repos }: { repos: ScrapRepository[] }) {
+export function ScrapList({ repos }: { repos: ProviderFlux[] }) {
   const { t } = useLanguage()
 
   if (repos.length === 0) {

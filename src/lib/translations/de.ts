@@ -259,7 +259,7 @@ export const de: Translations = {
     loading: 'Wird geladen…',
     requiredError: 'Dieses Feld ist erforderlich',
     selectError: 'Feed auswählen',
-    makeRequest: 'Anfrage stellen',
+    makeRequest: 'Neuen hinzufügen',
     chooseExisting: 'Vorhandenen Feed wählen',
     requestUrl: 'Zu scrapende URL',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -279,6 +279,7 @@ export const de: Translations = {
     readArticle: 'Artikel lesen',
     visitWebsite: 'Website besuchen',
     thumbnail: 'Vorschaubild',
+    openLink: 'Link öffnen',
   },
   profile: {
     newEmail: 'Neue E-Mail-Adresse',

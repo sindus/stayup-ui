@@ -6,6 +6,7 @@ import { FeedClientLayout } from '@/components/feed/FeedClientLayout'
 import { ReadProvider } from '@/context/FeedReadContext'
 import { LanguageProvider } from '@/context/LanguageContext'
 import type { TaggedItem, UserRepository } from '@/types'
+import { TEMPLATES } from './_templates'
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ refresh: vi.fn() }),
@@ -38,7 +39,7 @@ function renderView(items: TaggedItem[]) {
   return render(
     <LanguageProvider initialLang="en">
       <ReadProvider>
-        <FeedClientView items={items} repositories={REPOS} />
+        <FeedClientView items={items} repositories={REPOS} templates={TEMPLATES} />
       </ReadProvider>
     </LanguageProvider>,
   )
@@ -222,7 +223,7 @@ describe('FeedClientLayout', () => {
   function renderLayout(items: TaggedItem[]) {
     return render(
       <LanguageProvider initialLang="en">
-        <FeedClientLayout fluxes={[flux()]} allItems={items}>
+        <FeedClientLayout fluxes={[flux()]} allItems={items} templates={TEMPLATES}>
           <div>child content</div>
         </FeedClientLayout>
       </LanguageProvider>,

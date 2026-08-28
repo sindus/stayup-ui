@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { CheckCheck } from 'lucide-react'
-import type { TaggedItem } from '@/types'
+import type { TaggedItem, FeedRepository } from '@/types'
+import type { ProviderMeta } from '@/lib/providerTemplate'
 import { UnifiedFeedList } from './UnifiedFeedList'
 import { FeedContentViewer } from './FeedContentViewer'
 import { useReadContext } from '@/context/FeedReadContext'
@@ -44,12 +45,13 @@ function getItemId(item: TaggedItem): string {
 
 interface FeedClientViewProps {
   items: TaggedItem[]
-  repositories: { repository_id: number; url: string }[]
+  repositories: FeedRepository[]
+  templates: Record<string, ProviderMeta>
 }
 
 type FilterMode = 'all' | 'unread'
 
-export function FeedClientView({ items, repositories }: FeedClientViewProps) {
+export function FeedClientView({ items, repositories, templates }: FeedClientViewProps) {
   const { readIds, markRead, markAllRead } = useReadContext()
   const { t } = useLanguage()
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
@@ -199,6 +201,7 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
             selectedIndex={selectedIndex}
             onSelect={handleSelect}
             repositories={repositories}
+            templates={templates}
             readIds={readIds}
           />
         </div>
@@ -209,7 +212,7 @@ export function FeedClientView({ items, repositories }: FeedClientViewProps) {
         onMouseDown={handleListDrag}
       />
       <div className="flex-1 overflow-y-auto">
-        <FeedContentViewer item={selected} repositories={repositories} />
+        <FeedContentViewer item={selected} repositories={repositories} templates={templates} />
       </div>
     </div>
   )

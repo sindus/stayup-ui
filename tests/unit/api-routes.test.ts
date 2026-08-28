@@ -25,11 +25,10 @@ class ApiError extends Error {
 const api = {
   ApiError,
   addUserRepository: vi.fn(),
-  subscribeScrap: vi.fn(),
-  validateFlux: vi.fn(),
   deleteUserRepository: vi.fn(),
-  getScrapRepos: vi.fn(),
-  createScrapRequest: vi.fn(),
+  getProviderFluxes: vi.fn(),
+  subscribeFlux: vi.fn(),
+  unsubscribeFlux: vi.fn(),
   getConnectorProviders: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
@@ -49,12 +48,11 @@ function jsonRequest(body: unknown) {
 beforeEach(() => {
   vi.clearAllMocks()
   cookieGet.mockReturnValue({ value: makeToken() })
-  api.validateFlux.mockResolvedValue({ valid: true })
   api.addUserRepository.mockResolvedValue({ repository: { id: 'r1', repository_id: 1 } })
-  api.subscribeScrap.mockResolvedValue(undefined)
   api.deleteUserRepository.mockResolvedValue(undefined)
-  api.getScrapRepos.mockResolvedValue([])
-  api.createScrapRequest.mockResolvedValue({ id: 'req1' })
+  api.getProviderFluxes.mockResolvedValue([])
+  api.subscribeFlux.mockResolvedValue(undefined)
+  api.unsubscribeFlux.mockResolvedValue(undefined)
   api.getConnectorProviders.mockResolvedValue([])
 })
 
@@ -62,32 +60,26 @@ describe('POST /api/fluxes', () => {
   it('returns 401 without a session cookie', async () => {
     cookieGet.mockReturnValue(undefined)
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'changelog', identifier: 'a/b' }))
+    const res = await POST(jsonRequest({ provider: 'changelog', url: 'https://github.com/a/b/' }))
     expect(res.status).toBe(401)
     expect(await res.json()).toEqual({ error: en.errors.notAuthenticated })
   })
 
   it('returns 400 on a schema violation', async () => {
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'changelog', identifier: '' }))
+    const res = await POST(jsonRequest({ provider: 'changelog', url: 'not-a-url' }))
     expect(res.status).toBe(400)
     expect((await res.json()).error).toBe(en.errors.invalidData)
   })
 
-  it('returns 400 for an unknown provider', async () => {
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'documentation', docId: 1 }))
-    expect(res.status).toBe(400)
-  })
-
-  it('creates a changelog flux and normalizes the identifier', async () => {
+  it('forwards the client-built url to addUserRepository', async () => {
     const { POST } = await import('@/app/api/fluxes/route')
     const res = await POST(
-      jsonRequest({ provider: 'changelog', identifier: 'https://github.com/facebook/react' }),
+      jsonRequest({ provider: 'changelog', url: 'https://github.com/facebook/react/' }),
     )
 
     expect(res.status).toBe(201)
-    expect((await res.json()).flux.identifier).toBe('facebook/react')
+    expect((await res.json()).flux.identifier).toBe('github.com/facebook/react/')
     expect(api.addUserRepository).toHaveBeenCalledWith('u1', expect.any(String), {
       provider: 'changelog',
       url: 'https://github.com/facebook/react/',
@@ -95,13 +87,18 @@ describe('POST /api/fluxes', () => {
     })
   })
 
-  // validateFlux renvoie une clé de traduction, pas une phrase toute faite.
-  it('returns 404 when validation rejects the identifier', async () => {
-    api.validateFlux.mockResolvedValue({ valid: false, reason: 'githubRepoNotFound' })
+  it('returns 400 when the url is missing', async () => {
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'changelog', identifier: 'nope/nope' }))
-    expect(res.status).toBe(404)
-    expect((await res.json()).error).toBe(en.errors.githubRepoNotFound)
+    const res = await POST(jsonRequest({ provider: 'changelog' }))
+    expect(res.status).toBe(400)
+  })
+
+  it('returns 202 without a flux when the provider is `manual` (pending approval)', async () => {
+    api.addUserRepository.mockResolvedValue({ status: 'pending', request: { id: 'req-1' } })
+    const { POST } = await import('@/app/api/fluxes/route')
+    const res = await POST(jsonRequest({ provider: 'scrap', url: 'https://blog.dev' }))
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ status: 'pending' })
   })
 
   // Le message de l'API est en anglais quelle que soit la langue : on branche sur le
@@ -109,7 +106,7 @@ describe('POST /api/fluxes', () => {
   it('maps a 409 from the API to an already-following message', async () => {
     api.addUserRepository.mockRejectedValue(new ApiError(409, 'Already subscribed'))
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
+    const res = await POST(jsonRequest({ provider: 'rss', url: 'https://x.dev/feed' }))
     expect(res.status).toBe(409)
     expect((await res.json()).error).toBe(en.errors.alreadySubscribed)
   })
@@ -119,7 +116,7 @@ describe('POST /api/fluxes', () => {
       new ApiError(409, 'This URL is already registered under another provider'),
     )
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
+    const res = await POST(jsonRequest({ provider: 'rss', url: 'https://x.dev/feed' }))
     expect(res.status).toBe(409)
     expect((await res.json()).error).toBe(en.errors.urlOtherProvider)
   })
@@ -127,37 +124,52 @@ describe('POST /api/fluxes', () => {
   it('maps any other API error to 500 without leaking its raw message', async () => {
     api.addUserRepository.mockRejectedValue(new Error('boom'))
     const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'rss', identifier: 'https://x.dev/feed' }))
+    const res = await POST(jsonRequest({ provider: 'rss', url: 'https://x.dev/feed' }))
     expect(res.status).toBe(500)
     expect((await res.json()).error).toBe(en.errors.generic)
   })
+})
 
-  it('subscribes to a scrap repository', async () => {
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 5 }))
+describe('/api/providers/[provider]/fluxes', () => {
+  const params = Promise.resolve({ provider: 'rss' })
+
+  it('GET lists the fluxes of the provider', async () => {
+    api.getProviderFluxes.mockResolvedValue([{ id: 1, url: 'https://a.dev' }])
+    const { GET } = await import('@/app/api/providers/[provider]/fluxes/route')
+    const res = await GET({} as Request, { params })
+    expect(await res.json()).toEqual({ fluxes: [{ id: 1, url: 'https://a.dev' }] })
+    expect(api.getProviderFluxes).toHaveBeenCalledWith('rss', expect.any(String))
+  })
+
+  it('GET degrades to an empty list on API failure', async () => {
+    api.getProviderFluxes.mockRejectedValue(new Error('down'))
+    const { GET } = await import('@/app/api/providers/[provider]/fluxes/route')
+    expect(await (await GET({} as Request, { params })).json()).toEqual({ fluxes: [] })
+  })
+
+  it('POST subscribes the user to an existing flux', async () => {
+    const { POST } = await import('@/app/api/providers/[provider]/fluxes/route')
+    const res = await POST(jsonRequest({ id: 7 }), { params })
     expect(res.status).toBe(201)
-    expect(api.subscribeScrap).toHaveBeenCalledWith(5, expect.any(String))
+    expect(api.subscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String))
   })
 
-  it('returns 409 when already subscribed to the scrap repository', async () => {
-    api.subscribeScrap.mockRejectedValue(new ApiError(409, 'Already subscribed'))
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 5 }))
-    expect(res.status).toBe(409)
-    expect((await res.json()).error).toBe(en.errors.alreadySubscribed)
+  it('POST returns 400 without an id', async () => {
+    const { POST } = await import('@/app/api/providers/[provider]/fluxes/route')
+    expect((await POST(jsonRequest({}), { params })).status).toBe(400)
   })
 
-  it('returns 500 on any other scrap subscription error', async () => {
-    api.subscribeScrap.mockRejectedValue(new Error('down'))
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 5 }))
-    expect(res.status).toBe(500)
+  it('POST maps an "already subscribed" error to 409', async () => {
+    api.subscribeFlux.mockRejectedValue(new Error('Already subscribed'))
+    const { POST } = await import('@/app/api/providers/[provider]/fluxes/route')
+    expect((await POST(jsonRequest({ id: 7 }), { params })).status).toBe(409)
   })
 
-  it('rejects a non-positive scrapRepoId', async () => {
-    const { POST } = await import('@/app/api/fluxes/route')
-    const res = await POST(jsonRequest({ provider: 'scrap', scrapRepoId: 0 }))
-    expect(res.status).toBe(400)
+  it('DELETE unsubscribes the user', async () => {
+    const { DELETE } = await import('@/app/api/providers/[provider]/fluxes/route')
+    const res = await DELETE(jsonRequest({ id: 7 }), { params })
+    expect(res.status).toBe(200)
+    expect(api.unsubscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String))
   })
 })
 
@@ -192,26 +204,6 @@ describe('DELETE /api/fluxes/[id]', () => {
   })
 })
 
-describe('GET /api/scrap', () => {
-  it('returns 401 without a session cookie', async () => {
-    cookieGet.mockReturnValue(undefined)
-    const { GET } = await import('@/app/api/scrap/route')
-    expect((await GET()).status).toBe(401)
-  })
-
-  it('returns the repositories', async () => {
-    api.getScrapRepos.mockResolvedValue([{ id: 1, url: 'https://a.dev' }])
-    const { GET } = await import('@/app/api/scrap/route')
-    expect(await (await GET()).json()).toEqual({ repos: [{ id: 1, url: 'https://a.dev' }] })
-  })
-
-  it('degrades to an empty list when the API fails', async () => {
-    api.getScrapRepos.mockRejectedValue(new Error('down'))
-    const { GET } = await import('@/app/api/scrap/route')
-    expect(await (await GET()).json()).toEqual({ repos: [] })
-  })
-})
-
 describe('GET /api/providers', () => {
   it('returns 401 without a session cookie', async () => {
     cookieGet.mockReturnValue(undefined)
@@ -231,62 +223,6 @@ describe('GET /api/providers', () => {
     api.getConnectorProviders.mockRejectedValue(new Error('down'))
     const { GET } = await import('@/app/api/providers/route')
     expect(await (await GET()).json()).toEqual({ providers: [] })
-  })
-})
-
-describe('POST /api/scrap/requests', () => {
-  it('returns 401 without a session cookie', async () => {
-    cookieGet.mockReturnValue(undefined)
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    expect((await POST(jsonRequest({ url: 'https://a.dev' }))).status).toBe(401)
-  })
-
-  it('returns 400 when url is missing', async () => {
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    const res = await POST(jsonRequest({}))
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe('url is required')
-  })
-
-  it('returns 400 when url is blank', async () => {
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    expect((await POST(jsonRequest({ url: '   ' }))).status).toBe(400)
-  })
-
-  it('returns 400 when the body is not valid JSON', async () => {
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    const res = await POST({
-      json: async () => {
-        throw new Error('bad json')
-      },
-    } as unknown as Request)
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 when the url is malformed', async () => {
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    const res = await POST(jsonRequest({ url: 'not-a-url' }))
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toBe("L'URL n'est pas valide")
-  })
-
-  it('creates the request', async () => {
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    const res = await POST(jsonRequest({ url: 'https://a.dev/blog' }))
-    expect(res.status).toBe(201)
-    expect(await res.json()).toEqual({ id: 'req1' })
-  })
-
-  it('returns 409 when the request already exists', async () => {
-    api.createScrapRequest.mockRejectedValue(new Error('request already exists'))
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    expect((await POST(jsonRequest({ url: 'https://a.dev' }))).status).toBe(409)
-  })
-
-  it('returns 500 on any other API error', async () => {
-    api.createScrapRequest.mockRejectedValue(new Error('down'))
-    const { POST } = await import('@/app/api/scrap/requests/route')
-    expect((await POST(jsonRequest({ url: 'https://a.dev' }))).status).toBe(500)
   })
 })
 

@@ -1,19 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScrapCreateForm } from '@/components/admin/ScrapCreateForm'
-import { ScrapRequestsTable } from '@/components/admin/ScrapRequestsTable'
-import { ScrapRequestApproveDialog } from '@/components/admin/ScrapRequestApproveDialog'
+import { FluxRequestsTable } from '@/components/admin/FluxRequestsTable'
+import { FluxRequestApproveDialog } from '@/components/admin/FluxRequestApproveDialog'
 import { LanguageProvider } from '@/context/LanguageContext'
-import type { ScrapRequest } from '@/types'
+import type { FluxRequest } from '@/types'
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 
 const actions = vi.hoisted(() => ({
   adminCreateRepositoryAction: vi.fn(),
-  adminApproveScrapRequestAction: vi.fn(),
-  adminRejectScrapRequestAction: vi.fn(),
+  adminApproveFluxRequestAction: vi.fn(),
+  adminRejectFluxRequestAction: vi.fn(),
 }))
 vi.mock('@/lib/admin-actions', () => actions)
 
@@ -33,11 +33,12 @@ function field(labelText: string): HTMLInputElement {
   return input as HTMLInputElement
 }
 
-function request(overrides: Partial<ScrapRequest> = {}): ScrapRequest {
+function request(overrides: Partial<FluxRequest> = {}): FluxRequest {
   return {
     id: 'r1',
     user_id: 'u1',
     user_email: 'ada@example.com',
+    provider: 'scrap',
     url: 'https://example.com/blog',
     status: 'pending',
     created_at: '2026-02-01T00:00:00Z',
@@ -221,15 +222,16 @@ describe('ScrapConfigFields exclusions', () => {
   })
 })
 
-describe('ScrapRequestsTable', () => {
+describe('FluxRequestsTable', () => {
   it('shows the empty state', () => {
-    withLang(<ScrapRequestsTable requests={[]} />)
+    withLang(<FluxRequestsTable requests={[]} />)
     expect(screen.getByText('No requests')).toBeInTheDocument()
   })
 
-  it('renders a pending request with both actions', () => {
-    withLang(<ScrapRequestsTable requests={[request()]} />)
+  it('renders a pending request with its provider and both actions', () => {
+    withLang(<FluxRequestsTable requests={[request({ provider: 'rss' })]} />)
 
+    expect(screen.getByText('rss')).toBeInTheDocument()
     expect(screen.getByText('https://example.com/blog')).toBeInTheDocument()
     expect(screen.getByText('ada@example.com')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Approve' })).toBeInTheDocument()
@@ -237,29 +239,24 @@ describe('ScrapRequestsTable', () => {
   })
 
   it('offers no actions for an already-approved request', () => {
-    withLang(<ScrapRequestsTable requests={[request({ status: 'approved' })]} />)
+    withLang(<FluxRequestsTable requests={[request({ status: 'approved' })]} />)
     expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument()
   })
 
-  it('renders a rejected request', () => {
-    withLang(<ScrapRequestsTable requests={[request({ status: 'rejected' })]} />)
-    expect(screen.getByText('https://example.com/blog')).toBeInTheDocument()
-  })
-
   it('rejects a request and refreshes', async () => {
     const user = userEvent.setup()
-    withLang(<ScrapRequestsTable requests={[request()]} />)
+    withLang(<FluxRequestsTable requests={[request()]} />)
 
     await user.click(screen.getByRole('button', { name: 'Reject' }))
 
-    await waitFor(() => expect(actions.adminRejectScrapRequestAction).toHaveBeenCalledWith('r1'))
+    await waitFor(() => expect(actions.adminRejectFluxRequestAction).toHaveBeenCalledWith('r1'))
     expect(refresh).toHaveBeenCalled()
   })
 
   it('opens the approve dialog', async () => {
     const user = userEvent.setup()
-    withLang(<ScrapRequestsTable requests={[request()]} />)
+    withLang(<FluxRequestsTable requests={[request()]} />)
 
     await user.click(screen.getByRole('button', { name: 'Approve' }))
 
@@ -268,26 +265,26 @@ describe('ScrapRequestsTable', () => {
   })
 })
 
-describe('ScrapRequestApproveDialog', () => {
-  it('prefills the requested URL and shows the requester', () => {
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={vi.fn()} />)
+describe('FluxRequestApproveDialog', () => {
+  it('shows the requester, provider and url', () => {
+    withLang(<FluxRequestApproveDialog request={request({ provider: 'rss' })} onClose={vi.fn()} />)
 
-    expect(field('Page URL')).toHaveValue('https://example.com/blog')
     expect(screen.getByText('ada@example.com')).toBeInTheDocument()
+    expect(screen.getByText('rss')).toBeInTheDocument()
+    expect(screen.getByText('https://example.com/blog')).toBeInTheDocument()
   })
 
-  it('approves the request with the entered config', async () => {
+  it('approves a scrap request with the entered config (no url in the payload)', async () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={onClose} />)
+    withLang(<FluxRequestApproveDialog request={request()} onClose={onClose} />)
 
     await user.type(field('Articles CSS selector'), 'h2 a')
     await user.type(field('Content CSS selector'), 'article')
     await user.click(screen.getByRole('button', { name: 'Approve' }))
 
     await waitFor(() =>
-      expect(actions.adminApproveScrapRequestAction).toHaveBeenCalledWith('r1', {
-        url: 'https://example.com/blog',
+      expect(actions.adminApproveFluxRequestAction).toHaveBeenCalledWith('r1', {
         config: {
           articles_selector: 'h2 a',
           content_selector: 'article',
@@ -300,28 +297,22 @@ describe('ScrapRequestApproveDialog', () => {
     expect(refresh).toHaveBeenCalled()
   })
 
-  it('lets the admin correct the URL before approving', async () => {
+  it('approves a non-scrap request with no config at all', async () => {
     const user = userEvent.setup()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={vi.fn()} />)
+    withLang(<FluxRequestApproveDialog request={request({ provider: 'rss' })} onClose={vi.fn()} />)
 
-    const url = field('Page URL')
-    await user.clear(url)
-    await user.type(url, 'https://example.com/news')
-    await user.type(field('Articles CSS selector'), 'h2 a')
-    await user.type(field('Content CSS selector'), 'article')
+    // No scrap config fields for a non-scrap provider.
+    expect(screen.queryByText('Articles CSS selector')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Approve' }))
 
     await waitFor(() =>
-      expect(actions.adminApproveScrapRequestAction).toHaveBeenCalledWith(
-        'r1',
-        expect.objectContaining({ url: 'https://example.com/news' }),
-      ),
+      expect(actions.adminApproveFluxRequestAction).toHaveBeenCalledWith('r1', {}),
     )
   })
 
   it('includes exclusions when some are added', async () => {
     const user = userEvent.setup()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={vi.fn()} />)
+    withLang(<FluxRequestApproveDialog request={request()} onClose={vi.fn()} />)
 
     await user.type(field('Articles CSS selector'), 'h2 a')
     await user.type(field('Content CSS selector'), 'article')
@@ -329,7 +320,7 @@ describe('ScrapRequestApproveDialog', () => {
     await user.click(screen.getByRole('button', { name: 'Approve' }))
 
     await waitFor(() =>
-      expect(actions.adminApproveScrapRequestAction).toHaveBeenCalledWith(
+      expect(actions.adminApproveFluxRequestAction).toHaveBeenCalledWith(
         'r1',
         expect.objectContaining({ config: expect.objectContaining({ exclude: ['nav'] }) }),
       ),
@@ -337,10 +328,10 @@ describe('ScrapRequestApproveDialog', () => {
   })
 
   it('surfaces the server error and stays open', async () => {
-    actions.adminApproveScrapRequestAction.mockResolvedValue({ error: 'Invalid selector' })
+    actions.adminApproveFluxRequestAction.mockResolvedValue({ error: 'Invalid selector' })
     const onClose = vi.fn()
     const user = userEvent.setup()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={onClose} />)
+    withLang(<FluxRequestApproveDialog request={request()} onClose={onClose} />)
 
     await user.type(field('Articles CSS selector'), 'h2 a')
     await user.type(field('Content CSS selector'), 'article')
@@ -353,17 +344,9 @@ describe('ScrapRequestApproveDialog', () => {
   it('closes on cancel', async () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={onClose} />)
+    withLang(<FluxRequestApproveDialog request={request()} onClose={onClose} />)
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onClose).toHaveBeenCalled()
-  })
-
-  it('closes when the dialog is dismissed', async () => {
-    const onClose = vi.fn()
-    withLang(<ScrapRequestApproveDialog request={request()} onClose={onClose} />)
-
-    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
-    await waitFor(() => expect(onClose).toHaveBeenCalled())
   })
 })

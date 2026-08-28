@@ -131,52 +131,6 @@ describe('admin API functions', () => {
   })
 })
 
-describe('validateFlux', () => {
-  // validateFlux calls the GitHub API directly — no JWT needed
-  it('returns valid:true when GitHub repo exists', async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      status: 200,
-      json: async () => ({ name: 'react' }),
-    })
-
-    const { validateFlux } = await import('@/lib/api-client')
-    const result = await validateFlux('changelog', 'facebook/react')
-    expect(result.valid).toBe(true)
-  })
-
-  it('returns valid:false when GitHub repo does not exist', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: false, status: 404 })
-
-    const { validateFlux } = await import('@/lib/api-client')
-    const result = await validateFlux('changelog', 'fake/nonexistent-repo-xyz')
-    expect(result.valid).toBe(false)
-    expect(result.reason).toBe('githubRepoNotFound')
-  })
-
-  it('returns valid:true for youtube provider without API call', async () => {
-    const { validateFlux } = await import('@/lib/api-client')
-    const result = await validateFlux('youtube', 'fireship')
-    expect(result.valid).toBe(true)
-    // fetch should not have been called (no API check for youtube)
-    expect(mockFetch).not.toHaveBeenCalled()
-  })
-
-  it('returns valid:false for an unknown provider given a non-URL identifier', async () => {
-    const { validateFlux } = await import('@/lib/api-client')
-    const result = await validateFlux('unknown', 'test')
-    expect(result.valid).toBe(false)
-  })
-
-  it('returns valid:true for an unknown provider given a full URL', async () => {
-    const { validateFlux } = await import('@/lib/api-client')
-    const result = await validateFlux('unknown', 'https://example.com/feed')
-    expect(result.valid).toBe(true)
-    // Aucune requête réseau pour un provider inconnu.
-    expect(mockFetch).not.toHaveBeenCalled()
-  })
-})
-
 // ─── Connectors & user feed ────────────────────────────────────────────────────
 
 describe('getUserFeed', () => {
@@ -312,80 +266,73 @@ describe('adminClearRepositoryData', () => {
 
 // ─── Scrap ─────────────────────────────────────────────────────────────────────
 
-describe('getScrapRepos', () => {
-  it('unwraps the repos array', async () => {
+describe('getProviderFluxes', () => {
+  it('unwraps the fluxes array for the given provider', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ repos: [{ id: 1, url: 'https://a.dev' }] }),
+      json: async () => ({ fluxes: [{ id: 1, url: 'https://a.dev' }] }),
     })
 
-    const { getScrapRepos } = await import('@/lib/api-client')
-    expect(await getScrapRepos(TEST_TOKEN)).toHaveLength(1)
+    const { getProviderFluxes } = await import('@/lib/api-client')
+    expect(await getProviderFluxes('scrap', TEST_TOKEN)).toHaveLength(1)
+    expect(mockFetch.mock.calls[0][0]).toContain('/providers/scrap/fluxes')
   })
 })
 
-describe('subscribeScrap', () => {
-  it('POSTs the subscription', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+describe('subscribeFlux / unsubscribeFlux', () => {
+  it('POSTs then DELETEs the subscription for a provider flux', async () => {
+    mockFetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
 
-    const { subscribeScrap } = await import('@/lib/api-client')
-    await subscribeScrap(4, TEST_TOKEN)
-    expect(mockFetch.mock.calls[0][0]).toContain('/scrap/4/subscribe')
+    const { subscribeFlux, unsubscribeFlux } = await import('@/lib/api-client')
+    await subscribeFlux('rss', 4, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/providers/rss/fluxes/4/subscribe')
     expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+
+    await unsubscribeFlux('rss', 4, TEST_TOKEN)
+    expect(mockFetch.mock.calls[1][1].method).toBe('DELETE')
   })
 })
 
-describe('unsubscribeScrap', () => {
-  it('DELETEs the subscription', async () => {
+describe('adminListProviders / adminSetProviderApproval', () => {
+  it('lists providers then PATCHes one approval mode', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        providers: [{ name: 'rss', displayName: 'RSS', flux_approval: 'auto' }],
+      }),
+    })
+    const { adminListProviders, adminSetProviderApproval } = await import('@/lib/api-client')
+    expect(await adminListProviders(TEST_TOKEN)).toHaveLength(1)
+
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
-
-    const { unsubscribeScrap } = await import('@/lib/api-client')
-    await unsubscribeScrap(4, TEST_TOKEN)
-    expect(mockFetch.mock.calls[0][1].method).toBe('DELETE')
+    await adminSetProviderApproval('rss', 'manual', TEST_TOKEN)
+    expect(mockFetch.mock.calls[1][0]).toContain('/ui/providers/rss')
+    expect(mockFetch.mock.calls[1][1].method).toBe('PATCH')
   })
 })
 
-describe('createScrapRequest', () => {
-  it('POSTs the request URL', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ id: 'r1' }) })
-
-    const { createScrapRequest } = await import('@/lib/api-client')
-    expect(await createScrapRequest({ url: 'https://a.dev' }, TEST_TOKEN)).toEqual({ id: 'r1' })
-    expect(mockFetch.mock.calls[0][0]).toContain('/scrap/requests')
-  })
-})
-
-describe('adminListScrapRequests', () => {
+describe('adminListFluxRequests / approve / reject', () => {
   it('unwraps the requests array', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ requests: [{ id: 'r1' }] }),
+      json: async () => ({ requests: [{ id: 'r1', provider: 'rss' }] }),
     })
-
-    const { adminListScrapRequests } = await import('@/lib/api-client')
-    expect(await adminListScrapRequests(TEST_TOKEN)).toHaveLength(1)
+    const { adminListFluxRequests } = await import('@/lib/api-client')
+    expect(await adminListFluxRequests(TEST_TOKEN)).toHaveLength(1)
   })
-})
 
-describe('adminApproveScrapRequest', () => {
   it('POSTs the approval and returns the repository id', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ repository_id: 9 }) })
-
-    const { adminApproveScrapRequest } = await import('@/lib/api-client')
-    const body = { url: 'https://a.dev', config: {} }
-    expect(await adminApproveScrapRequest('r1', body, TEST_TOKEN)).toEqual({ repository_id: 9 })
-    expect(mockFetch.mock.calls[0][0]).toContain('/ui/scrap-requests/r1/approve')
+    const { adminApproveFluxRequest } = await import('@/lib/api-client')
+    expect(await adminApproveFluxRequest('r1', {}, TEST_TOKEN)).toEqual({ repository_id: 9 })
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/flux-requests/r1/approve')
   })
-})
 
-describe('adminRejectScrapRequest', () => {
   it('POSTs the rejection', async () => {
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
-
-    const { adminRejectScrapRequest } = await import('@/lib/api-client')
-    await adminRejectScrapRequest('r1', TEST_TOKEN)
-    expect(mockFetch.mock.calls[0][0]).toContain('/ui/scrap-requests/r1/reject')
-    expect(mockFetch.mock.calls[0][1].method).toBe('POST')
+    const { adminRejectFluxRequest } = await import('@/lib/api-client')
+    await adminRejectFluxRequest('r1', TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/flux-requests/r1/reject')
   })
 })
 
@@ -428,8 +375,8 @@ describe('apiFetch — rejeu et cache', () => {
       json: async () => ({ error: 'Already subscribed' }),
     })
 
-    const { ApiError, subscribeScrap } = await import('@/lib/api-client')
-    await expect(subscribeScrap(1, 'token')).rejects.toMatchObject({
+    const { ApiError, subscribeFlux } = await import('@/lib/api-client')
+    await expect(subscribeFlux('rss', 1, 'token')).rejects.toMatchObject({
       status: 409,
     })
     expect(ApiError).toBeDefined()

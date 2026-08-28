@@ -251,7 +251,7 @@ export const ja: Translations = {
     loading: '読み込み中…',
     requiredError: 'この項目は必須です',
     selectError: 'フィードを選択してください',
-    makeRequest: 'リクエストを送信',
+    makeRequest: '新規追加',
     chooseExisting: '既存のフィードを選択',
     requestUrl: 'スクレイピング対象のURL',
     requestUrlPlaceholder: 'https://example.com/blog',
@@ -270,6 +270,7 @@ export const ja: Translations = {
     readArticle: '記事を読む',
     visitWebsite: 'サイトを訪問',
     thumbnail: 'サムネイル',
+    openLink: 'リンクを開く',
   },
   profile: {
     newEmail: '新しいメールアドレス',

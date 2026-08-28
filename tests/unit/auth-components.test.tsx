@@ -145,15 +145,15 @@ describe('RegisterPageContent', () => {
 })
 
 describe('AdminLoginForm', () => {
-  it('submits the admin credentials', async () => {
+  it('submits the admin credentials (e-mail carried in the username field)', async () => {
     const user = userEvent.setup()
     render(<AdminLoginForm />)
 
-    await user.type(screen.getByLabelText('Identifiant'), 'root')
+    await user.type(screen.getByLabelText('Email'), 'root@example.com')
     await user.type(screen.getByLabelText('Mot de passe'), 'secret')
     await user.click(screen.getByRole('button', { name: 'Se connecter' }))
 
-    await waitFor(() => expect(adminLoginAction).toHaveBeenCalledWith('root', 'secret'))
+    await waitFor(() => expect(adminLoginAction).toHaveBeenCalledWith('root@example.com', 'secret'))
   })
 
   it('requires both fields', async () => {
@@ -162,7 +162,7 @@ describe('AdminLoginForm', () => {
 
     await user.click(screen.getByRole('button', { name: 'Se connecter' }))
 
-    expect(await screen.findByText('Identifiant requis')).toBeInTheDocument()
+    expect(await screen.findByText('Email invalide')).toBeInTheDocument()
     expect(screen.getByText('Mot de passe requis')).toBeInTheDocument()
     expect(adminLoginAction).not.toHaveBeenCalled()
   })
@@ -172,7 +172,7 @@ describe('AdminLoginForm', () => {
     const user = userEvent.setup()
     render(<AdminLoginForm />)
 
-    await user.type(screen.getByLabelText('Identifiant'), 'root')
+    await user.type(screen.getByLabelText('Email'), 'root@example.com')
     await user.type(screen.getByLabelText('Mot de passe'), 'bad')
     await user.click(screen.getByRole('button', { name: 'Se connecter' }))
 
