@@ -471,6 +471,33 @@ describe('admin account API wrappers', () => {
   })
 })
 
+describe('fetchAuthConfig', () => {
+  it('returns the parsed config on success', async () => {
+    const cfg = {
+      registrationMode: 'approval',
+      emailPassword: true,
+      oauth: { github: true, google: false },
+    }
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => cfg })
+
+    const { fetchAuthConfig } = await import('@/lib/api-client')
+    await expect(fetchAuthConfig()).resolves.toEqual(cfg)
+    expect(mockFetch.mock.calls[0][0]).toContain('/auth/config')
+  })
+
+  it('returns null when the endpoint is missing', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
+    const { fetchAuthConfig } = await import('@/lib/api-client')
+    await expect(fetchAuthConfig()).resolves.toBeNull()
+  })
+
+  it('returns null when the request throws', async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError('unreachable'))
+    const { fetchAuthConfig } = await import('@/lib/api-client')
+    await expect(fetchAuthConfig()).resolves.toBeNull()
+  })
+})
+
 describe('pending sign-up API wrappers', () => {
   it('adminListPendingUsers reads /ui/users/pending', async () => {
     mockFetch.mockResolvedValueOnce({

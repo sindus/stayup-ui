@@ -191,6 +191,9 @@ export const fr: Translations = {
     alreadyAccount: 'Déjà inscrit ?',
     signUp: 'Crée un compte',
     or: 'ou',
+    server: 'Serveur',
+    pendingApprovalHint:
+      'Ton compte devra être validé par un administrateur avant que tu puisses te connecter.',
     continueWithGoogle: 'Continuer avec Google',
     continueWithGitHub: 'Continuer avec GitHub',
     emailInvalid: 'Adresse e-mail invalide',

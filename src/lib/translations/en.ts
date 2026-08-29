@@ -178,6 +178,9 @@ export const en = {
     alreadyAccount: 'Already have an account?',
     signUp: 'Create an account',
     or: 'or',
+    server: 'Server',
+    pendingApprovalHint:
+      'Your account will need an administrator to approve it before you can sign in.',
     continueWithGoogle: 'Continue with Google',
     continueWithGitHub: 'Continue with GitHub',
     emailInvalid: 'Invalid email address',

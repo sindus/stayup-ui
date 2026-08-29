@@ -174,6 +174,8 @@ export const zh: Translations = {
     alreadyAccount: '已有账户？',
     signUp: '创建账户',
     or: '或',
+    server: '服务器',
+    pendingApprovalHint: '登录前，你的账户需要管理员批准。',
     continueWithGoogle: '使用 Google 继续',
     continueWithGitHub: '使用 GitHub 继续',
     emailInvalid: '邮箱地址无效',

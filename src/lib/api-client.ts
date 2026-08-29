@@ -61,6 +61,27 @@ async function apiFetch<T>(
   return res.json() as Promise<T>
 }
 
+// ─── Auth config ──────────────────────────────────────────────────────────────
+
+export interface AuthConfig {
+  registrationMode: 'open' | 'approval'
+  emailPassword: boolean
+  oauth: { google: boolean; github: boolean }
+}
+
+/** Ce qu'un client doit savoir avant l'écran de connexion. `null` si l'API ne
+ *  répond pas ou est trop ancienne pour exposer `/auth/config` — l'appelant
+ *  retombe alors sur « tout est proposé ». Non authentifié. */
+export async function fetchAuthConfig(): Promise<AuthConfig | null> {
+  try {
+    const res = await fetch(`${await getApiUrl()}/auth/config`, { cache: 'no-store' })
+    if (!res.ok) return null
+    return (await res.json()) as AuthConfig
+  } catch {
+    return null
+  }
+}
+
 // ─── Connectors ────────────────────────────────────────────────────────────────
 
 export interface ConnectorProvider {

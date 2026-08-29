@@ -181,6 +181,9 @@ export const it: Translations = {
     alreadyAccount: 'Hai già un account?',
     signUp: 'Crea un account',
     or: 'o',
+    server: 'Server',
+    pendingApprovalHint:
+      'Il tuo account dovrà essere approvato da un amministratore prima che tu possa accedere.',
     continueWithGoogle: 'Continua con Google',
     continueWithGitHub: 'Continua con GitHub',
     emailInvalid: 'Indirizzo email non valido',

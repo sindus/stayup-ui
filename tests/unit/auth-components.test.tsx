@@ -20,6 +20,11 @@ vi.mock('@/lib/auth-actions', () => ({
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: vi.fn() }) }))
 
+vi.mock('@/lib/settings-actions', () => ({
+  setApiUrlAction: vi.fn().mockResolvedValue({}),
+  resetApiUrlAction: vi.fn().mockResolvedValue(undefined),
+}))
+
 function renderWithLang(ui: React.ReactElement) {
   return render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>)
 }
@@ -123,7 +128,29 @@ describe('OAuthButtons', () => {
     expect(hrefs.some((h) => h?.includes('google'))).toBe(true)
     expect(hrefs.some((h) => h?.includes('github'))).toBe(true)
   })
+
+  it('renders only the providers it is told to', () => {
+    renderWithLang(
+      <OAuthButtons apiUrl="https://api.test" providers={{ github: true, google: false }} />,
+    )
+    const hrefs = screen.getAllByRole('link').map((l) => l.getAttribute('href'))
+    expect(hrefs.some((h) => h?.includes('github'))).toBe(true)
+    expect(hrefs.some((h) => h?.includes('google'))).toBe(false)
+  })
+
+  it('renders nothing when neither provider is offered', () => {
+    const { container } = renderWithLang(
+      <OAuthButtons apiUrl="https://api.test" providers={{ github: false, google: false }} />,
+    )
+    expect(container).toBeEmptyDOMElement()
+  })
 })
+
+const noOAuth = {
+  registrationMode: 'open' as const,
+  emailPassword: true,
+  oauth: { github: false, google: false },
+}
 
 describe('LoginPageContent', () => {
   it('renders the form and a link to registration', () => {
@@ -134,6 +161,26 @@ describe('LoginPageContent', () => {
       '/register',
     )
   })
+
+  it('drops the OAuth block when the instance offers no provider', () => {
+    renderWithLang(<LoginPageContent apiUrl="https://api.test" config={noOAuth} />)
+    expect(screen.queryByRole('link', { name: /GitHub/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('or')).not.toBeInTheDocument()
+  })
+
+  it('reveals the server field behind the host line', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<LoginPageContent apiUrl="https://api.test" />)
+
+    expect(screen.queryByLabelText('API URL')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Server · api\.test/ }))
+    expect(screen.getByLabelText('API URL')).toBeInTheDocument()
+  })
+
+  it('shows the raw string when the API URL is not a URL', () => {
+    renderWithLang(<LoginPageContent apiUrl="not-a-url" />)
+    expect(screen.getByRole('button', { name: /Server · not-a-url/ })).toBeInTheDocument()
+  })
 })
 
 describe('RegisterPageContent', () => {
@@ -141,6 +188,20 @@ describe('RegisterPageContent', () => {
     renderWithLang(<RegisterPageContent apiUrl="https://api.test" />)
     expect(screen.getByLabelText('Name')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login')
+  })
+
+  it('warns about admin approval when the instance requires it', () => {
+    renderWithLang(
+      <RegisterPageContent
+        apiUrl="https://api.test"
+        config={{ ...noOAuth, oauth: { github: true, google: true }, registrationMode: 'approval' }}
+      />,
+    )
+    expect(
+      screen.getByText(
+        'Your account will need an administrator to approve it before you can sign in.',
+      ),
+    ).toBeInTheDocument()
   })
 })
 

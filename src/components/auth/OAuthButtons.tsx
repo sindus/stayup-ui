@@ -2,55 +2,69 @@
 
 import { useLanguage } from '@/context/LanguageContext'
 
-export function OAuthButtons({ apiUrl }: { apiUrl: string }) {
+export function OAuthButtons({
+  apiUrl,
+  providers = { github: true, google: true },
+}: {
+  apiUrl: string
+  /** Quels boutons afficher — d'après `GET /auth/config` de l'instance visée.
+   *  Par défaut les deux, pour une API trop ancienne pour exposer la config. */
+  providers?: { github: boolean; google: boolean }
+}) {
   const { t } = useLanguage()
+
+  if (!providers.github && !providers.google) return null
 
   return (
     <div className="flex flex-col gap-2">
-      <a
-        href={`${apiUrl}/auth/oauth/github`}
-        className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border-color)',
-          color: 'var(--fg)',
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget
-          el.style.background = 'var(--surface-hi)'
-          el.style.borderColor = 'var(--peach-mid)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget
-          el.style.background = 'var(--surface)'
-          el.style.borderColor = 'var(--border-color)'
-        }}
-      >
-        <GithubIcon className="h-4 w-4" />
-        {t.auth.continueWithGitHub}
-      </a>
-      <a
-        href={`${apiUrl}/auth/oauth/google`}
-        className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border-color)',
-          color: 'var(--fg)',
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget
-          el.style.background = 'var(--surface-hi)'
-          el.style.borderColor = 'var(--peach-mid)'
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget
-          el.style.background = 'var(--surface)'
-          el.style.borderColor = 'var(--border-color)'
-        }}
-      >
-        <GoogleIcon className="h-4 w-4" />
-        {t.auth.continueWithGoogle}
-      </a>
+      {providers.github && (
+        <a
+          href={`${apiUrl}/auth/oauth/github`}
+          className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border-color)',
+            color: 'var(--fg)',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = 'var(--surface-hi)'
+            el.style.borderColor = 'var(--peach-mid)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background = 'var(--surface)'
+            el.style.borderColor = 'var(--border-color)'
+          }}
+        >
+          <GithubIcon className="h-4 w-4" />
+          {t.auth.continueWithGitHub}
+        </a>
+      )}
+      {providers.google && (
+        <a
+          href={`${apiUrl}/auth/oauth/google`}
+          className="flex items-center justify-center gap-2 h-10 w-full rounded-md text-[13.5px] font-medium transition-colors"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--border-color)',
+            color: 'var(--fg)',
+          }}
+          onMouseEnter={(e) => {
+            const el = e.currentTarget
+            el.style.background = 'var(--surface-hi)'
+            el.style.borderColor = 'var(--peach-mid)'
+          }}
+          onMouseLeave={(e) => {
+            const el = e.currentTarget
+            el.style.background = 'var(--surface)'
+            el.style.borderColor = 'var(--border-color)'
+          }}
+        >
+          <GoogleIcon className="h-4 w-4" />
+          {t.auth.continueWithGoogle}
+        </a>
+      )}
     </div>
   )
 }

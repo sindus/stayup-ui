@@ -182,6 +182,8 @@ export const ja: Translations = {
     alreadyAccount: 'すでにアカウントをお持ちですか？',
     signUp: 'アカウントを作成',
     or: 'または',
+    server: 'サーバー',
+    pendingApprovalHint: 'サインインする前に、管理者による承認が必要です。',
     continueWithGoogle: 'Googleで続ける',
     continueWithGitHub: 'GitHubで続ける',
     emailInvalid: 'メールアドレスが無効です',

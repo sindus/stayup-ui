@@ -187,6 +187,9 @@ export const es: Translations = {
     alreadyAccount: '¿Ya tienes una cuenta?',
     signUp: 'Crear una cuenta',
     or: 'o',
+    server: 'Servidor',
+    pendingApprovalHint:
+      'Un administrador deberá aprobar tu cuenta antes de que puedas iniciar sesión.',
     continueWithGoogle: 'Continuar con Google',
     continueWithGitHub: 'Continuar con GitHub',
     emailInvalid: 'Dirección de correo no válida',

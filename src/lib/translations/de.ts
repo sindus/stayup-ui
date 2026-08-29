@@ -190,6 +190,9 @@ export const de: Translations = {
     alreadyAccount: 'Bereits ein Konto?',
     signUp: 'Konto erstellen',
     or: 'oder',
+    server: 'Server',
+    pendingApprovalHint:
+      'Dein Konto muss von einem Administrator freigegeben werden, bevor du dich anmelden kannst.',
     continueWithGoogle: 'Mit Google fortfahren',
     continueWithGitHub: 'Mit GitHub fortfahren',
     emailInvalid: 'Ungültige E-Mail-Adresse',
