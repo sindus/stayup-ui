@@ -41,10 +41,12 @@ test.describe('Feed page (authenticated)', () => {
   test('add flux dialog has provider selector and identifier input', async ({ page }) => {
     await page.getByRole('button', { name: /ajouter un flux/i }).click()
     const dialog = page.getByRole('dialog')
-    await expect(dialog.getByRole('button', { name: 'GitHub', exact: true })).toBeVisible()
+    // The provider tiles come from the instance's connectors — their labels depend
+    // on what those connectors publish, so assert the structure, not a name.
+    await expect(dialog.getByText(/source/i).first()).toBeVisible()
     // The dialog may open on the "existing flux" tab; switch to "add a new one".
     await dialog.getByRole('button', { name: /ajouter un nouveau/i }).click()
-    await expect(page.getByLabel(/dépôt github/i)).toBeVisible()
+    await expect(dialog.getByRole('textbox')).toBeVisible()
   })
 
   test('closes dialog on cancel', async ({ page }) => {

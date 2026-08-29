@@ -13,10 +13,16 @@ test.describe('Documentation index', () => {
   })
 
   test('routes to each journey', async ({ page }) => {
-    for (const url of ['/docs/install', '/docs/generate', '/docs/admin', '/docs/providers']) {
+    const journeys: [string, string][] = [
+      ['Monter ta propre instance', '/docs/install'],
+      ['Générer un script', '/docs/generate'],
+      ['Exploiter ton instance', '/docs/admin'],
+      ['Brancher une nouvelle source', '/docs/providers'],
+    ]
+    for (const [title, url] of journeys) {
       await page.goto('/docs')
-      await page.locator(`main a[href="${url}"]`).first().click()
-      await expect(page).toHaveURL(url)
+      await page.locator('main').getByRole('link', { name: title }).first().click()
+      await page.waitForURL(url)
     }
   })
 
