@@ -15,6 +15,14 @@ const S: GeneratorStrings = {
   remove: 'Remove',
   adminUi: 'Include the admin UI',
   adminUiHint: 'Manage providers',
+  registration: 'Registration',
+  registrationOpen: 'Open',
+  registrationOpenHint: 'Anyone can sign up right away.',
+  registrationApproval: 'On approval',
+  registrationApprovalHint: 'New accounts wait for an admin.',
+  signInMethods: 'Sign-in methods',
+  emailPassword: 'Email + password',
+  oauthHint: 'The script asks for the OAuth client id and secret at run time.',
   advanced: 'Advanced',
   projectDir: 'Project folder',
   apiPort: 'API port',
@@ -90,6 +98,26 @@ describe('ProjectGenerator', () => {
     await user.type(screen.getByLabelText('Your connectors 1 name'), 'hackernews')
     expect(preview()).toContain('connector-hackernews:')
     expect(preview()).not.toContain('connector-x:')
+  })
+
+  it('switches the script to approval registration', async () => {
+    const user = userEvent.setup()
+    render(<ProjectGenerator strings={S} />)
+    expect(preview()).toContain('REGISTRATION_MODE: open')
+    await user.click(screen.getByRole('radio', { name: /On approval/ }))
+    expect(preview()).toContain('REGISTRATION_MODE: approval')
+  })
+
+  it('adds an OAuth provider and shows the credentials hint', async () => {
+    const user = userEvent.setup()
+    render(<ProjectGenerator strings={S} />)
+    expect(preview()).not.toContain('GitHub sign-in — create an OAuth client')
+    expect(screen.queryByText(/asks for the OAuth client id and secret/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('checkbox', { name: 'GitHub' }))
+
+    expect(preview()).toContain('GitHub sign-in — create an OAuth client')
+    expect(screen.getByText(/asks for the OAuth client id and secret/)).toBeInTheDocument()
   })
 
   it('surfaces a validation error instead of a script', async () => {

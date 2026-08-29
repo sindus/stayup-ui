@@ -31,11 +31,19 @@ export interface CustomConnector {
   serviceName?: string
 }
 
+export type RegistrationMode = 'open' | 'approval'
+
 export interface GeneratorInput {
   projectDir: string
   connectors: ConnectorId[]
   customConnectors: CustomConnector[]
   includeAdminUi: boolean
+  /** `open` : l'inscription active le compte tout de suite. `approval` : le
+   *  compte attend qu'un admin le valide. */
+  registrationMode: RegistrationMode
+  /** Fournisseurs OAuth à activer. Le script demandera les client id/secret à
+   *  l'exécution — ils ne sont jamais écrits dans le script lui-même. */
+  oauth: { google: boolean; github: boolean }
   ports: { api: number; ui: number; db: number }
 }
 
@@ -44,6 +52,8 @@ export const DEFAULT_INPUT: GeneratorInput = {
   connectors: [...CONNECTOR_IDS],
   customConnectors: [],
   includeAdminUi: true,
+  registrationMode: 'open',
+  oauth: { google: false, github: false },
   ports: { api: 3000, ui: 3001, db: 5432 },
 }
 
@@ -130,10 +140,25 @@ delete = true
 `
 }
 
+/** Bloc de prompts pour un fournisseur OAuth (client id + secret à l'exécution). */
+function oauthPrompt(provider: 'google' | 'github', apiPort: number): string {
+  const label = provider === 'google' ? 'Google' : 'GitHub'
+  const where =
+    provider === 'google'
+      ? 'https://console.cloud.google.com/apis/credentials'
+      : 'https://github.com/settings/developers'
+  const idVar = `${provider.toUpperCase()}_CLIENT_ID`
+  const secretVar = `${provider.toUpperCase()}_CLIENT_SECRET`
+  return `c_info "${label} sign-in — create an OAuth client at ${where}"
+c_info "  Callback URL:  http://localhost:${apiPort}/auth/oauth/${provider}/callback"
+read -rp "  ${label} client ID:     " ${idVar}
+read -rsp "  ${label} client secret: " ${secretVar}; echo`
+}
+
 export function buildSetupScript(input: GeneratorInput): string {
   validate(input)
   const connectors = resolveConnectors(input)
-  const { projectDir, includeAdminUi, ports } = input
+  const { projectDir, includeAdminUi, registrationMode, oauth, ports } = input
 
   const cloneLines = [
     `clone "https://github.com/${API_REPO}.git" "stayup-api"`,
@@ -187,6 +212,37 @@ export function buildSetupScript(input: GeneratorInput): string {
     ? 'echo "  Admin  http://localhost:$UI_PORT/admin  (log in with the super admin above)"\n'
     : ''
 
+  const oauthPrompts = [
+    oauth.google ? oauthPrompt('google', ports.api) : null,
+    oauth.github ? oauthPrompt('github', ports.api) : null,
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+  const oauthEnvLines = `      GOOGLE_CLIENT_ID: "$GOOGLE_CLIENT_ID"
+      GOOGLE_CLIENT_SECRET: "$GOOGLE_CLIENT_SECRET"
+      GITHUB_CLIENT_ID: "$GITHUB_CLIENT_ID"
+      GITHUB_CLIENT_SECRET: "$GITHUB_CLIENT_SECRET"`
+
+  const oauthDoneNote =
+    oauth.google || oauth.github
+      ? `echo "  OAuth: keep these callback URLs registered with your provider(s):"\n${[
+          oauth.google
+            ? `echo "    http://localhost:$API_PORT/auth/oauth/google/callback   (Google)"`
+            : null,
+          oauth.github
+            ? `echo "    http://localhost:$API_PORT/auth/oauth/github/callback   (GitHub)"`
+            : null,
+        ]
+          .filter(Boolean)
+          .join('\n')}\n`
+      : ''
+
+  const approvalDoneNote =
+    registrationMode === 'approval'
+      ? 'echo "  Sign-ups wait for an admin under /admin/users → Comptes en attente (approval mode)."\n'
+      : ''
+
   return `#!/usr/bin/env bash
 #
 # StayUp — self-hosted setup (generated).
@@ -229,6 +285,12 @@ while :; do
   c_err "Passwords empty or mismatched — try again."
 done
 
+# OAuth credentials are asked here and only ever land in docker-compose.yml —
+# never in this script. Empty = that provider stays off.
+GOOGLE_CLIENT_ID=""; GOOGLE_CLIENT_SECRET=""
+GITHUB_CLIENT_ID=""; GITHUB_CLIENT_SECRET=""
+${oauthPrompts}
+
 ${cronDefaults}
 ${cronPrompts}
 
@@ -250,6 +312,7 @@ POSTGRES_DB=stayup
 POSTGRES_USER=stayup
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 JWT_SECRET=$JWT_SECRET
+REGISTRATION_MODE=${registrationMode}
 EOF
 
 cat > docker-compose.yml <<EOF
@@ -278,6 +341,9 @@ services:
       DATABASE_URL: $DATABASE_URL
       JWT_SECRET: $JWT_SECRET
       PORT: "3000"
+      REGISTRATION_MODE: ${registrationMode}
+      UI_URL: http://localhost:${ports.ui}
+${oauthEnvLines}
     ports:
       - "${ports.api}:3000"
     depends_on:
@@ -331,7 +397,7 @@ docker compose up -d scheduler
 c_ok "StayUp is up."
 echo
 echo "  API    http://localhost:$API_PORT/docs"
-${uiUrlLine}cat <<EOF
+${uiUrlLine}${oauthDoneNote}${approvalDoneNote}cat <<EOF
 
   • Point your StayUp desktop / mobile app's API URL at  http://localhost:${ports.api}
   • Add feeds from the app — every provider offers an existing-flux list and an add-a-new-one form.

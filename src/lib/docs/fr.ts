@@ -415,6 +415,16 @@ export const fr: DocContent = {
       remove: 'Retirer',
       adminUi: 'Inclure le web d’admin',
       adminUiHint: 'Gérer les providers, approuver les demandes de flux, ajouter des admins.',
+      registration: 'Inscription',
+      registrationOpen: 'Ouverte',
+      registrationOpenHint:
+        'N’importe qui pouvant joindre l’API peut créer un compte tout de suite.',
+      registrationApproval: 'Sur validation',
+      registrationApprovalHint: 'Les nouveaux comptes attendent qu’un admin les active.',
+      signInMethods: 'Méthodes de connexion',
+      emailPassword: 'E-mail + mot de passe',
+      oauthHint:
+        'Le script demandera le client ID et le secret OAuth à l’exécution — ils ne sont jamais écrits dans le script.',
       advanced: 'Avancé',
       projectDir: 'Dossier du projet',
       apiPort: 'Port API',

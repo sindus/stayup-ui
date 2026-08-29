@@ -387,6 +387,16 @@ export const es: DocContent = {
       remove: 'Quitar',
       adminUi: 'Incluir la interfaz web de administración',
       adminUiHint: 'Gestionar proveedores, aprobar solicitudes de flux, añadir administradores.',
+      registration: 'Registro',
+      registrationOpen: 'Abierto',
+      registrationOpenHint: 'Cualquiera que alcance la API puede crear una cuenta de inmediato.',
+      registrationApproval: 'Con aprobación',
+      registrationApprovalHint:
+        'Las cuentas nuevas esperan en una cola hasta que un administrador las activa.',
+      signInMethods: 'Métodos de acceso',
+      emailPassword: 'Correo + contraseña',
+      oauthHint:
+        'El script pedirá el client ID y el secreto de OAuth al ejecutarlo — nunca quedan en el script.',
       advanced: 'Avanzado',
       projectDir: 'Carpeta del proyecto',
       apiPort: 'Puerto API',

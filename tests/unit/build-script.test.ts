@@ -87,6 +87,58 @@ describe('buildSetupScript — shape', () => {
   })
 })
 
+describe('buildSetupScript — auth', () => {
+  it('defaults to open registration and always sets UI_URL + empty OAuth vars', () => {
+    const s = buildSetupScript(base)
+    expect(s).toContain('REGISTRATION_MODE: open')
+    expect(s).toContain('REGISTRATION_MODE=open') // .env reference
+    expect(s).toContain('UI_URL: http://localhost:3001')
+    expect(s).toContain('GOOGLE_CLIENT_ID: "$GOOGLE_CLIENT_ID"')
+    expect(s).toContain('GITHUB_CLIENT_SECRET: "$GITHUB_CLIENT_SECRET"')
+    // No provider selected → no prompt, no callback note.
+    expect(s).not.toMatch(/sign-in — create an OAuth client/)
+    expect(s).not.toMatch(/keep these callback URLs registered/)
+  })
+
+  it('switches the API and the .env to approval mode', () => {
+    const s = buildSetupScript({ ...base, registrationMode: 'approval' })
+    expect(s).toContain('REGISTRATION_MODE: approval')
+    expect(s).toContain('REGISTRATION_MODE=approval')
+    expect(s).toMatch(/Sign-ups wait for an admin under \/admin\/users/)
+  })
+
+  it('adds a run-time prompt and a callback note for each OAuth provider chosen', () => {
+    const s = buildSetupScript({ ...base, oauth: { google: true, github: true } })
+    expect(s).toContain(
+      'Google sign-in — create an OAuth client at https://console.cloud.google.com',
+    )
+    expect(s).toContain('http://localhost:3000/auth/oauth/google/callback')
+    expect(s).toContain('read -rsp "  Google client secret: " GOOGLE_CLIENT_SECRET')
+    expect(s).toContain(
+      'GitHub sign-in — create an OAuth client at https://github.com/settings/developers',
+    )
+    expect(s).toContain('http://localhost:3000/auth/oauth/github/callback')
+    expect(s).toContain('keep these callback URLs registered')
+  })
+
+  it('prompts only for the provider that was chosen', () => {
+    const s = buildSetupScript({ ...base, oauth: { google: false, github: true } })
+    expect(s).toContain('GitHub sign-in — create an OAuth client')
+    expect(s).not.toContain('Google sign-in — create an OAuth client')
+    expect(s).toContain('auth/oauth/github/callback   (GitHub)')
+    expect(s).not.toContain('auth/oauth/google/callback   (Google)')
+  })
+
+  it('still leaves no un-interpolated JS placeholder with OAuth on', () => {
+    const s = buildSetupScript({
+      ...base,
+      registrationMode: 'approval',
+      oauth: { google: true, github: true },
+    })
+    expect(s).not.toMatch(/\$\{[a-zA-Z]/)
+  })
+})
+
 describe('buildSetupScript — custom connectors', () => {
   it('appends a custom connector with a derived name', () => {
     const s = buildSetupScript({

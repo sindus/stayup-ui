@@ -15,6 +15,7 @@ import {
   type CustomConnector,
   DEFAULT_INPUT,
   type GeneratorInput,
+  type RegistrationMode,
 } from '@/lib/generate/buildScript'
 
 export interface GeneratorStrings {
@@ -29,6 +30,14 @@ export interface GeneratorStrings {
   remove: string
   adminUi: string
   adminUiHint: string
+  registration: string
+  registrationOpen: string
+  registrationOpenHint: string
+  registrationApproval: string
+  registrationApprovalHint: string
+  signInMethods: string
+  emailPassword: string
+  oauthHint: string
   advanced: string
   projectDir: string
   apiPort: string
@@ -60,6 +69,11 @@ export function ProjectGenerator({ strings: s }: { strings: GeneratorStrings }) 
   const [selected, setSelected] = useState<Set<ConnectorId>>(new Set(CONNECTOR_IDS))
   const [custom, setCustom] = useState<CustomConnector[]>([])
   const [includeAdminUi, setIncludeAdminUi] = useState(true)
+  const [registrationMode, setRegistrationMode] = useState<RegistrationMode>(
+    DEFAULT_INPUT.registrationMode,
+  )
+  const [oauthGoogle, setOauthGoogle] = useState(false)
+  const [oauthGithub, setOauthGithub] = useState(false)
   const [ports, setPorts] = useState(DEFAULT_INPUT.ports)
   const [projectDir, setProjectDir] = useState(DEFAULT_INPUT.projectDir)
   const [showAdvanced, setShowAdvanced] = useState(false)
@@ -71,9 +85,20 @@ export function ProjectGenerator({ strings: s }: { strings: GeneratorStrings }) 
       connectors: CONNECTOR_IDS.filter((id) => selected.has(id)),
       customConnectors: custom.filter((c) => c.gitUrl.trim() !== ''),
       includeAdminUi,
+      registrationMode,
+      oauth: { google: oauthGoogle, github: oauthGithub },
       ports,
     }),
-    [projectDir, selected, custom, includeAdminUi, ports],
+    [
+      projectDir,
+      selected,
+      custom,
+      includeAdminUi,
+      registrationMode,
+      oauthGoogle,
+      oauthGithub,
+      ports,
+    ],
   )
 
   const { script, error } = useMemo(() => {
@@ -221,6 +246,63 @@ export function ProjectGenerator({ strings: s }: { strings: GeneratorStrings }) 
             <span className="block text-muted-foreground">{s.adminUiHint}</span>
           </span>
         </label>
+
+        <fieldset className="space-y-2">
+          <legend className="text-[13px] font-semibold text-fg">{s.registration}</legend>
+          {(
+            [
+              ['open', s.registrationOpen, s.registrationOpenHint],
+              ['approval', s.registrationApproval, s.registrationApprovalHint],
+            ] as const
+          ).map(([mode, label, hint]) => (
+            <label
+              key={mode}
+              className="flex cursor-pointer items-start gap-2 text-[13px] text-fg-soft"
+            >
+              <input
+                type="radio"
+                name="registration-mode"
+                value={mode}
+                checked={registrationMode === mode}
+                onChange={() => setRegistrationMode(mode)}
+                className="mt-0.5 accent-peach"
+              />
+              <span>
+                <span className="font-medium text-fg">{label}</span>
+                <span className="block text-muted-foreground">{hint}</span>
+              </span>
+            </label>
+          ))}
+        </fieldset>
+
+        <fieldset className="space-y-2">
+          <legend className="text-[13px] font-semibold text-fg">{s.signInMethods}</legend>
+          <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+            <input type="checkbox" checked disabled className="accent-peach" />
+            {s.emailPassword}
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-[13px] text-fg-soft">
+            <input
+              type="checkbox"
+              checked={oauthGithub}
+              onChange={(e) => setOauthGithub(e.target.checked)}
+              className="accent-peach"
+            />
+            GitHub
+          </label>
+          <label className="flex cursor-pointer items-center gap-2 text-[13px] text-fg-soft">
+            <input
+              type="checkbox"
+              checked={oauthGoogle}
+              onChange={(e) => setOauthGoogle(e.target.checked)}
+              className="accent-peach"
+            />
+            Google
+          </label>
+          {(oauthGithub || oauthGoogle) && (
+            <p className="text-[12px] leading-relaxed text-muted-foreground">{s.oauthHint}</p>
+          )}
+        </fieldset>
 
         <div>
           <button

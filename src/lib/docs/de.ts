@@ -387,6 +387,16 @@ export const de: DocContent = {
       remove: 'Entfernen',
       adminUi: 'Admin-Weboberfläche einschließen',
       adminUiHint: 'Provider verwalten, Flux-Anfragen freigeben, Admins hinzufügen.',
+      registration: 'Registrierung',
+      registrationOpen: 'Offen',
+      registrationOpenHint: 'Jeder, der die API erreicht, kann sofort ein Konto anlegen.',
+      registrationApproval: 'Nach Freigabe',
+      registrationApprovalHint:
+        'Neue Konten warten in einer Warteschlange, bis ein Admin sie aktiviert.',
+      signInMethods: 'Anmeldemethoden',
+      emailPassword: 'E-Mail + Passwort',
+      oauthHint:
+        'Das Skript fragt beim Ausführen nach OAuth-Client-ID und -Secret — sie landen nie im Skript.',
       advanced: 'Erweitert',
       projectDir: 'Projektordner',
       apiPort: 'API-Port',
