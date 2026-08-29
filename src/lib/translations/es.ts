@@ -14,6 +14,7 @@ export const es: Translations = {
       docs: 'Docs',
       download: 'Descargar',
       getStarted: 'Empezar',
+      menu: 'Menú',
     },
     hero: {
       tagline: 'Disponible ahora',

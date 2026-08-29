@@ -14,6 +14,7 @@ export const ja: Translations = {
       docs: 'ドキュメント',
       download: 'ダウンロード',
       getStarted: 'はじめる',
+      menu: 'メニュー',
     },
     hero: {
       tagline: '今すぐ利用可能',

@@ -13,6 +13,7 @@ export const zh: Translations = {
       docs: '文档',
       download: '下载',
       getStarted: '开始使用',
+      menu: '菜单',
     },
     hero: {
       tagline: '现已推出',

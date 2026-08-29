@@ -12,6 +12,7 @@ export const en = {
       docs: 'Docs',
       download: 'Download',
       getStarted: 'Get started',
+      menu: 'Menu',
     },
     hero: {
       tagline: 'Available now',

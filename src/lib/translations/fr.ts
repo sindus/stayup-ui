@@ -14,6 +14,7 @@ export const fr: Translations = {
       docs: 'Docs',
       download: 'Télécharger',
       getStarted: 'Commencer',
+      menu: 'Menu',
     },
     hero: {
       tagline: 'Disponible maintenant',

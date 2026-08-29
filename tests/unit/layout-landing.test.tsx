@@ -141,6 +141,26 @@ describe('LandingHeader', () => {
     await vi.waitFor(() => expect(header.style.background).not.toBe(''))
     window.scrollY = 0
   })
+
+  // Sur mobile la nav et les CTA sont repliés derrière un bouton : sans lui,
+  // un téléphone n'a aucun accès aux liens ni à « Commencer ».
+  it('folds the navigation into a toggle for small screens', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<LandingHeader />)
+
+    const toggle = screen.getByRole('button', { name: 'Menu' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    // Les liens existent alors en double : barre desktop + panneau mobile.
+    expect(screen.getAllByRole('link', { name: 'Features' })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Get started' })).toHaveLength(2)
+
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getAllByRole('link', { name: 'Features' })).toHaveLength(1)
+  })
 })
 
 describe('HeroSection', () => {
