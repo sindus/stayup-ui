@@ -37,11 +37,7 @@ test.describe('Setup generator', () => {
 
   test('is reachable from the documentation index', async ({ page }) => {
     await page.goto('/docs')
-    await page
-      .locator('main')
-      .getByRole('link', { name: /générer|installation/i })
-      .first()
-      .click()
-    await expect(page).toHaveURL('/docs/generate')
+    await page.locator('main').getByRole('link', { name: 'Générer un script' }).click()
+    await page.waitForURL('/docs/generate')
   })
 })
