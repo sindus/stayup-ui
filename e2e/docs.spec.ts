@@ -12,22 +12,18 @@ test.describe('Documentation index', () => {
     await expect(page.getByText('connector_')).toHaveCount(0)
   })
 
-  test('routes to each of the two journeys', async ({ page }) => {
-    await page.goto('/docs')
-    await page
-      .locator('main')
-      .getByRole('link', { name: /self-hosting|héberg/i })
-      .first()
-      .click()
-    await expect(page).toHaveURL('/docs/self-hosting')
-
-    await page.goto('/docs')
-    await page
-      .locator('main')
-      .getByRole('link', { name: /provider/i })
-      .first()
-      .click()
-    await expect(page).toHaveURL('/docs/providers')
+  test('routes to each journey', async ({ page }) => {
+    const cards: [RegExp, string][] = [
+      [/installation/i, '/docs/install'],
+      [/générateur/i, '/docs/generate'],
+      [/administration/i, '/docs/admin'],
+      [/providers/i, '/docs/providers'],
+    ]
+    for (const [name, url] of cards) {
+      await page.goto('/docs')
+      await page.locator('main').getByRole('link', { name }).first().click()
+      await expect(page).toHaveURL(url)
+    }
   })
 
   test('is what the header Docs link points at', async ({ page }) => {
@@ -35,17 +31,26 @@ test.describe('Documentation index', () => {
     await page.getByRole('banner').getByRole('link', { name: 'Docs' }).click()
     await expect(page).toHaveURL('/docs')
   })
+
+  test('the old /docs/self-hosting URL redirects to /docs/install', async ({ page }) => {
+    await page.goto('/docs/self-hosting')
+    await expect(page).toHaveURL('/docs/install')
+  })
 })
 
-test.describe('Self-hosting page', () => {
+test.describe('Install page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/docs/self-hosting')
+    await page.goto('/docs/install')
   })
 
-  test('stays clear of the provider contract', async ({ page }) => {
+  test('does not teach the provider contract', async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
     await expect(page.getByText('connector_')).toHaveCount(0)
-    await expect(page.getByText('provider_registry')).toHaveCount(0)
+  })
+
+  test('walks the local install and shows create-admin', async ({ page }) => {
+    await expect(page.locator('#walkthrough')).toBeVisible()
+    await expect(page.getByText('npm run create-admin').first()).toBeVisible()
   })
 
   test('switches deployment tabs', async ({ page }) => {
@@ -59,18 +64,32 @@ test.describe('Self-hosting page', () => {
 
   test('gives the schema command of the engine you pick', async ({ page }) => {
     const schema = page.locator('#schema')
-    await expect(schema.getByText('src/db/schema.sql')).toBeVisible()
+    await expect(schema.getByText('src/db/schema.sql').first()).toBeVisible()
 
     await schema.getByRole('tab', { name: 'MongoDB' }).click()
 
     // MongoDB n'a pas de schéma à appliquer : la commande ne pose que les index.
     await expect(schema.getByText('createIndex')).toBeVisible()
-    await expect(schema.getByText('src/db/schema.sql')).not.toBeVisible()
+    await expect(schema.getByText('src/db/schema.sql')).toHaveCount(0)
   })
 
   test('leads back to the documentation index', async ({ page }) => {
     await page.locator('main').getByRole('link', { name: /^←/ }).click()
     await expect(page).toHaveURL('/docs')
+  })
+})
+
+test.describe('Administration page', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/docs/admin')
+  })
+
+  test('covers the admin web UI, roles and flux approval', async ({ page }) => {
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+    await expect(page.locator('#roles')).toBeVisible()
+    await expect(page.locator('#flux-approval')).toBeVisible()
+    const body = await page.locator('main').innerText()
+    expect(body).toContain('/admin/flux-requests')
   })
 })
 
@@ -90,10 +109,11 @@ test.describe('Providers page', () => {
     expect(sqlAt).toBeGreaterThan(conceptAt)
   })
 
-  test('keeps SQL untranslated', async ({ page }) => {
+  test('keeps SQL untranslated and shows the template column', async ({ page }) => {
     await expect(
       page.getByText('CREATE TABLE IF NOT EXISTS provider_registry').first(),
     ).toBeVisible()
+    await expect(page.locator('#display-templates')).toBeVisible()
   })
 
   test('ticks a checklist item', async ({ page }) => {
@@ -121,9 +141,9 @@ test.describe('Providers page', () => {
     await expect(contract.getByText('connector_<name>').first()).toBeVisible()
   })
 
-  test('points at the self-hosting guide for where to write', async ({ page }) => {
+  test('points at the install guide for where to write', async ({ page }) => {
     await page.locator('#where-it-writes').getByRole('link').click()
-    await expect(page).toHaveURL('/docs/self-hosting')
+    await expect(page).toHaveURL('/docs/install')
   })
 })
 
@@ -136,7 +156,7 @@ test.describe('Header anchors', () => {
     ['Télécharger', 'download'],
   ] as const) {
     test(`"${label}" leads back to the landing section from the docs`, async ({ page }) => {
-      await page.goto('/docs/self-hosting')
+      await page.goto('/docs/install')
       await page.getByRole('banner').getByRole('link', { name: label }).click()
 
       await expect(page).toHaveURL(`/#${anchor}`)

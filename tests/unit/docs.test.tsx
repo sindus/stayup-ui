@@ -80,8 +80,6 @@ describe('documentation dictionaries', () => {
       'home.concept.diagram.api',
       'home.concept.diagram.sourcesItems',
       'home.concept.diagram.apps',
-      'selfHosting.pieces.database',
-      'selfHosting.pieces.api',
       'providers.what.diagram.sourcesItems',
       // Example git URL shown as a placeholder — the host is not prose.
       'generate.form.customUrlPlaceholder',
@@ -102,30 +100,31 @@ describe('documentation dictionaries', () => {
 
   it('keeps the deployment tab labels aligned with the snippets', () => {
     for (const lang of LANGUAGES) {
-      expect(getDoc(lang).selfHosting.deploy.tabs, lang).toHaveLength(3)
+      expect(getDoc(lang).install.deploy.tabs, lang).toHaveLength(3)
     }
   })
 
   it('matches the shared tables row for row', () => {
     for (const lang of LANGUAGES) {
       const doc = getDoc(lang)
-      expect(doc.selfHosting.env.descriptions, lang).toHaveLength(ENV_VARS.length)
+      expect(doc.install.env.descriptions, lang).toHaveLength(ENV_VARS.length)
       expect(doc.providers.creating.naming.rows, lang).toHaveLength(NAMING_ROWS.length)
       expect(doc.providers.contract.optionalDescriptions, lang).toHaveLength(
         ENGINE_TABLES.postgres.optionalColumns.length,
       )
       // Un onglet par moteur : une note manquante laisserait un panneau muet.
       expect(doc.providers.contract.engineNotes, lang).toHaveLength(ENGINES.length)
-      expect(doc.selfHosting.schema.engineNotes, lang).toHaveLength(ENGINES.length)
+      expect(doc.install.schema.engineNotes, lang).toHaveLength(ENGINES.length)
       expect(doc.providers.contract.checklist.items, lang).toHaveLength(CHECKLIST_CODE.length)
     }
   })
 
   // La doc doit décrire l'architecture — une API au-dessus de providers quelconques —
-  // et non le catalogue que l'instance de référence fait tourner. Les quatre
-  // collecteurs actuels ne sont qu'un exemple parmi d'autres, et d'autres viendront.
+  // et non le catalogue que l'instance de référence fait tourner. La page de
+  // concept ne nomme aucun collecteur ; l'install et providers en citent un
+  // (RSS) comme exemple concret de marche à suivre, pas comme une liste.
   it('describes the architecture, not the reference instance’s catalogue', () => {
-    const NAMES = /YouTube|GitHub|\bRSS\b|changelog/i
+    const NAMES = /YouTube|\bRSS\b|changelog|github-trending/i
     for (const lang of LANGUAGES) {
       const doc = getDoc(lang)
 
@@ -133,33 +132,32 @@ describe('documentation dictionaries', () => {
       // ces quatre-là » au lieu de « StayUp accepte n'importe lequel ».
       expect(JSON.stringify(doc.home), `${lang} — index`).not.toMatch(NAMES)
 
-      // Idem pour l'auto-hébergement, à ceci près que l'OAuth GitHub y est
-      // légitime : c'est un fournisseur d'identité, pas une source de contenu.
-      const selfHosting = JSON.stringify(doc.selfHosting).replace(/[^"]*Google[^"]*/g, '')
-      const oauthOnly = selfHosting.match(NAMES) ?? []
-      expect(oauthOnly.length, `${lang} — self-hosting`).toBeLessThanOrEqual(1)
+      // La page install en cite un seul, dans la marche à suivre, comme exemple.
+      const installMentions = (
+        JSON.stringify(doc.install).match(new RegExp(NAMES, 'gi')) ?? []
+      ).filter((m) => m.toLowerCase() !== 'rss').length
+      expect(installMentions, `${lang} — install`).toBe(0)
 
-      // La page providers peut renvoyer une fois vers un collecteur existant
-      // comme exemple à lire — pas en dresser la liste.
+      // La page providers a une section « exemples à lire » qui nomme les
+      // collecteurs de référence : c'est pointer vers des exemples, pas dresser
+      // le catalogue de ce que StayUp couvre. On borne pour éviter la dérive.
       const mentions = JSON.stringify(doc.providers).match(new RegExp(NAMES, 'gi')) ?? []
-      expect(mentions.length, `${lang} — providers: ${mentions.join(', ')}`).toBeLessThanOrEqual(1)
+      expect(mentions.length, `${lang} — providers: ${mentions.join(', ')}`).toBeLessThanOrEqual(8)
     }
   })
 
   // Le reproche fait à l'ancienne page : elle mélangeait deux publics et ouvrait
-  // sur du SQL. Chaque parcours doit désormais tenir seul, et le contrat technique
-  // rester cantonné à la page des providers.
+  // sur du SQL. Le contrat de provider (la table connector_<name>) reste cantonné
+  // à la page des providers ; l'install peut renvoyer vers `provider_registry`
+  // dans un point de dépannage, mais pas enseigner le contrat.
   it('keeps the two journeys separate', () => {
     for (const lang of LANGUAGES) {
       const doc = getDoc(lang)
-      const selfHostingText = JSON.stringify(doc.selfHosting)
-      // Le contrat de provider n'a rien à faire ici. Mentionner le schéma reste
-      // légitime : c'est ce qui explique qu'on peut le rejouer sans risque.
-      for (const table of ['connector_', 'provider_registry']) {
-        expect(selfHostingText, `${lang} — ${table} hors de la page providers`).not.toContain(table)
-      }
-      // L'index n'explique que le concept : il ne doit pas non plus verser dans
-      // les détails d'implémentation.
+      const installText = JSON.stringify(doc.install)
+      expect(installText, `${lang} — connector_ hors de la page providers`).not.toContain(
+        'connector_',
+      )
+      // L'index n'explique que le concept : il ne verse pas dans le contrat.
       expect(JSON.stringify(doc.home), lang).not.toContain('connector_')
     }
   })

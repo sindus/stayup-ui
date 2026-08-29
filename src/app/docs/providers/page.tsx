@@ -48,6 +48,9 @@ export default async function ProvidersPage() {
             { id: A.access, label: d.access.heading },
             { id: A.existing, label: d.existing.heading },
             { id: A.creating, label: d.creating.heading },
+            { id: A.templates, label: d.templates.heading },
+            { id: A.form, label: d.form.heading },
+            { id: A.fluxApproval, label: d.fluxApproval.heading },
             { id: A.contract, label: c.heading },
           ]}
         />
@@ -106,7 +109,7 @@ export default async function ProvidersPage() {
               {d.access.body}
             </p>
             <Link
-              href="/docs/self-hosting"
+              href="/docs/install"
               className="inline-flex items-center gap-1.5 text-[13.5px] font-medium"
               style={{ color: 'var(--peach)' }}
             >
@@ -144,6 +147,45 @@ export default async function ProvidersPage() {
             <p className="text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
               {d.creating.schedule.body}
             </p>
+          </DocSection>
+
+          <DocSection id={A.templates} title={d.templates.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.templates.body}
+            </p>
+            <DocNote>{d.templates.fallbackNote}</DocNote>
+            <Link
+              href="https://github.com/stayup-app/stayup-api/blob/main/docs/display-templates.md"
+              className="inline-flex items-center gap-1.5 text-[13.5px] font-medium"
+              style={{ color: 'var(--sky)' }}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {d.templates.cta}
+              <ArrowRight size={13} />
+            </Link>
+          </DocSection>
+
+          <DocSection id={A.form} title={d.form.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.form.body}
+            </p>
+            <ul className="mb-6 space-y-2.5">
+              {d.form.fields.map((f) => (
+                <li key={f.field} className="text-[14px] leading-relaxed">
+                  <DocInline>{f.field}</DocInline>{' '}
+                  <span style={{ color: 'var(--muted-foreground)' }}>{f.meaning}</span>
+                </li>
+              ))}
+            </ul>
+            <DocNote>{d.form.note}</DocNote>
+          </DocSection>
+
+          <DocSection id={A.fluxApproval} title={d.fluxApproval.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.fluxApproval.body}
+            </p>
+            <DocNote tone="sky">{d.fluxApproval.note}</DocNote>
           </DocSection>
 
           <DocSection id={A.contract} title={c.heading}>

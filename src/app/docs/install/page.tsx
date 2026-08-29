@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { DocNav, DocTabs } from '@/components/docs/DocShell'
 import {
@@ -8,6 +9,7 @@ import {
   DocInline,
   DocList,
   DocNote,
+  DocOrderedList,
   DocSection,
   DocSubheading,
   DocTable,
@@ -16,20 +18,20 @@ import { getDoc } from '@/lib/docs'
 import {
   ENGINES,
   ENV_VARS,
+  INSTALL_ANCHORS as A,
   SCHEMA_COMMANDS,
-  SELF_HOSTING_ANCHORS as A,
   SNIPPETS,
 } from '@/lib/docs/shared'
 import { getServerLang } from '@/lib/serverLang'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const d = getDoc(await getServerLang()).selfHosting
+  const d = getDoc(await getServerLang()).install
   return { title: d.meta.title, description: d.meta.description }
 }
 
-export default async function SelfHostingPage() {
+export default async function InstallPage() {
   const doc = getDoc(await getServerLang())
-  const d = doc.selfHosting
+  const d = doc.install
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
@@ -41,6 +43,8 @@ export default async function SelfHostingPage() {
           entries={[
             { id: A.why, label: d.why.heading },
             { id: A.pieces, label: d.pieces.heading },
+            { id: A.fastPath, label: d.fastPath.heading },
+            { id: A.walkthrough, label: d.walkthrough.heading },
             { id: A.requirements, label: d.requirements.heading },
             { id: A.databases, label: d.databases.heading },
             { id: A.env, label: d.env.heading },
@@ -72,25 +76,10 @@ export default async function SelfHostingPage() {
             {d.title}
           </h1>
           <p
-            className="mb-6 max-w-[640px] text-[16px] leading-relaxed"
+            className="mb-12 max-w-[640px] text-[16px] leading-relaxed"
             style={{ color: 'var(--fg-soft)' }}
           >
             {d.lede}
-          </p>
-
-          <p
-            className="mb-12 rounded-r-lg px-5 py-3 text-[14px]"
-            style={{
-              background: 'var(--sage-dim)',
-              borderLeft: '3px solid var(--sage)',
-              color: 'var(--fg)',
-            }}
-          >
-            →{' '}
-            <Link href="/docs/generate" className="underline underline-offset-4">
-              {doc.generate.title}
-            </Link>{' '}
-            — {doc.generate.lede}
           </p>
 
           <DocSection id={A.why} title={d.why.heading}>
@@ -102,7 +91,7 @@ export default async function SelfHostingPage() {
           </DocSection>
 
           <DocSection id={A.pieces} title={d.pieces.heading}>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <DiagramBox
                 title={d.pieces.database}
                 subtitle={d.pieces.databaseBody}
@@ -110,7 +99,34 @@ export default async function SelfHostingPage() {
               />
               <DiagramBox title={d.pieces.api} subtitle={d.pieces.apiBody} accent="var(--sage)" />
               <DiagramBox title={d.pieces.providers} subtitle={d.pieces.providersBody} />
+              <DiagramBox
+                title={d.pieces.adminUi}
+                subtitle={d.pieces.adminUiBody}
+                accent="var(--peach)"
+              />
             </div>
+          </DocSection>
+
+          <DocSection id={A.fastPath} title={d.fastPath.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.fastPath.body}
+            </p>
+            <Link
+              href="/docs/generate"
+              className="inline-flex items-center gap-1.5 text-[13.5px] font-medium"
+              style={{ color: 'var(--sage)' }}
+            >
+              {d.fastPath.cta}
+              <ArrowRight size={13} />
+            </Link>
+          </DocSection>
+
+          <DocSection id={A.walkthrough} title={d.walkthrough.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.walkthrough.intro}
+            </p>
+            <DocOrderedList items={d.walkthrough.steps} />
+            <DocNote tone="sky">{d.walkthrough.note}</DocNote>
           </DocSection>
 
           <DocSection id={A.requirements} title={d.requirements.heading}>
@@ -207,6 +223,14 @@ export default async function SelfHostingPage() {
               }))}
             />
             <DocNote>{d.schema.applyNote}</DocNote>
+
+            <p
+              className="mb-4 mt-8 text-[15px] leading-relaxed"
+              style={{ color: 'var(--fg-soft)' }}
+            >
+              {d.schema.adminIntro}
+            </p>
+            <DocCode>{SNIPPETS.createAdmin}</DocCode>
 
             <p className="mb-4 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
               {d.schema.userIntro}

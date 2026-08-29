@@ -10,6 +10,7 @@ import {
   DocList,
   DocNote,
   DocSection,
+  DocTable,
 } from '@/components/docs/DocPieces'
 import { getDoc } from '@/lib/docs'
 import { HOME_ANCHORS as A } from '@/lib/docs/shared'
@@ -33,6 +34,7 @@ export default async function DocsHomePage() {
           title={d.common.onThisPage}
           entries={[
             { id: A.concept, label: h.concept.heading },
+            { id: A.vocabulary, label: h.vocabulary.heading },
             { id: A.paths, label: h.paths.heading },
           ]}
         />
@@ -89,13 +91,28 @@ export default async function DocsHomePage() {
             </DocDiagram>
           </DocSection>
 
+          <DocSection id={A.vocabulary} title={h.vocabulary.heading}>
+            <p className="mb-6 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {h.vocabulary.intro}
+            </p>
+            <DocTable
+              columns={[h.vocabulary.columnTerm, h.vocabulary.columnMeaning]}
+              rows={h.vocabulary.terms.map((t) => [
+                <span key={t.term} className="font-semibold" style={{ color: 'var(--fg)' }}>
+                  {t.term}
+                </span>,
+                t.meaning,
+              ])}
+            />
+          </DocSection>
+
           <DocSection id={A.paths} title={h.paths.heading}>
             <div className="mb-7 grid gap-4 md:grid-cols-2">
               <PathCard
-                href="/docs/self-hosting"
-                title={h.paths.selfHostingTitle}
-                body={h.paths.selfHostingBody}
-                cta={h.paths.selfHostingCta}
+                href="/docs/install"
+                title={h.paths.installTitle}
+                body={h.paths.installBody}
+                cta={h.paths.installCta}
                 accent="var(--peach)"
               />
               <PathCard
@@ -104,6 +121,13 @@ export default async function DocsHomePage() {
                 body={h.paths.generateBody}
                 cta={h.paths.generateCta}
                 accent="var(--sage)"
+              />
+              <PathCard
+                href="/docs/admin"
+                title={h.paths.adminTitle}
+                body={h.paths.adminBody}
+                cta={h.paths.adminCta}
+                accent="var(--peach)"
               />
               <PathCard
                 href="/docs/providers"

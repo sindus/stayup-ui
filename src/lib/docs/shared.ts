@@ -5,12 +5,15 @@
 // Ancres de sommaire, par page.
 export const HOME_ANCHORS = {
   concept: 'concept',
+  vocabulary: 'vocabulary',
   paths: 'paths',
 } as const
 
-export const SELF_HOSTING_ANCHORS = {
+export const INSTALL_ANCHORS = {
   why: 'why',
   pieces: 'pieces',
+  fastPath: 'fast-path',
+  walkthrough: 'walkthrough',
   requirements: 'requirements',
   databases: 'databases',
   env: 'configuration',
@@ -20,11 +23,23 @@ export const SELF_HOSTING_ANCHORS = {
   troubleshooting: 'troubleshooting',
 } as const
 
+export const ADMIN_ANCHORS = {
+  webUi: 'admin-web-ui',
+  roles: 'roles',
+  managingAdmins: 'managing-admins',
+  fluxApproval: 'flux-approval',
+  usersAndFluxes: 'users-and-fluxes',
+  addingFlux: 'adding-a-flux-from-the-apps',
+} as const
+
 export const PROVIDER_ANCHORS = {
   what: 'what-is-a-provider',
   access: 'where-it-writes',
   existing: 'existing-providers',
   creating: 'writing-your-own',
+  templates: 'display-templates',
+  form: 'the-form-descriptor',
+  fluxApproval: 'flux-approval',
   contract: 'technical-contract',
 } as const
 
@@ -113,16 +128,21 @@ export const ENGINE_TABLES: Record<
   success       BOOLEAN NOT NULL
 );`,
     registry: `CREATE TABLE IF NOT EXISTS provider_registry (
-  name         TEXT PRIMARY KEY,
-  display_name TEXT NOT NULL,
-  sort_order   INTEGER NOT NULL DEFAULT 100,
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  name          TEXT PRIMARY KEY,
+  display_name  TEXT NOT NULL,
+  sort_order    INTEGER NOT NULL DEFAULT 100,
+  template      JSONB,              -- optional: the display manifest, see below
+  flux_approval TEXT NOT NULL DEFAULT 'auto',  -- 'auto' | 'manual', an admin can flip it
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE provider_registry ADD COLUMN IF NOT EXISTS template JSONB;
 
-INSERT INTO provider_registry (name, display_name, sort_order)
-VALUES ('podcast', 'Podcasts', 50)
+INSERT INTO provider_registry (name, display_name, sort_order, template)
+VALUES ('podcast', 'Podcasts', 50, '<the JSON manifest, or NULL>'::jsonb)
 ON CONFLICT (name) DO UPDATE
-  SET display_name = EXCLUDED.display_name, updated_at = NOW();`,
+  SET display_name = EXCLUDED.display_name,
+      template     = EXCLUDED.template,
+      updated_at   = NOW();`,
     log: `CREATE TABLE IF NOT EXISTS log (
   id            SERIAL PRIMARY KEY,
   repository_id INTEGER,
@@ -151,16 +171,20 @@ WHERE type = '<name>' ORDER BY id`,
   FOREIGN KEY (repository_id) REFERENCES repository(id)
 );`,
     registry: `CREATE TABLE IF NOT EXISTS provider_registry (
-  name         VARCHAR(64) PRIMARY KEY,
-  display_name VARCHAR(255) NOT NULL,
-  sort_order   INT NOT NULL DEFAULT 100,
-  updated_at   DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+  name          VARCHAR(64) PRIMARY KEY,
+  display_name  VARCHAR(255) NOT NULL,
+  sort_order    INT NOT NULL DEFAULT 100,
+  template      JSON,
+  flux_approval VARCHAR(16) NOT NULL DEFAULT 'auto',
+  updated_at    DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 );
 
-INSERT INTO provider_registry (name, display_name, sort_order)
-VALUES ('podcast', 'Podcasts', 50)
+INSERT INTO provider_registry (name, display_name, sort_order, template)
+VALUES ('podcast', 'Podcasts', 50, '<the JSON manifest, or NULL>')
 ON DUPLICATE KEY UPDATE
-  display_name = VALUES(display_name), updated_at = CURRENT_TIMESTAMP(3);`,
+  display_name = VALUES(display_name),
+  template     = VALUES(template),
+  updated_at   = CURRENT_TIMESTAMP(3);`,
     log: `CREATE TABLE IF NOT EXISTS log (
   id            INT AUTO_INCREMENT PRIMARY KEY,
   repository_id INT,
@@ -188,16 +212,19 @@ WHERE type = '<name>' ORDER BY id`,
   success       INTEGER NOT NULL
 );`,
     registry: `CREATE TABLE IF NOT EXISTS provider_registry (
-  name         TEXT PRIMARY KEY,
-  display_name TEXT NOT NULL,
-  sort_order   INTEGER NOT NULL DEFAULT 100,
-  updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+  name          TEXT PRIMARY KEY,
+  display_name  TEXT NOT NULL,
+  sort_order    INTEGER NOT NULL DEFAULT 100,
+  template      TEXT,             -- JSON kept as text
+  flux_approval TEXT NOT NULL DEFAULT 'auto',
+  updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
-INSERT INTO provider_registry (name, display_name, sort_order)
-VALUES ('podcast', 'Podcasts', 50)
+INSERT INTO provider_registry (name, display_name, sort_order, template)
+VALUES ('podcast', 'Podcasts', 50, '<the JSON manifest, or NULL>')
 ON CONFLICT (name) DO UPDATE
-  SET display_name = excluded.display_name;`,
+  SET display_name = excluded.display_name,
+      template     = excluded.template;`,
     log: `CREATE TABLE IF NOT EXISTS log (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   repository_id INTEGER,
@@ -233,7 +260,12 @@ db['connector_<name>'].insertOne({
 })`,
     registry: `db.provider_registry.updateOne(
   { _id: 'podcast' },
-  { $set: { display_name: 'Podcasts', sort_order: 50, updated_at: new Date() } },
+  { $set: {
+      display_name: 'Podcasts',
+      sort_order: 50,
+      template: { /* the display manifest, or omit */ },
+      updated_at: new Date(),
+  } },
   { upsert: true },
 )`,
     log: `db.log.insertOne({
@@ -249,34 +281,39 @@ db['connector_<name>'].insertOne({
 export const ENV_VARS = [
   { name: 'DATABASE_URL', required: true },
   { name: 'JWT_SECRET', required: true },
-  { name: 'API_USERNAME / API_PASSWORD', required: true },
-  { name: 'UI_URL', required: true },
+  { name: 'UI_URL', required: false },
   { name: 'GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET', required: false },
   { name: 'GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET', required: false },
 ] as const
 
 export const NAMING_ROWS = [
   { example: 'connector_podcast' },
-  { example: "'podcast'" },
-  { example: "'podcast' → 'Podcasts'" },
+  { example: "repository.type = 'podcast'" },
+  { example: "provider_registry.name = 'podcast'" },
+  { example: 'POST /providers/podcast/fluxes' },
 ] as const
 
 export const SNIPPETS = {
   docker: `git clone https://github.com/stayup-app/stayup-api.git
 cd stayup-api
-cp .env.example .env   # JWT_SECRET, API_USERNAME, API_PASSWORD, UI_URL
+cp .env.example .env   # set DATABASE_URL and JWT_SECRET
 docker compose up -d db api`,
 
   workers: `npm ci
 npx wrangler secret put DATABASE_URL
 npx wrangler secret put JWT_SECRET
-npx wrangler secret put API_USERNAME
-npx wrangler secret put API_PASSWORD
 # UI_URL and the OAuth vars can live in wrangler.toml`,
 
   node: `npm ci
 npm run build
-DATABASE_URL=... JWT_SECRET=... API_USERNAME=... API_PASSWORD=... UI_URL=... npm start`,
+DATABASE_URL=... JWT_SECRET=... npm start`,
+
+  createAdmin: `# bootstrap the first super admin (from source)
+npm run create-admin -- root@example.com "Root" 'a-strong-password'
+
+# or from a built image / container:
+docker compose run --rm api node dist/scripts/create-admin.js \\
+  root@example.com "Root" 'a-strong-password'`,
 
   createUser: `npm run create-user -- "Your Name" you@example.com yourpassword`,
 
@@ -284,8 +321,18 @@ DATABASE_URL=... JWT_SECRET=... API_USERNAME=... API_PASSWORD=... UI_URL=... npm
 curl https://your-api.example.com/connectors/providers \\
   -H "Authorization: Bearer $TOKEN"                    # {"providers":[]}`,
 
-  addSource: `POST /ui/users/:userId/repositories
-{ "provider": "<name>", "url": "...", "config": {} }`,
+  runConnector: `git clone https://github.com/stayup-app/stayup-cmd-rss.git
+cd stayup-cmd-rss
+# same database the API points at:
+export DATABASE_URL=postgres://user:pass@localhost:5432/stayup
+pip install -r requirements.txt
+python fetch_rss.py --add https://blog.example.com/feed.xml
+python fetch_rss.py            # first real run: creates its tables, registers itself`,
+
+  addSource: `# the generic route every provider shares
+POST /providers/<name>/fluxes
+{ "url": "https://blog.example.com/feed.xml", "config": {} }
+# → 201 subscribed, or 202 { "status": "pending" } if the provider needs approval`,
 } as const
 
 export const CHECKLIST_CODE = [
