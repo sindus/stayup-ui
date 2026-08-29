@@ -27,6 +27,10 @@ const api = {
   adminListProviders: vi.fn(),
   adminSetProviderApproval: vi.fn(),
   deleteUserRepository: vi.fn(),
+  adminChangeOwnPassword: vi.fn(),
+  adminCreateAdmin: vi.fn(),
+  adminDeleteAdmin: vi.fn(),
+  adminUpdateAdmin: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
 
@@ -291,6 +295,62 @@ describe('provider approval actions', () => {
     const { adminSetProviderApprovalAction } = await import('@/lib/admin-actions')
     expect(await adminSetProviderApprovalAction('rss', 'auto')).toEqual({ error: 'nope' })
   })
+})
+
+describe('admin account actions (super-admin only)', () => {
+  const cases = [
+    {
+      name: 'adminCreateAdminAction',
+      call: (m: Record<string, (...a: unknown[]) => unknown>) =>
+        m.adminCreateAdminAction({ email: 'a@b.c', name: 'A', password: 'longenough1' }),
+      apiFn: 'adminCreateAdmin' as const,
+      revalidates: '/admin/admins',
+    },
+    {
+      name: 'adminUpdateAdminAction',
+      call: (m: Record<string, (...a: unknown[]) => unknown>) =>
+        m.adminUpdateAdminAction('id1', { name: 'A' }),
+      apiFn: 'adminUpdateAdmin' as const,
+      revalidates: '/admin/admins',
+    },
+    {
+      name: 'adminDeleteAdminAction',
+      call: (m: Record<string, (...a: unknown[]) => unknown>) => m.adminDeleteAdminAction('id1'),
+      apiFn: 'adminDeleteAdmin' as const,
+      revalidates: '/admin/admins',
+    },
+    {
+      name: 'adminChangeOwnPasswordAction',
+      call: (m: Record<string, (...a: unknown[]) => unknown>) =>
+        m.adminChangeOwnPasswordAction({ currentPassword: 'old', password: 'longenough1' }),
+      apiFn: 'adminChangeOwnPassword' as const,
+      revalidates: null,
+    },
+  ]
+
+  for (const c of cases) {
+    describe(c.name, () => {
+      it('calls the API and returns an empty result', async () => {
+        const mod = await import('@/lib/admin-actions')
+        expect(await c.call(mod as never)).toEqual({})
+        expect(api[c.apiFn]).toHaveBeenCalled()
+        if (c.revalidates) expect(revalidatePath).toHaveBeenCalledWith(c.revalidates)
+      })
+
+      it('returns an error when unauthenticated', async () => {
+        getAdminToken.mockResolvedValue(null)
+        const mod = await import('@/lib/admin-actions')
+        expect(await c.call(mod as never)).toEqual({ error: en.errors.notAuthenticated })
+        expect(api[c.apiFn]).not.toHaveBeenCalled()
+      })
+
+      it('returns the API error message on failure', async () => {
+        api[c.apiFn].mockRejectedValue(new Error('denied'))
+        const mod = await import('@/lib/admin-actions')
+        expect(await c.call(mod as never)).toEqual({ error: 'denied' })
+      })
+    })
+  }
 })
 
 describe('documentation actions', () => {

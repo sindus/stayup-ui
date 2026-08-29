@@ -38,3 +38,29 @@ describe('getCachedUserFeed', () => {
     expect(mockFetch.mock.calls[0][0]).toContain('/ui/users/u42/feed')
   })
 })
+
+describe('getCachedTemplates', () => {
+  it('indexes the providers returned by the API by name', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        providers: [
+          { name: 'changelog', displayName: 'Changelog', template: null },
+          { name: 'rss', displayName: 'RSS', template: null },
+        ],
+      }),
+    })
+
+    const { getCachedTemplates } = await import('@/lib/feed-cache')
+    const map = await getCachedTemplates('token')
+    expect(Object.keys(map).sort()).toEqual(['changelog', 'rss'])
+    expect(map.changelog.displayName).toBe('Changelog')
+  })
+
+  it('returns an empty map when the providers request fails', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500, text: async () => 'boom' })
+
+    const { getCachedTemplates } = await import('@/lib/feed-cache')
+    await expect(getCachedTemplates('token')).resolves.toEqual({})
+  })
+})

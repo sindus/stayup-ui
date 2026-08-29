@@ -161,6 +161,25 @@ describe('LandingHeader', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(screen.getAllByRole('link', { name: 'Features' })).toHaveLength(1)
   })
+
+  // Ouvrir le menu sur mobile puis élargir la fenêtre ne doit pas laisser le
+  // panneau ouvert par-dessus la mise en page desktop.
+  it('closes the mobile menu when the viewport grows back to desktop', async () => {
+    const user = userEvent.setup()
+    const original = window.innerWidth
+    window.innerWidth = 500
+    renderWithLang(<LandingHeader />)
+
+    const toggle = screen.getByRole('button', { name: 'Menu' })
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+    window.innerWidth = 900
+    window.dispatchEvent(new Event('resize'))
+
+    await vi.waitFor(() => expect(toggle).toHaveAttribute('aria-expanded', 'false'))
+    window.innerWidth = original
+  })
 })
 
 describe('HeroSection', () => {

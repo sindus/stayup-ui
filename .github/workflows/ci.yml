@@ -46,8 +46,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
-        run: npm run test:unit
+      # `test:coverage` runs the same suite as `test:unit` but also enforces the
+      # thresholds declared in vitest.config.ts.
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
         env:
           NEXT_PUBLIC_STAYUP_API_URL: http://localhost:3000
 

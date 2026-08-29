@@ -4,6 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { ChangeEmailForm } from '@/components/profile/ChangeEmailForm'
 import { ChangePasswordForm } from '@/components/profile/ChangePasswordForm'
 import { ApiUrlForm } from '@/components/profile/ApiUrlForm'
+import { DangerCard } from '@/components/profile/DangerCard'
+import { IdentityCard } from '@/components/profile/IdentityCard'
+import { ProfileSidebar } from '@/components/profile/ProfileSidebar'
 import { LanguageProvider } from '@/context/LanguageContext'
 
 const updateProfileAction = vi.fn()
@@ -200,5 +203,39 @@ describe('ApiUrlForm', () => {
     await user.click(screen.getByRole('button', { name: 'Reset to default' }))
     await waitFor(() => expect(resetApiUrlAction).toHaveBeenCalled())
     expect(refresh).toHaveBeenCalled()
+  })
+})
+
+describe('IdentityCard', () => {
+  it('shows the name, email and the first-letter avatar', () => {
+    render(<IdentityCard name="Ada Lovelace" email="ada@example.com" />)
+    expect(screen.getByText('Ada Lovelace')).toBeInTheDocument()
+    expect(screen.getByText('ada@example.com')).toBeInTheDocument()
+    expect(screen.getByText('A')).toBeInTheDocument()
+  })
+
+  // Comme la Navbar : `''.charAt(0)` rend une chaîne vide, jamais `undefined`,
+  // donc l'initiale est vide plutôt que le `?` de repli.
+  it('renders an empty avatar initial for an empty name', () => {
+    const { container } = render(<IdentityCard name="" email="ada@example.com" />)
+    expect(container.querySelector('.rounded-full')).toHaveTextContent('')
+    expect(screen.getByText('ada@example.com')).toBeInTheDocument()
+  })
+})
+
+describe('DangerCard', () => {
+  it('renders a disabled, not-yet-available delete action', () => {
+    render(<DangerCard />)
+    expect(screen.getByRole('heading', { name: 'Supprimer mon compte' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Supprimer' })).toBeDisabled()
+  })
+})
+
+describe('ProfileSidebar', () => {
+  it('lists the account sections with only the profile entry active', () => {
+    render(<ProfileSidebar />)
+    expect(screen.getByText('Mon profil')).toBeInTheDocument()
+    expect(screen.getByText('Facturation')).toBeInTheDocument()
+    expect(screen.getByText('Mon profil')).toHaveStyle({ fontWeight: 500 })
   })
 })

@@ -397,4 +397,76 @@ describe('apiFetch — rejeu et cache', () => {
     expect(init.cache).toBe('no-store')
     expect(init.next).toBeUndefined()
   })
+
+  it('replays a GET when fetch itself throws (network drop)', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new Error('ECONNRESET'))
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ providers: [] }) })
+
+    const { getConnectorProviders } = await import('@/lib/api-client')
+    await expect(getConnectorProviders('token')).resolves.toEqual([])
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not replay a POST when fetch itself throws', async () => {
+    mockFetch.mockRejectedValue(new Error('ECONNRESET'))
+
+    const { subscribeFlux } = await import('@/lib/api-client')
+    await expect(subscribeFlux('rss', 1, 'token')).rejects.toThrow('ECONNRESET')
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('admin account API wrappers', () => {
+  it('adminListAdmins returns the admins array', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        admins: [
+          { id: '1', email: 'root@example.com', name: 'Root', is_super: true, created_at: 'x' },
+        ],
+      }),
+    })
+    const { adminListAdmins } = await import('@/lib/api-client')
+    const result = await adminListAdmins(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+    expect(result[0].is_super).toBe(true)
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/admins')
+  })
+
+  it('adminCreateAdmin POSTs the new admin', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ admin: { id: '2' } }) })
+    const { adminCreateAdmin } = await import('@/lib/api-client')
+    await adminCreateAdmin({ email: 'a@b.c', name: 'A', password: 'longenough1' }, TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/admins')
+    expect(init.method).toBe('POST')
+  })
+
+  it('adminUpdateAdmin PATCHes the admin by id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminUpdateAdmin } = await import('@/lib/api-client')
+    await adminUpdateAdmin('7', { name: 'Renamed' }, TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/admins/7')
+    expect(init.method).toBe('PATCH')
+  })
+
+  it('adminDeleteAdmin DELETEs the admin by id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminDeleteAdmin } = await import('@/lib/api-client')
+    await adminDeleteAdmin('7', TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/admins/7')
+    expect(init.method).toBe('DELETE')
+  })
+
+  it('adminChangeOwnPassword PATCHes /ui/admins/me', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminChangeOwnPassword } = await import('@/lib/api-client')
+    await adminChangeOwnPassword({ currentPassword: 'old', password: 'longenough1' }, TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/admins/me')
+    expect(init.method).toBe('PATCH')
+  })
 })
