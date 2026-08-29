@@ -249,11 +249,37 @@ export const en = {
         'An empty provider list is the expected answer here: nothing has collected anything yet. That is the provider guide.',
     },
 
+    auth: {
+      heading: 'Users and authentication',
+      intro:
+        'How people get accounts on your instance, and how to turn on sign-in with Google or GitHub.',
+      registration: {
+        heading: 'Registration modes',
+        body: 'REGISTRATION_MODE decides what a public sign-up does. open (the default): the account is created and the person is signed in at once — this is today’s behaviour. approval: the sign-up is parked instead. POST /auth/register answers 202 with no token, an OAuth sign-up bounces back with ?error=pending_approval, and a login attempt for a waiting e-mail answers 403. An admin then works the queue under /admin/users → “Comptes en attente”. Accounts an admin creates are always active, whatever the mode; so is an OAuth sign-up whose verified e-mail already matches an active account.',
+      },
+      pointing: {
+        heading: 'Where the apps sign in',
+        body: 'The desktop and mobile apps, and the web login and register pages, all carry a “Server” line on the sign-in screen. It shows the API host and expands into a field to change or reset it — before any account exists, so nobody has to sign in to the default API first. Each screen reads GET /auth/config from whatever instance is set and shows only the sign-in methods that instance offers. The hosted web app still refuses a private host (localhost, 10.x, 192.168.x…) as an anti-SSRF measure: to point a web UI at a local API, run your own copy of stayup-ui with STAYUP_API_URL set at deploy time.',
+      },
+      oauth: {
+        heading: 'Google and GitHub sign-in',
+        intro:
+          'Optional. Each provider needs an OAuth app you own and four environment variables on the API:',
+        steps: [
+          'Create an OAuth app — Google at console.cloud.google.com/apis/credentials, GitHub at github.com/settings/developers.',
+          'Set its callback (or redirect) URL to https://<your-api-origin>/auth/oauth/<provider>/callback. Both providers allow http://localhost for development.',
+          'Put the client ID and secret in GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (or the GITHUB_ pair) on the API.',
+          'Set UI_URL to your web deployment’s origin — after a browser OAuth the API redirects to UI_URL/api/auth/callback. The desktop app intercepts that path itself, so any non-empty UI_URL works for it; the mobile app uses its own stayup:// deep link, already allow-listed.',
+        ],
+        note: 'A GitHub OAuth app allows exactly one callback URL, so you need a separate GitHub app per API origin. The setup generator asks for these credentials at run time and writes them straight into docker-compose.yml, never into the script.',
+      },
+    },
+
     pointing: {
       heading: 'Point an app at your instance',
       items: [
         'Web: set STAYUP_API_URL on your deployment — or leave it and let each visitor override it from their profile, where it is stored per browser.',
-        'Desktop and mobile: Profile, then “API URL”, paste yours, save. “Reset to default” goes back to the built-in one at any time.',
+        'Desktop and mobile: the “Server” line on the sign-in screen, or Profile → “API URL” once signed in. “Reset to default” goes back to the built-in one at any time.',
         'The admin web UI is the same web app: point its STAYUP_API_URL at your API and open /admin.',
       ],
       note: 'Nothing else changes. The provider list, the data and the rendering all follow whichever instance is configured — including the plain fallback for providers the app does not know by name.',

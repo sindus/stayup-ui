@@ -226,11 +226,37 @@ export const ja: DocContent = {
       verifyNote:
         'ここでプロバイダー一覧が空なのは想定どおりの応答です：まだ何も収集していません。それがプロバイダーガイドです。',
     },
+    auth: {
+      heading: 'ユーザーと認証',
+      intro:
+        'あなたのインスタンスで people がどうアカウントを得るか、そして Google や GitHub でのサインインをどう有効にするか。',
+      registration: {
+        heading: '登録モード',
+        body: 'REGISTRATION_MODE が公開登録の挙動を決めます。open（既定）：アカウントが作られ、その場でサインインします — 現在の挙動です。approval：登録は保留されます。POST /auth/register はトークンなしで 202 を返し、OAuth 登録は ?error=pending_approval で戻り、待機中のメールでのログイン試行は 403 を返します。管理者は /admin/users →「Comptes en attente」でキューを処理します。管理者が作ったアカウントはモードに関わらず常に有効です。検証済みメールが既存の有効なアカウントに一致する OAuth 登録も同様です。',
+      },
+      pointing: {
+        heading: 'アプリがどこにサインインするか',
+        body: 'デスクトップ／モバイルアプリ、そして Web のログイン・登録ページは、いずれもサインイン画面に「サーバー」の行を持ちます。API のホストを表示し、変更・リセットの入力欄に展開します — アカウントが存在する前に、です。だから誰も既定の API に先にサインインする必要はありません。各画面は設定中のインスタンスの GET /auth/config を読み、そのインスタンスが提供するサインイン方法だけを表示します。ホスト型 Web アプリは SSRF 対策として、依然としてプライベートホスト（localhost、10.x、192.168.x…）を拒否します：Web UI をローカル API に向けるには、デプロイ時に STAYUP_API_URL を設定した stayup-ui の自前コピーを動かしてください。',
+      },
+      oauth: {
+        heading: 'Google と GitHub でのサインイン',
+        intro:
+          '任意。各プロバイダーには、あなたが所有する OAuth アプリと、API 上の 4 つの環境変数が必要です：',
+        steps: [
+          'OAuth アプリを作成 — Google は console.cloud.google.com/apis/credentials、GitHub は github.com/settings/developers。',
+          'コールバック（またはリダイレクト）URL を https://<あなたの API のオリジン>/auth/oauth/<provider>/callback に設定。どちらのプロバイダーも開発用に http://localhost を許可します。',
+          'client ID と secret を API 上の GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET（または GITHUB_ の組）に入れます。',
+          'UI_URL を Web デプロイのオリジンに設定 — ブラウザ OAuth の後、API は UI_URL/api/auth/callback にリダイレクトします。デスクトップアプリはこのパスを自分で横取りするので、空でない UI_URL なら何でも動きます。モバイルアプリは自前の stayup:// ディープリンクを使い、すでに許可リストに入っています。',
+        ],
+        note: 'GitHub の OAuth アプリはコールバック URL をちょうど 1 つしか許しません。したがって API オリジンごとに GitHub アプリが必要です。セットアップジェネレーターは実行時にこれらの資格情報を尋ね、スクリプトではなく docker-compose.yml に直接書き込みます。',
+      },
+    },
+
     pointing: {
       heading: 'アプリを自分のインスタンスに向ける',
       items: [
         'Web：デプロイに STAYUP_API_URL を設定 — または設定せず、各訪問者にプロフィールから上書きさせる（ブラウザごとに保存）。',
-        'デスクトップとモバイル：プロフィール →「API URL」に自分のを貼り付けて保存。「デフォルトに戻す」でいつでも組み込みに戻せます。',
+        'デスクトップとモバイル：サインイン画面の「サーバー」の行、またはサインイン後のプロフィール →「API URL」。「デフォルトに戻す」でいつでも組み込みに戻せます。',
         '管理用 Web UI は同じ Web アプリ：その STAYUP_API_URL を自分の API に向けて /admin を開きます。',
       ],
       note: '他は何も変わりません。プロバイダー一覧、データ、描画はすべて設定したインスタンスに従います — アプリが名前で知らないプロバイダー向けの素朴なフォールバックも含めて。',

@@ -243,11 +243,37 @@ export const fr: DocContent = {
         'Une liste de providers vide est la réponse attendue ici : rien n’a encore collecté quoi que ce soit. C’est l’objet du guide des providers.',
     },
 
+    auth: {
+      heading: 'Utilisateurs et authentification',
+      intro:
+        'Comment les gens obtiennent un compte sur ton instance, et comment activer la connexion avec Google ou GitHub.',
+      registration: {
+        heading: 'Modes d’inscription',
+        body: 'REGISTRATION_MODE décide de ce que fait une inscription publique. open (par défaut) : le compte est créé et la personne est connectée aussitôt — c’est le comportement actuel. approval : l’inscription est mise en attente. POST /auth/register répond 202 sans token, une inscription OAuth revient avec ?error=pending_approval, et une tentative de connexion pour un e-mail en attente répond 403. Un admin traite ensuite la file dans /admin/users → « Comptes en attente ». Les comptes créés par un admin sont toujours actifs, quel que soit le mode ; de même pour une inscription OAuth dont l’e-mail vérifié correspond déjà à un compte actif.',
+      },
+      pointing: {
+        heading: 'Où les apps se connectent',
+        body: 'Les apps desktop et mobile, ainsi que les pages web de connexion et d’inscription, portent toutes une ligne « Serveur » sur l’écran de connexion. Elle affiche l’hôte de l’API et se déplie en un champ pour la changer ou la réinitialiser — avant qu’aucun compte n’existe, donc personne n’a à se connecter à l’API par défaut d’abord. Chaque écran lit GET /auth/config de l’instance visée et n’affiche que les méthodes de connexion qu’elle propose. L’app web hébergée refuse toujours un hôte privé (localhost, 10.x, 192.168.x…) par mesure anti-SSRF : pour pointer une UI web sur une API locale, fais tourner ta propre copie de stayup-ui avec STAYUP_API_URL fixé au déploiement.',
+      },
+      oauth: {
+        heading: 'Connexion Google et GitHub',
+        intro:
+          'Optionnel. Chaque fournisseur demande une app OAuth qui t’appartient et quatre variables d’environnement sur l’API :',
+        steps: [
+          'Créer une app OAuth — Google sur console.cloud.google.com/apis/credentials, GitHub sur github.com/settings/developers.',
+          'Régler son URL de callback (ou de redirection) sur https://<origine-de-ton-api>/auth/oauth/<provider>/callback. Les deux fournisseurs acceptent http://localhost pour le développement.',
+          'Mettre le client ID et le secret dans GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (ou la paire GITHUB_) sur l’API.',
+          'Fixer UI_URL sur l’origine de ton déploiement web — après un OAuth navigateur, l’API redirige vers UI_URL/api/auth/callback. L’app desktop intercepte ce chemin elle-même, donc n’importe quel UI_URL non vide lui suffit ; l’app mobile utilise son propre lien profond stayup://, déjà en liste blanche.',
+        ],
+        note: 'Une app OAuth GitHub n’accepte qu’une seule URL de callback : il te faut donc une app GitHub par origine d’API. Le générateur de script demande ces identifiants à l’exécution et les écrit directement dans docker-compose.yml, jamais dans le script.',
+      },
+    },
+
     pointing: {
       heading: 'Faire pointer une app sur ton instance',
       items: [
         'Web : règle STAYUP_API_URL sur ton déploiement — ou laisse-la et laisse chaque visiteur la surcharger depuis son profil, où elle est stockée par navigateur.',
-        'Desktop et mobile : Profil, puis « URL de l’API », colle la tienne, enregistre. « Réinitialiser » revient à celle par défaut à tout moment.',
+        'Desktop et mobile : la ligne « Serveur » sur l’écran de connexion, ou Profil → « URL de l’API » une fois connecté. « Réinitialiser » revient à celle par défaut à tout moment.',
         'Le web d’admin, c’est la même app web : pointe son STAYUP_API_URL sur ton API et ouvre /admin.',
       ],
       note: 'Rien d’autre ne change. La liste des providers, les données et le rendu suivent tous l’instance configurée — y compris le repli générique pour les providers que l’app ne connaît pas par leur nom.',

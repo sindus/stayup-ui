@@ -227,11 +227,37 @@ export const de: DocContent = {
       verifyNote:
         'Eine leere Provider-Liste ist hier die erwartete Antwort: noch hat nichts etwas gesammelt. Das ist der Provider-Leitfaden.',
     },
+    auth: {
+      heading: 'Nutzer und Authentifizierung',
+      intro:
+        'Wie Leute auf deiner Instanz ein Konto bekommen und wie du die Anmeldung mit Google oder GitHub einschaltest.',
+      registration: {
+        heading: 'Registrierungsmodi',
+        body: 'REGISTRATION_MODE entscheidet, was eine öffentliche Registrierung bewirkt. open (Standard): das Konto wird angelegt und die Person ist sofort angemeldet — das heutige Verhalten. approval: die Registrierung wird stattdessen geparkt. POST /auth/register antwortet 202 ohne Token, eine OAuth-Registrierung kommt mit ?error=pending_approval zurück, und ein Login-Versuch für eine wartende E-Mail antwortet 403. Ein Admin arbeitet dann die Warteschlange unter /admin/users → „Comptes en attente“ ab. Von einem Admin angelegte Konten sind immer aktiv, egal welcher Modus; ebenso eine OAuth-Registrierung, deren verifizierte E-Mail bereits zu einem aktiven Konto passt.',
+      },
+      pointing: {
+        heading: 'Wo sich die Apps anmelden',
+        body: 'Die Desktop- und Mobil-App sowie die Web-Seiten für Anmeldung und Registrierung tragen alle eine „Server“-Zeile auf dem Anmeldebildschirm. Sie zeigt den API-Host und klappt zu einem Feld auf, um ihn zu ändern oder zurückzusetzen — bevor ein Konto existiert, sodass sich niemand erst bei der Standard-API anmelden muss. Jeder Bildschirm liest GET /auth/config der eingestellten Instanz und zeigt nur die Anmeldemethoden, die sie anbietet. Die gehostete Web-App lehnt weiterhin einen privaten Host ab (localhost, 10.x, 192.168.x…) als SSRF-Schutz: um eine Web-UI auf eine lokale API zu richten, betreibe deine eigene Kopie von stayup-ui mit zum Deploy gesetztem STAYUP_API_URL.',
+      },
+      oauth: {
+        heading: 'Anmeldung mit Google und GitHub',
+        intro:
+          'Optional. Jeder Anbieter braucht eine OAuth-App, die dir gehört, und vier Umgebungsvariablen auf der API:',
+        steps: [
+          'Eine OAuth-App erstellen — Google unter console.cloud.google.com/apis/credentials, GitHub unter github.com/settings/developers.',
+          'Deren Callback- (oder Redirect-)URL auf https://<deine-api-origin>/auth/oauth/<provider>/callback setzen. Beide Anbieter erlauben http://localhost für die Entwicklung.',
+          'Client-ID und Secret in GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (oder das GITHUB_-Paar) auf der API eintragen.',
+          'UI_URL auf die Origin deines Web-Deployments setzen — nach einem Browser-OAuth leitet die API auf UI_URL/api/auth/callback um. Die Desktop-App fängt diesen Pfad selbst ab, daher genügt ihr jede nicht-leere UI_URL; die Mobil-App nutzt ihren eigenen Deep Link stayup://, bereits auf der Allowlist.',
+        ],
+        note: 'Eine GitHub-OAuth-App erlaubt genau eine Callback-URL, du brauchst also eine GitHub-App pro API-Origin. Der Setup-Generator fragt diese Zugangsdaten zur Laufzeit ab und schreibt sie direkt in docker-compose.yml, nie ins Skript.',
+      },
+    },
+
     pointing: {
       heading: 'Eine App auf deine Instanz richten',
       items: [
         'Web: setze STAYUP_API_URL in deiner Bereitstellung — oder lass sie und jeden Besucher sie im Profil überschreiben, wo sie pro Browser gespeichert wird.',
-        'Desktop und Mobil: Profil, dann „API-URL“, deine einfügen, speichern. „Zurücksetzen“ geht jederzeit zur eingebauten zurück.',
+        'Desktop und Mobil: die „Server“-Zeile auf dem Anmeldebildschirm, oder Profil → „API-URL“ nach der Anmeldung. „Zurücksetzen“ geht jederzeit zur eingebauten zurück.',
         'Die Admin-Weboberfläche ist dieselbe Web-App: richte ihre STAYUP_API_URL auf deine API und öffne /admin.',
       ],
       note: 'Sonst ändert sich nichts. Provider-Liste, Daten und Darstellung folgen alle der konfigurierten Instanz — einschließlich des schlichten Rückfalls für Provider, die die App nicht namentlich kennt.',

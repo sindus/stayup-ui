@@ -19,6 +19,7 @@ export const INSTALL_ANCHORS = {
   env: 'configuration',
   deploy: 'deploy',
   schema: 'schema',
+  auth: 'authentication',
   pointing: 'pointing-a-client',
   troubleshooting: 'troubleshooting',
 } as const

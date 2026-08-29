@@ -74,6 +74,13 @@ test.describe('Install page', () => {
     await expect(schema.getByText('src/db/schema.sql')).toHaveCount(0)
   })
 
+  test('covers registration modes and OAuth in an authentication section', async ({ page }) => {
+    const auth = page.locator('#authentication')
+    await expect(auth).toBeVisible()
+    await expect(auth.getByText('REGISTRATION_MODE')).toBeVisible()
+    await expect(auth.getByText('/auth/oauth/<provider>/callback')).toBeVisible()
+  })
+
   test('leads back to the documentation index', async ({ page }) => {
     await page.locator('main').getByRole('link', { name: /^←/ }).click()
     await expect(page).toHaveURL('/docs')

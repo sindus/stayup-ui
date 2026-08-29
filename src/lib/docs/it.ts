@@ -227,11 +227,37 @@ export const it: DocContent = {
       verifyNote:
         'Un elenco di provider vuoto è la risposta attesa qui: niente ha ancora raccolto nulla. È la guida ai provider.',
     },
+    auth: {
+      heading: 'Utenti e autenticazione',
+      intro:
+        'Come le persone ottengono un account sulla tua istanza, e come attivare l’accesso con Google o GitHub.',
+      registration: {
+        heading: 'Modalità di registrazione',
+        body: 'REGISTRATION_MODE decide cosa fa una registrazione pubblica. open (predefinito): l’account viene creato e la persona accede subito — il comportamento attuale. approval: la registrazione viene messa in attesa. POST /auth/register risponde 202 senza token, una registrazione OAuth torna con ?error=pending_approval, e un tentativo di accesso per un’e-mail in attesa risponde 403. Un admin lavora poi la coda in /admin/users → «Comptes en attente». Gli account creati da un admin sono sempre attivi, qualunque sia la modalità; così pure una registrazione OAuth la cui e-mail verificata corrisponde già a un account attivo.',
+      },
+      pointing: {
+        heading: 'Dove le app accedono',
+        body: 'Le app desktop e mobile, e le pagine web di accesso e registrazione, portano tutte una riga «Server» sulla schermata di accesso. Mostra l’host dell’API e si espande in un campo per cambiarlo o ripristinarlo — prima che esista un account, così nessuno deve accedere prima all’API predefinita. Ogni schermata legge GET /auth/config dell’istanza impostata e mostra solo i metodi di accesso che offre. L’app web ospitata rifiuta ancora un host privato (localhost, 10.x, 192.168.x…) come misura anti-SSRF: per puntare una UI web su un’API locale, esegui la tua copia di stayup-ui con STAYUP_API_URL impostato al deploy.',
+      },
+      oauth: {
+        heading: 'Accesso con Google e GitHub',
+        intro:
+          'Facoltativo. Ogni provider richiede un’app OAuth di tua proprietà e quattro variabili d’ambiente sull’API:',
+        steps: [
+          'Crea un’app OAuth — Google su console.cloud.google.com/apis/credentials, GitHub su github.com/settings/developers.',
+          'Imposta la sua URL di callback (o di redirect) su https://<origine-della-tua-api>/auth/oauth/<provider>/callback. Entrambi i provider consentono http://localhost per lo sviluppo.',
+          'Metti il client ID e il secret in GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (o la coppia GITHUB_) sull’API.',
+          'Imposta UI_URL sull’origine del tuo deploy web — dopo un OAuth da browser l’API reindirizza a UI_URL/api/auth/callback. L’app desktop intercetta quel percorso da sé, quindi le basta qualsiasi UI_URL non vuoto; l’app mobile usa il proprio deep link stayup://, già in allow-list.',
+        ],
+        note: 'Un’app OAuth GitHub ammette esattamente una URL di callback, quindi serve un’app GitHub per ogni origine di API. Il generatore di script chiede queste credenziali all’esecuzione e le scrive direttamente in docker-compose.yml, mai nello script.',
+      },
+    },
+
     pointing: {
       heading: 'Puntare un’app sulla tua istanza',
       items: [
         'Web: imposta STAYUP_API_URL sul tuo deploy — oppure lasciala e lascia che ogni visitatore la sovrascriva dal proprio profilo, dove è salvata per browser.',
-        'Desktop e mobile: Profilo, poi «URL dell’API», incolla la tua, salva. «Ripristina» torna a quella integrata in qualsiasi momento.',
+        'Desktop e mobile: la riga «Server» sulla schermata di accesso, o Profilo → «URL dell’API» una volta dentro. «Ripristina» torna a quella integrata in qualsiasi momento.',
         'L’interfaccia web di amministrazione è la stessa app web: punta il suo STAYUP_API_URL sulla tua API e apri /admin.',
       ],
       note: 'Nient’altro cambia. L’elenco dei provider, i dati e il rendering seguono tutti l’istanza configurata — incluso il ripiego semplice per i provider che l’app non conosce per nome.',

@@ -222,6 +222,30 @@ export const zh: DocContent = {
       verifyNote:
         '这里 provider 列表为空是预期的回应：还没有任何东西收集过。那是 provider 指南的事。',
     },
+    auth: {
+      heading: '用户与认证',
+      intro: '人们如何在你的实例上获得账户，以及如何开启用 Google 或 GitHub 登录。',
+      registration: {
+        heading: '注册模式',
+        body: 'REGISTRATION_MODE 决定公开注册的行为。open（默认）：账户被创建，本人当即登录 —— 就是当前行为。approval：注册被搁置。POST /auth/register 返回 202 且没有 token，OAuth 注册带 ?error=pending_approval 返回，等待中的邮箱尝试登录返回 403。管理员随后在 /admin/users →「Comptes en attente」处理队列。管理员创建的账户始终是激活的，无论哪种模式；已验证邮箱已匹配到某个激活账户的 OAuth 注册也一样。',
+      },
+      pointing: {
+        heading: '应用在哪里登录',
+        body: '桌面和移动：登录界面的「服务器」行，或登录后进入个人资料 →「API 地址」。「恢复默认」随时回到内置那个。',
+      },
+      oauth: {
+        heading: '用 Google 和 GitHub 登录',
+        intro: '可选。每个提供方都需要一个你自己的 OAuth 应用，以及 API 上的四个环境变量：',
+        steps: [
+          '创建一个 OAuth 应用 —— Google 在 console.cloud.google.com/apis/credentials，GitHub 在 github.com/settings/developers。',
+          '把它的回调（或重定向）URL 设为 https://<你的 API 源>/auth/oauth/<provider>/callback。两个提供方都允许 http://localhost 用于开发。',
+          '把 client ID 和 secret 放进 API 上的 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET（或 GITHUB_ 那一对）。',
+          '把 UI_URL 设为你的 Web 部署源 —— 浏览器 OAuth 之后，API 会重定向到 UI_URL/api/auth/callback。桌面应用会自己拦截这个路径，所以任何非空的 UI_URL 对它都行；移动应用用自己的 stayup:// 深链，已在允许名单里。',
+        ],
+        note: '一个 GitHub OAuth 应用只允许恰好一个回调 URL，所以每个 API 源都需要单独的 GitHub 应用。脚本生成器在运行时询问这些凭据，并直接写进 docker-compose.yml，绝不写进脚本。',
+      },
+    },
+
     pointing: {
       heading: '把一个应用指向你的实例',
       items: [

@@ -50,6 +50,7 @@ export default async function InstallPage() {
             { id: A.env, label: d.env.heading },
             { id: A.deploy, label: d.deploy.heading },
             { id: A.schema, label: d.schema.heading },
+            { id: A.auth, label: d.auth.heading },
             { id: A.pointing, label: d.pointing.heading },
             { id: A.troubleshooting, label: d.troubleshooting.heading },
           ]}
@@ -242,6 +243,29 @@ export default async function InstallPage() {
             </p>
             <DocCode>{SNIPPETS.verify}</DocCode>
             <DocNote tone="sky">{d.schema.verifyNote}</DocNote>
+          </DocSection>
+
+          <DocSection id={A.auth} title={d.auth.heading}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.auth.intro}
+            </p>
+
+            <DocSubheading>{d.auth.registration.heading}</DocSubheading>
+            <p className="mb-6 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.auth.registration.body}
+            </p>
+
+            <DocSubheading>{d.auth.pointing.heading}</DocSubheading>
+            <p className="mb-6 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.auth.pointing.body}
+            </p>
+
+            <DocSubheading>{d.auth.oauth.heading}</DocSubheading>
+            <p className="mb-4 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.auth.oauth.intro}
+            </p>
+            <DocOrderedList items={d.auth.oauth.steps} />
+            <DocNote tone="sky">{d.auth.oauth.note}</DocNote>
           </DocSection>
 
           <DocSection id={A.pointing} title={d.pointing.heading}>

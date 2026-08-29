@@ -227,11 +227,37 @@ export const es: DocContent = {
       verifyNote:
         'Una lista de proveedores vacía es la respuesta esperada aquí: nada ha recopilado nada todavía. Eso es la guía de proveedores.',
     },
+    auth: {
+      heading: 'Usuarios y autenticación',
+      intro:
+        'Cómo obtiene la gente una cuenta en tu instancia, y cómo activar el inicio de sesión con Google o GitHub.',
+      registration: {
+        heading: 'Modos de registro',
+        body: 'REGISTRATION_MODE decide qué hace un registro público. open (por defecto): la cuenta se crea y la persona inicia sesión de inmediato — el comportamiento actual. approval: el registro queda en espera. POST /auth/register responde 202 sin token, un registro por OAuth vuelve con ?error=pending_approval, y un intento de inicio de sesión para un correo en espera responde 403. Un administrador trabaja luego la cola en /admin/users → «Comptes en attente». Las cuentas que crea un administrador siempre están activas, sea cual sea el modo; también un registro por OAuth cuyo correo verificado ya coincide con una cuenta activa.',
+      },
+      pointing: {
+        heading: 'Dónde inician sesión las apps',
+        body: 'Las apps de escritorio y móvil, y las páginas web de inicio de sesión y registro, llevan todas una línea «Servidor» en la pantalla de acceso. Muestra el host de la API y se despliega en un campo para cambiarlo o restablecerlo — antes de que exista ninguna cuenta, así nadie tiene que iniciar sesión primero en la API por defecto. Cada pantalla lee GET /auth/config de la instancia configurada y muestra solo los métodos de acceso que ofrece. La app web alojada sigue rechazando un host privado (localhost, 10.x, 192.168.x…) como medida anti-SSRF: para apuntar una UI web a una API local, ejecuta tu propia copia de stayup-ui con STAYUP_API_URL fijado en el despliegue.',
+      },
+      oauth: {
+        heading: 'Inicio de sesión con Google y GitHub',
+        intro:
+          'Opcional. Cada proveedor necesita una app OAuth tuya y cuatro variables de entorno en la API:',
+        steps: [
+          'Crea una app OAuth — Google en console.cloud.google.com/apis/credentials, GitHub en github.com/settings/developers.',
+          'Pon su URL de callback (o de redirección) en https://<origen-de-tu-api>/auth/oauth/<provider>/callback. Ambos proveedores permiten http://localhost para desarrollo.',
+          'Pon el client ID y el secreto en GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (o el par GITHUB_) en la API.',
+          'Pon UI_URL en el origen de tu despliegue web — tras un OAuth de navegador la API redirige a UI_URL/api/auth/callback. La app de escritorio intercepta esa ruta ella misma, así que le vale cualquier UI_URL no vacío; la app móvil usa su propio enlace profundo stayup://, ya en la lista de permitidos.',
+        ],
+        note: 'Una app OAuth de GitHub admite exactamente una URL de callback, así que necesitas una app de GitHub por origen de API. El generador de scripts pide estas credenciales al ejecutarse y las escribe directamente en docker-compose.yml, nunca en el script.',
+      },
+    },
+
     pointing: {
       heading: 'Apuntar una app a tu instancia',
       items: [
         'Web: fija STAYUP_API_URL en tu despliegue — o déjala y deja que cada visitante la sobrescriba desde su perfil, donde se guarda por navegador.',
-        'Escritorio y móvil: Perfil, luego «URL de la API», pega la tuya, guarda. «Restablecer» vuelve a la incorporada en cualquier momento.',
+        'Escritorio y móvil: la línea «Servidor» en la pantalla de acceso, o Perfil → «URL de la API» una vez dentro. «Restablecer» vuelve a la integrada en cualquier momento.',
         'La interfaz web de administración es la misma app web: apunta su STAYUP_API_URL a tu API y abre /admin.',
       ],
       note: 'Nada más cambia. La lista de proveedores, los datos y el renderizado siguen todos a la instancia configurada — incluido el respaldo simple para proveedores que la app no conoce por su nombre.',
