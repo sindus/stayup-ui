@@ -72,10 +72,25 @@ export default async function SelfHostingPage() {
             {d.title}
           </h1>
           <p
-            className="mb-12 max-w-[640px] text-[16px] leading-relaxed"
+            className="mb-6 max-w-[640px] text-[16px] leading-relaxed"
             style={{ color: 'var(--fg-soft)' }}
           >
             {d.lede}
+          </p>
+
+          <p
+            className="mb-12 rounded-r-lg px-5 py-3 text-[14px]"
+            style={{
+              background: 'var(--sage-dim)',
+              borderLeft: '3px solid var(--sage)',
+              color: 'var(--fg)',
+            }}
+          >
+            →{' '}
+            <Link href="/docs/generate" className="underline underline-offset-4">
+              {doc.generate.title}
+            </Link>{' '}
+            — {doc.generate.lede}
           </p>
 
           <DocSection id={A.why} title={d.why.heading}>

@@ -54,6 +54,10 @@ export const en = {
       selfHostingBody:
         'Your own API and your own database, so your data stays yours and you choose what runs against it.',
       selfHostingCta: 'Self-hosting guide',
+      generateTitle: 'Generate a setup script',
+      generateBody:
+        'Pick a database and the connectors you want, and get a one-shot bash script that stands up the whole stack.',
+      generateCta: 'Setup generator',
       providersTitle: 'Plug in a new source',
       providersBody:
         'Write a provider — a program that fetches a source StayUp does not cover yet, and stores what it finds.',
@@ -204,6 +208,81 @@ export const en = {
             'The signing secret differs between the instance that issued your token and the one answering. Tokens do not carry across instances.',
         },
       ],
+    },
+  },
+
+  // ── /docs/generate ──────────────────────────────────────────────────────
+  generate: {
+    meta: {
+      title: 'StayUp — Generate a self-hosted setup',
+      description:
+        'Pick a database and the connectors you want, and download a one-shot bash script that stands up your own StayUp instance.',
+    },
+    eyebrow: 'Self-hosting',
+    title: 'Generate your setup script',
+    lede: 'Choose a database and the connectors you want. You get a single bash script that clones the repos, writes the Docker setup, creates your super admin and starts everything.',
+
+    how: {
+      heading: 'What the script does',
+      items: [
+        'Clones the API, the connectors you picked, and — if you keep it — the admin web UI.',
+        'Writes a docker-compose.yml with PostgreSQL, the API, one container per connector, and an Ofelia scheduler.',
+        'Prompts you for the super admin account and for each connector’s schedule.',
+        'Applies the database schema, creates the super admin, and runs every connector once so it registers itself.',
+        'Starts the API, the UI and the scheduler.',
+      ],
+      note: 'Everything runs on your machine in Docker. Nothing is sent anywhere — the page builds the script in your browser.',
+    },
+
+    requirements: {
+      heading: 'Before you run it',
+      items: [
+        'Docker and Docker Compose v2 (`docker compose`).',
+        'git.',
+        'Linux or macOS. On Windows, run the script inside WSL.',
+      ],
+    },
+
+    form: {
+      database: 'Database',
+      comingSoon: 'soon',
+      connectors: 'Official connectors',
+      customConnectors: 'Your own connectors',
+      customHint:
+        'Any git repo with a root Dockerfile whose ENTRYPOINT runs the collector once, reads DATABASE_URL, and registers itself in provider_registry. See the provider guide.',
+      customConnectorAdd: 'Add a connector',
+      customUrlPlaceholder: 'https://github.com/you/your-connector.git',
+      customNamePlaceholder: 'name (optional)',
+      remove: 'Remove',
+      adminUi: 'Include the admin web UI',
+      adminUiHint: 'Manage providers, approve flux requests, add admins.',
+      advanced: 'Advanced',
+      projectDir: 'Project folder',
+      apiPort: 'API port',
+      uiPort: 'UI port',
+      dbPort: 'Database port',
+      preview: 'stayup-setup.sh',
+      download: 'Download',
+      copy: 'Copy',
+      copied: 'Copied',
+      invalid: 'Cannot generate',
+    },
+
+    run: {
+      heading: 'Run it',
+      intro: 'Save the file, then:',
+      note: 'The first run builds every image and can take a few minutes.',
+    },
+
+    after: {
+      heading: 'After setup',
+      items: [
+        'API docs: http://localhost:3000/docs — Admin UI: http://localhost:3001/admin.',
+        'In the desktop or mobile app, set the API URL to http://localhost:3000, then create an account.',
+        'Add feeds from the app — every provider offers an existing-flux list and an add-a-new-one form.',
+        'Remove everything with: docker compose --profile connectors down -v (this deletes the database).',
+      ],
+      note: 'The scheduler mounts the Docker socket to launch connectors on schedule — root-equivalent on the host, fine for a local dev instance.',
     },
   },
 

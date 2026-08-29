@@ -83,6 +83,8 @@ describe('documentation dictionaries', () => {
       'selfHosting.pieces.database',
       'selfHosting.pieces.api',
       'providers.what.diagram.sourcesItems',
+      // Example git URL shown as a placeholder — the host is not prose.
+      'generate.form.customUrlPlaceholder',
     ])
     for (const lang of LANGUAGES.filter((l) => l !== 'en')) {
       const doc = getDoc(lang)

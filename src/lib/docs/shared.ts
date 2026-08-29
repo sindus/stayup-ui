@@ -28,6 +28,14 @@ export const PROVIDER_ANCHORS = {
   contract: 'technical-contract',
 } as const
 
+export const GENERATE_ANCHORS = {
+  how: 'how-it-works',
+  requirements: 'requirements',
+  form: 'build-your-script',
+  run: 'run-it',
+  after: 'after-setup',
+} as const
+
 // Les moteurs pris en charge par l'API. L'ordre est celui des onglets : le plus
 // courant d'abord, le NoSQL en dernier parce qu'il est le plus dépaysant.
 export const ENGINES = [

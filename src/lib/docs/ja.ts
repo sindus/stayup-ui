@@ -47,6 +47,10 @@ export const ja: DocContent = {
       selfHostingBody:
         '自分の API と自分のデータベース。データは自分のものにとどまり、その上で何を動かすかも自分で選べます。',
       selfHostingCta: 'セルフホスティングの手引き',
+      generateTitle: 'セットアップスクリプトを生成',
+      generateBody:
+        'データベースと必要なコネクターを選ぶと、スタック全体を立ち上げる単一の bash スクリプトが手に入ります。',
+      generateCta: 'セットアップジェネレーター',
       providersTitle: '新しいソースをつなぐ',
       providersBody:
         'プロバイダーを書きます。StayUp がまだ対応していないソースを取りにいき、見つけたものを保存するプログラムです。',
@@ -196,6 +200,80 @@ export const ja: DocContent = {
             'トークンを発行したインスタンスと応答しているインスタンスで署名シークレットが異なります。トークンはインスタンスをまたいで通用しません。',
         },
       ],
+    },
+  },
+
+  generate: {
+    meta: {
+      title: 'StayUp — セルフホスト構成を生成',
+      description:
+        'データベースと必要なコネクターを選ぶと、自分の StayUp インスタンスを立ち上げる単一の bash スクリプトをダウンロードできます。',
+    },
+    eyebrow: 'セルフホスト',
+    title: 'セットアップスクリプトを生成',
+    lede: 'データベースと必要なコネクターを選びます。リポジトリのクローン、Docker 構成の作成、スーパー管理者の作成、全体の起動までを行う単一の bash スクリプトが手に入ります。',
+
+    how: {
+      heading: 'スクリプトの動作',
+      items: [
+        'API、選んだコネクター、そして残す場合は管理用 Web UI をクローンします。',
+        'PostgreSQL、API、コネクターごとのコンテナ、Ofelia スケジューラーを含む docker-compose.yml を書き出します。',
+        'スーパー管理者アカウントと各コネクターの実行間隔を尋ねます。',
+        'スキーマを適用し、スーパー管理者を作成し、各コネクターを一度実行して登録させます。',
+        'API、UI、スケジューラーを起動します。',
+      ],
+      note: 'すべて Docker であなたのマシン上で動作します。どこにも送信されません — ページはブラウザ内でスクリプトを組み立てます。',
+    },
+
+    requirements: {
+      heading: '実行前に',
+      items: [
+        'Docker と Docker Compose v2（`docker compose`）。',
+        'git。',
+        'Linux または macOS。Windows では WSL 内で実行してください。',
+      ],
+    },
+
+    form: {
+      database: 'データベース',
+      comingSoon: '近日',
+      connectors: '公式コネクター',
+      customConnectors: '自作コネクター',
+      customHint:
+        'ルートに Dockerfile を持つ任意の git リポジトリで、その ENTRYPOINT がコレクターを一度実行し、DATABASE_URL を読み、provider_registry に自身を登録すること。プロバイダーガイドを参照。',
+      customConnectorAdd: 'コネクターを追加',
+      customUrlPlaceholder: 'https://github.com/you/your-connector.git',
+      customNamePlaceholder: '名前（任意）',
+      remove: '削除',
+      adminUi: '管理用 Web UI を含める',
+      adminUiHint: 'プロバイダー管理、flux 申請の承認、管理者の追加。',
+      advanced: '詳細',
+      projectDir: 'プロジェクトフォルダ',
+      apiPort: 'API ポート',
+      uiPort: 'UI ポート',
+      dbPort: 'DB ポート',
+      preview: 'stayup-setup.sh',
+      download: 'ダウンロード',
+      copy: 'コピー',
+      copied: 'コピーしました',
+      invalid: '生成できません',
+    },
+
+    run: {
+      heading: '実行',
+      intro: 'ファイルを保存してから：',
+      note: '初回実行はすべてのイメージをビルドするため数分かかることがあります。',
+    },
+
+    after: {
+      heading: 'セットアップ後',
+      items: [
+        'API ドキュメント: http://localhost:3000/docs — 管理 UI: http://localhost:3001/admin。',
+        'デスクトップまたはモバイルアプリで API URL を http://localhost:3000 に設定し、アカウントを作成します。',
+        'フィードはアプリから追加します — 各プロバイダーは既存 flux の一覧と新規追加フォームを提供します。',
+        'すべて削除: docker compose --profile connectors down -v（データベースを削除します）。',
+      ],
+      note: 'スケジューラーはコネクターを定時起動するため Docker ソケットをマウントします — ホスト上では root 相当であり、ローカルの開発インスタンスでは許容範囲です。',
     },
   },
 

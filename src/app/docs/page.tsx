@@ -99,6 +99,13 @@ export default async function DocsHomePage() {
                 accent="var(--peach)"
               />
               <PathCard
+                href="/docs/generate"
+                title={h.paths.generateTitle}
+                body={h.paths.generateBody}
+                cta={h.paths.generateCta}
+                accent="var(--sage)"
+              />
+              <PathCard
                 href="/docs/providers"
                 title={h.paths.providersTitle}
                 body={h.paths.providersBody}

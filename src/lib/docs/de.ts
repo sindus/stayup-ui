@@ -48,6 +48,10 @@ export const de: DocContent = {
       selfHostingBody:
         'Deine eigene API und deine eigene Datenbank — deine Daten bleiben deine, und du entscheidest, was darauf läuft.',
       selfHostingCta: 'Anleitung zum Selbsthosten',
+      generateTitle: 'Ein Setup-Skript erzeugen',
+      generateBody:
+        'Wähle eine Datenbank und die gewünschten Konnektoren und erhalte ein einziges Bash-Skript, das den ganzen Stack aufsetzt.',
+      generateCta: 'Setup-Generator',
       providersTitle: 'Eine neue Quelle anschließen',
       providersBody:
         'Schreib einen Provider — ein Programm, das eine von StayUp noch nicht abgedeckte Quelle abholt und das Gefundene speichert.',
@@ -198,6 +202,80 @@ export const de: DocContent = {
             'Das Signatur-Secret unterscheidet sich zwischen der Instanz, die dein Token ausgestellt hat, und der antwortenden. Tokens gelten nicht über Instanzen hinweg.',
         },
       ],
+    },
+  },
+
+  generate: {
+    meta: {
+      title: 'StayUp — Ein Self-Hosting-Setup erzeugen',
+      description:
+        'Wähle eine Datenbank und die gewünschten Konnektoren und lade ein einziges Bash-Skript herunter, das deine eigene StayUp-Instanz aufsetzt.',
+    },
+    eyebrow: 'Self-Hosting',
+    title: 'Erzeuge dein Setup-Skript',
+    lede: 'Wähle eine Datenbank und die gewünschten Konnektoren. Du erhältst ein einziges Bash-Skript, das die Repos klont, das Docker-Setup schreibt, deinen Super-Admin anlegt und alles startet.',
+
+    how: {
+      heading: 'Was das Skript tut',
+      items: [
+        'Klont die API, die gewählten Konnektoren und — wenn du sie behältst — die Admin-Weboberfläche.',
+        'Schreibt eine docker-compose.yml mit PostgreSQL, der API, einem Container pro Konnektor und einem Ofelia-Scheduler.',
+        'Fragt nach dem Super-Admin-Konto und nach dem Zeitplan jedes Konnektors.',
+        'Wendet das Datenbankschema an, legt den Super-Admin an und führt jeden Konnektor einmal aus, damit er sich registriert.',
+        'Startet die API, die Oberfläche und den Scheduler.',
+      ],
+      note: 'Alles läuft in Docker auf deinem Rechner. Nichts wird irgendwohin gesendet — die Seite baut das Skript in deinem Browser.',
+    },
+
+    requirements: {
+      heading: 'Bevor du es ausführst',
+      items: [
+        'Docker und Docker Compose v2 (`docker compose`).',
+        'git.',
+        'Linux oder macOS. Unter Windows das Skript in WSL ausführen.',
+      ],
+    },
+
+    form: {
+      database: 'Datenbank',
+      comingSoon: 'bald',
+      connectors: 'Offizielle Konnektoren',
+      customConnectors: 'Eigene Konnektoren',
+      customHint:
+        'Ein beliebiges Git-Repo mit einem Dockerfile im Stamm, dessen ENTRYPOINT den Collector einmal ausführt, DATABASE_URL liest und sich in provider_registry registriert. Siehe Provider-Leitfaden.',
+      customConnectorAdd: 'Konnektor hinzufügen',
+      customUrlPlaceholder: 'https://github.com/du/dein-konnektor.git',
+      customNamePlaceholder: 'Name (optional)',
+      remove: 'Entfernen',
+      adminUi: 'Admin-Weboberfläche einschließen',
+      adminUiHint: 'Provider verwalten, Flux-Anfragen freigeben, Admins hinzufügen.',
+      advanced: 'Erweitert',
+      projectDir: 'Projektordner',
+      apiPort: 'API-Port',
+      uiPort: 'UI-Port',
+      dbPort: 'Datenbank-Port',
+      preview: 'stayup-setup.sh',
+      download: 'Herunterladen',
+      copy: 'Kopieren',
+      copied: 'Kopiert',
+      invalid: 'Erzeugung nicht möglich',
+    },
+
+    run: {
+      heading: 'Ausführen',
+      intro: 'Datei speichern, dann:',
+      note: 'Der erste Lauf baut jedes Image und kann einige Minuten dauern.',
+    },
+
+    after: {
+      heading: 'Nach dem Setup',
+      items: [
+        'API-Doku: http://localhost:3000/docs — Admin-Oberfläche: http://localhost:3001/admin.',
+        'Setze in der Desktop- oder Mobile-App die API-URL auf http://localhost:3000 und lege ein Konto an.',
+        'Feeds fügst du in der App hinzu — jeder Provider bietet eine Liste vorhandener Flux und ein Formular für neue.',
+        'Alles entfernen: docker compose --profile connectors down -v (löscht die Datenbank).',
+      ],
+      note: 'Der Scheduler bindet den Docker-Socket ein, um Konnektoren planmäßig zu starten — root-äquivalent auf dem Host, für eine lokale Dev-Instanz in Ordnung.',
     },
   },
 

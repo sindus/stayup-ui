@@ -45,6 +45,9 @@ export const zh: DocContent = {
       selfHostingTitle: '运行自己的实例',
       selfHostingBody: '你自己的 API 和数据库，数据始终归你，跑什么也由你决定。',
       selfHostingCta: '自托管指南',
+      generateTitle: '生成安装脚本',
+      generateBody: '选择数据库和所需的连接器，得到一个搭建整个技术栈的 bash 脚本。',
+      generateCta: '安装生成器',
       providersTitle: '接入一个新来源',
       providersBody: '写一个提供方——一个去抓取 StayUp 尚未覆盖的来源、并保存所得内容的程序。',
       providersCta: '提供方指南',
@@ -187,6 +190,79 @@ export const zh: DocContent = {
           cause: '签发你令牌的实例和正在响应的实例使用了不同的签名密钥。令牌不能跨实例通用。',
         },
       ],
+    },
+  },
+
+  generate: {
+    meta: {
+      title: 'StayUp — 生成自托管配置',
+      description: '选择数据库和所需的连接器，下载一个 bash 脚本来搭建你自己的 StayUp 实例。',
+    },
+    eyebrow: '自托管',
+    title: '生成你的安装脚本',
+    lede: '选择数据库和所需的连接器。你会得到一个 bash 脚本，它会克隆仓库、写入 Docker 配置、创建超级管理员并启动一切。',
+
+    how: {
+      heading: '脚本做什么',
+      items: [
+        '克隆 API、所选连接器，以及（如果保留）管理后台 Web 界面。',
+        '写出一个包含 PostgreSQL、API、每个连接器一个容器以及 Ofelia 调度器的 docker-compose.yml。',
+        '询问超级管理员账户以及每个连接器的运行频率。',
+        '应用数据库结构、创建超级管理员，并让每个连接器先运行一次以完成注册。',
+        '启动 API、界面和调度器。',
+      ],
+      note: '一切都在你的机器上通过 Docker 运行。不会发送到任何地方——页面在你的浏览器中构建脚本。',
+    },
+
+    requirements: {
+      heading: '运行之前',
+      items: [
+        'Docker 和 Docker Compose v2（`docker compose`）。',
+        'git。',
+        'Linux 或 macOS。在 Windows 上请在 WSL 中运行脚本。',
+      ],
+    },
+
+    form: {
+      database: '数据库',
+      comingSoon: '即将',
+      connectors: '官方连接器',
+      customConnectors: '你的连接器',
+      customHint:
+        '任意包含根 Dockerfile 的 git 仓库，其 ENTRYPOINT 运行采集器一次、读取 DATABASE_URL 并在 provider_registry 中注册自身。参见 provider 指南。',
+      customConnectorAdd: '添加连接器',
+      customUrlPlaceholder: 'https://github.com/you/your-connector.git',
+      customNamePlaceholder: '名称（可选）',
+      remove: '移除',
+      adminUi: '包含管理后台 Web 界面',
+      adminUiHint: '管理 provider、审批 flux 请求、添加管理员。',
+      advanced: '高级',
+      projectDir: '项目目录',
+      apiPort: 'API 端口',
+      uiPort: 'UI 端口',
+      dbPort: '数据库端口',
+      preview: 'stayup-setup.sh',
+      download: '下载',
+      copy: '复制',
+      copied: '已复制',
+      invalid: '无法生成',
+    },
+
+    run: {
+      heading: '运行',
+      intro: '保存文件，然后：',
+      note: '首次运行会构建每个镜像，可能需要几分钟。',
+    },
+
+    after: {
+      heading: '安装之后',
+      items: [
+        'API 文档：http://localhost:3000/docs —— 管理界面：http://localhost:3001/admin。',
+        '在桌面或移动应用中，将 API 地址设为 http://localhost:3000，然后创建账户。',
+        '在应用中添加订阅源——每个 provider 都提供已有 flux 列表和新增表单。',
+        '全部移除：docker compose --profile connectors down -v（会删除数据库）。',
+      ],
+      note: '调度器挂载 Docker socket 以按计划启动连接器——在宿主机上等同于 root，对本地开发实例可以接受。',
     },
   },
 

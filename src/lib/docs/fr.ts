@@ -49,6 +49,10 @@ export const fr: DocContent = {
       selfHostingBody:
         'Ton API et ta base à toi, pour que tes données te restent et que tu choisisses ce qui tourne dessus.',
       selfHostingCta: 'Guide d’auto-hébergement',
+      generateTitle: 'Générer un script d’installation',
+      generateBody:
+        'Choisissez une base et les connecteurs voulus, et obtenez un script bash unique qui monte toute la stack.',
+      generateCta: 'Générateur d’installation',
       providersTitle: 'Brancher une nouvelle source',
       providersBody:
         'Écrire un provider — un programme qui va chercher une source que StayUp ne couvre pas encore, et stocke ce qu’il trouve.',
@@ -199,6 +203,80 @@ export const fr: DocContent = {
             'Le secret de signature diffère entre l’instance qui a émis ton token et celle qui répond. Les tokens ne se transportent pas d’une instance à l’autre.',
         },
       ],
+    },
+  },
+
+  generate: {
+    meta: {
+      title: 'StayUp — Générer une installation self-hosted',
+      description:
+        'Choisissez une base et les connecteurs voulus, et téléchargez un script bash unique qui monte votre propre instance StayUp.',
+    },
+    eyebrow: 'Self-hosting',
+    title: 'Générez votre script d’installation',
+    lede: 'Choisissez une base et les connecteurs voulus. Vous obtenez un seul script bash qui clone les repos, écrit la configuration Docker, crée votre super admin et démarre tout.',
+
+    how: {
+      heading: 'Ce que fait le script',
+      items: [
+        'Clone l’API, les connecteurs choisis et — si vous le gardez — le web d’admin.',
+        'Écrit un docker-compose.yml avec PostgreSQL, l’API, un conteneur par connecteur et un planificateur Ofelia.',
+        'Vous demande le compte super admin et la fréquence de chaque connecteur.',
+        'Applique le schéma, crée le super admin et lance chaque connecteur une fois pour qu’il s’enregistre.',
+        'Démarre l’API, le web d’admin et le planificateur.',
+      ],
+      note: 'Tout tourne sur votre machine dans Docker. Rien n’est envoyé nulle part — la page construit le script dans votre navigateur.',
+    },
+
+    requirements: {
+      heading: 'Avant de le lancer',
+      items: [
+        'Docker et Docker Compose v2 (`docker compose`).',
+        'git.',
+        'Linux ou macOS. Sous Windows, lancez le script dans WSL.',
+      ],
+    },
+
+    form: {
+      database: 'Base de données',
+      comingSoon: 'bientôt',
+      connectors: 'Connecteurs officiels',
+      customConnectors: 'Vos connecteurs',
+      customHint:
+        'N’importe quel dépôt git avec un Dockerfile à la racine dont l’ENTRYPOINT lance le collecteur une fois, lit DATABASE_URL et s’enregistre dans provider_registry. Voir le guide des providers.',
+      customConnectorAdd: 'Ajouter un connecteur',
+      customUrlPlaceholder: 'https://github.com/vous/votre-connecteur.git',
+      customNamePlaceholder: 'nom (optionnel)',
+      remove: 'Retirer',
+      adminUi: 'Inclure le web d’admin',
+      adminUiHint: 'Gérer les providers, approuver les demandes de flux, ajouter des admins.',
+      advanced: 'Avancé',
+      projectDir: 'Dossier du projet',
+      apiPort: 'Port API',
+      uiPort: 'Port UI',
+      dbPort: 'Port base',
+      preview: 'stayup-setup.sh',
+      download: 'Télécharger',
+      copy: 'Copier',
+      copied: 'Copié',
+      invalid: 'Génération impossible',
+    },
+
+    run: {
+      heading: 'Lancez-le',
+      intro: 'Enregistrez le fichier, puis :',
+      note: 'Le premier lancement construit toutes les images et peut prendre quelques minutes.',
+    },
+
+    after: {
+      heading: 'Après l’installation',
+      items: [
+        'Doc API : http://localhost:3000/docs — Web d’admin : http://localhost:3001/admin.',
+        'Dans l’app desktop ou mobile, réglez l’URL de l’API sur http://localhost:3000, puis créez un compte.',
+        'Ajoutez vos flux depuis l’app — chaque provider propose une liste de flux existants et un formulaire d’ajout.',
+        'Tout retirer : docker compose --profile connectors down -v (supprime la base).',
+      ],
+      note: 'Le planificateur monte le socket Docker pour lancer les connecteurs — équivalent root sur l’hôte, acceptable pour une instance de dev locale.',
     },
   },
 

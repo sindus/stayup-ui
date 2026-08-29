@@ -49,6 +49,10 @@ export const it: DocContent = {
       selfHostingBody:
         'La tua API e il tuo database, così i tuoi dati restano tuoi e scegli tu cosa ci gira sopra.',
       selfHostingCta: 'Guida al self-hosting',
+      generateTitle: 'Generare uno script di installazione',
+      generateBody:
+        'Scegli un database e i connettori che vuoi e ottieni un unico script bash che avvia l’intero stack.',
+      generateCta: 'Generatore di installazione',
       providersTitle: 'Collegare una nuova fonte',
       providersBody:
         'Scrivi un provider: un programma che va a prendere una fonte che StayUp non copre ancora e salva ciò che trova.',
@@ -197,6 +201,80 @@ export const it: DocContent = {
             'Il segreto di firma differisce tra l’istanza che ha emesso il token e quella che risponde. I token non valgono da un’istanza all’altra.',
         },
       ],
+    },
+  },
+
+  generate: {
+    meta: {
+      title: 'StayUp — Genera un’installazione self-hosted',
+      description:
+        'Scegli un database e i connettori che vuoi e scarica un unico script bash che avvia la tua istanza di StayUp.',
+    },
+    eyebrow: 'Self-hosting',
+    title: 'Genera il tuo script di installazione',
+    lede: 'Scegli un database e i connettori che vuoi. Ottieni un unico script bash che clona i repo, scrive la configurazione Docker, crea il tuo super amministratore e avvia tutto.',
+
+    how: {
+      heading: 'Cosa fa lo script',
+      items: [
+        'Clona l’API, i connettori scelti e — se lo tieni — l’interfaccia web di amministrazione.',
+        'Scrive un docker-compose.yml con PostgreSQL, l’API, un container per connettore e uno scheduler Ofelia.',
+        'Ti chiede l’account super amministratore e la frequenza di ogni connettore.',
+        'Applica lo schema, crea il super amministratore ed esegue ogni connettore una volta perché si registri.',
+        'Avvia l’API, l’interfaccia e lo scheduler.',
+      ],
+      note: 'Tutto gira sulla tua macchina in Docker. Non viene inviato nulla da nessuna parte — la pagina costruisce lo script nel tuo browser.',
+    },
+
+    requirements: {
+      heading: 'Prima di eseguirlo',
+      items: [
+        'Docker e Docker Compose v2 (`docker compose`).',
+        'git.',
+        'Linux o macOS. Su Windows, esegui lo script dentro WSL.',
+      ],
+    },
+
+    form: {
+      database: 'Database',
+      comingSoon: 'presto',
+      connectors: 'Connettori ufficiali',
+      customConnectors: 'I tuoi connettori',
+      customHint:
+        'Qualsiasi repo git con un Dockerfile nella radice il cui ENTRYPOINT esegue il collettore una volta, legge DATABASE_URL e si registra in provider_registry. Vedi la guida ai provider.',
+      customConnectorAdd: 'Aggiungi un connettore',
+      customUrlPlaceholder: 'https://github.com/tu/tuo-connettore.git',
+      customNamePlaceholder: 'nome (opzionale)',
+      remove: 'Rimuovi',
+      adminUi: 'Includi l’interfaccia web di amministrazione',
+      adminUiHint: 'Gestire i provider, approvare le richieste di flux, aggiungere amministratori.',
+      advanced: 'Avanzate',
+      projectDir: 'Cartella del progetto',
+      apiPort: 'Porta API',
+      uiPort: 'Porta UI',
+      dbPort: 'Porta database',
+      preview: 'stayup-setup.sh',
+      download: 'Scarica',
+      copy: 'Copia',
+      copied: 'Copiato',
+      invalid: 'Impossibile generare',
+    },
+
+    run: {
+      heading: 'Eseguilo',
+      intro: 'Salva il file, poi:',
+      note: 'La prima esecuzione costruisce ogni immagine e può richiedere qualche minuto.',
+    },
+
+    after: {
+      heading: 'Dopo l’installazione',
+      items: [
+        'Doc API: http://localhost:3000/docs — Interfaccia di amministrazione: http://localhost:3001/admin.',
+        'Nell’app desktop o mobile, imposta l’URL dell’API su http://localhost:3000 e crea un account.',
+        'Aggiungi i feed dall’app — ogni provider offre un elenco di flux esistenti e un modulo per uno nuovo.',
+        'Rimuovi tutto con: docker compose --profile connectors down -v (elimina il database).',
+      ],
+      note: 'Lo scheduler monta il socket Docker per avviare i connettori secondo il calendario — equivalente a root sull’host, va bene per un’istanza di sviluppo locale.',
     },
   },
 
