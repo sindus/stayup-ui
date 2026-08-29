@@ -5,6 +5,8 @@ import { getServerTranslations } from './serverLang'
 import { getApiUrl } from './apiUrl'
 import { getAdminToken } from './session'
 import {
+  adminApproveFluxRequest,
+  adminApprovePendingUser,
   adminChangeOwnPassword,
   adminClearRepositoryData,
   adminCreateAdmin,
@@ -13,12 +15,14 @@ import {
   adminDeleteRepository,
   adminDeleteUser,
   adminListFluxRequests,
-  adminApproveFluxRequest,
-  adminRejectFluxRequest,
+  adminListPendingUsers,
   adminListProviders,
+  adminRejectFluxRequest,
+  adminRejectPendingUser,
   adminSetProviderApproval,
   adminUpdateAdmin,
   deleteUserRepository,
+  type AdminPendingUser,
 } from './api-client'
 import type { FluxRequest } from '@/types'
 
@@ -183,6 +187,38 @@ export async function adminListFluxRequestsAction(): Promise<FluxRequest[]> {
   const token = await getAdminToken()
   if (!token) return []
   return adminListFluxRequests(token).catch(() => [])
+}
+
+// ─── Pending sign-ups (REGISTRATION_MODE=approval) ────────────────────────────
+
+export async function adminListPendingUsersAction(): Promise<AdminPendingUser[]> {
+  const token = await getAdminToken()
+  if (!token) return []
+  return adminListPendingUsers(token).catch(() => [])
+}
+
+export async function adminApprovePendingUserAction(id: string): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminApprovePendingUser(id, token)
+    revalidatePath('/admin/users')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminRejectPendingUserAction(id: string): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminRejectPendingUser(id, token)
+    revalidatePath('/admin/users')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
 }
 
 export async function adminRejectFluxRequestAction(requestId: string): Promise<{ error?: string }> {

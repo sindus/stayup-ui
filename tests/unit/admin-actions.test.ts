@@ -31,6 +31,9 @@ const api = {
   adminCreateAdmin: vi.fn(),
   adminDeleteAdmin: vi.fn(),
   adminUpdateAdmin: vi.fn(),
+  adminListPendingUsers: vi.fn(),
+  adminApprovePendingUser: vi.fn(),
+  adminRejectPendingUser: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
 
@@ -271,6 +274,52 @@ describe('adminApproveFluxRequestAction', () => {
     const { adminApproveFluxRequestAction } = await import('@/lib/admin-actions')
     expect(await adminApproveFluxRequestAction('r1', payload)).toEqual({ error: 'bad config' })
   })
+})
+
+describe('pending sign-up actions', () => {
+  it('lists pending sign-ups, empty array when unauthenticated', async () => {
+    api.adminListPendingUsers.mockResolvedValue([{ id: 'p-1', method: 'password' }])
+    const { adminListPendingUsersAction } = await import('@/lib/admin-actions')
+    expect(await adminListPendingUsersAction()).toEqual([{ id: 'p-1', method: 'password' }])
+
+    getAdminToken.mockResolvedValue(null)
+    expect(await adminListPendingUsersAction()).toEqual([])
+  })
+
+  it('swallows a listing failure and returns an empty array', async () => {
+    api.adminListPendingUsers.mockRejectedValue(new Error('boom'))
+    const { adminListPendingUsersAction } = await import('@/lib/admin-actions')
+    expect(await adminListPendingUsersAction()).toEqual([])
+  })
+
+  for (const name of ['adminApprovePendingUserAction', 'adminRejectPendingUserAction'] as const) {
+    const apiFn =
+      name === 'adminApprovePendingUserAction'
+        ? ('adminApprovePendingUser' as const)
+        : ('adminRejectPendingUser' as const)
+
+    describe(name, () => {
+      it('calls the API and revalidates the users page', async () => {
+        const mod = await import('@/lib/admin-actions')
+        expect(await mod[name]('p-1')).toEqual({})
+        expect(api[apiFn]).toHaveBeenCalledWith('p-1', 'token')
+        expect(revalidatePath).toHaveBeenCalledWith('/admin/users')
+      })
+
+      it('returns an error when unauthenticated', async () => {
+        getAdminToken.mockResolvedValue(null)
+        const mod = await import('@/lib/admin-actions')
+        expect(await mod[name]('p-1')).toEqual({ error: en.errors.notAuthenticated })
+        expect(api[apiFn]).not.toHaveBeenCalled()
+      })
+
+      it('returns the API error message on failure', async () => {
+        api[apiFn].mockRejectedValue(new Error('nope'))
+        const mod = await import('@/lib/admin-actions')
+        expect(await mod[name]('p-1')).toEqual({ error: 'nope' })
+      })
+    })
+  }
 })
 
 describe('provider approval actions', () => {

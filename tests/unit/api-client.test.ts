@@ -470,3 +470,39 @@ describe('admin account API wrappers', () => {
     expect(init.method).toBe('PATCH')
   })
 })
+
+describe('pending sign-up API wrappers', () => {
+  it('adminListPendingUsers reads /ui/users/pending', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        users: [
+          { id: 'p-1', name: 'Ada', email: 'ada@x.dev', method: 'password', created_at: 'x' },
+        ],
+      }),
+    })
+    const { adminListPendingUsers } = await import('@/lib/api-client')
+    const result = await adminListPendingUsers(TEST_TOKEN)
+    expect(result).toHaveLength(1)
+    expect(result[0].method).toBe('password')
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/users/pending')
+  })
+
+  it('adminApprovePendingUser POSTs the approve endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ user: { id: 'u-9' } }) })
+    const { adminApprovePendingUser } = await import('@/lib/api-client')
+    await adminApprovePendingUser('p-1', TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/users/pending/p-1/approve')
+    expect(init.method).toBe('POST')
+  })
+
+  it('adminRejectPendingUser POSTs the reject endpoint', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminRejectPendingUser } = await import('@/lib/api-client')
+    await adminRejectPendingUser('p-1', TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/users/pending/p-1/reject')
+    expect(init.method).toBe('POST')
+  })
+})

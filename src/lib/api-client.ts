@@ -163,6 +163,36 @@ export async function adminDeleteUser(userId: string, token: string): Promise<vo
   })
 }
 
+// ─── Pending sign-ups (REGISTRATION_MODE=approval) ────────────────────────────
+
+export interface AdminPendingUser {
+  id: string
+  name: string
+  email: string
+  /** 'password' for an e-mail sign-up, otherwise the OAuth provider name. */
+  method: string
+  created_at: string
+}
+
+export async function adminListPendingUsers(token: string): Promise<AdminPendingUser[]> {
+  const data = await apiFetch<{ users: AdminPendingUser[] }>('/ui/users/pending', token, {
+    cache: 'no-store',
+  })
+  return data.users
+}
+
+export async function adminApprovePendingUser(id: string, token: string): Promise<void> {
+  await apiFetch<{ user: AdminUser }>(`/ui/users/pending/${id}/approve`, token, {
+    method: 'POST',
+  })
+}
+
+export async function adminRejectPendingUser(id: string, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/users/pending/${id}/reject`, token, {
+    method: 'POST',
+  })
+}
+
 // ─── Admin accounts (super-admin only) ─────────────────────────────────────────
 
 export interface AdminAccount {
