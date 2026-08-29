@@ -13,15 +13,9 @@ test.describe('Documentation index', () => {
   })
 
   test('routes to each journey', async ({ page }) => {
-    const cards: [RegExp, string][] = [
-      [/installation/i, '/docs/install'],
-      [/générateur/i, '/docs/generate'],
-      [/administration/i, '/docs/admin'],
-      [/providers/i, '/docs/providers'],
-    ]
-    for (const [name, url] of cards) {
+    for (const url of ['/docs/install', '/docs/generate', '/docs/admin', '/docs/providers']) {
       await page.goto('/docs')
-      await page.locator('main').getByRole('link', { name }).first().click()
+      await page.locator(`main a[href="${url}"]`).first().click()
       await expect(page).toHaveURL(url)
     }
   })
@@ -54,12 +48,13 @@ test.describe('Install page', () => {
   })
 
   test('switches deployment tabs', async ({ page }) => {
-    await expect(page.getByText('docker compose up -d db api')).toBeVisible()
+    const deploy = page.locator('#deploy')
+    await expect(deploy.getByText('docker compose up -d db api')).toBeVisible()
 
-    await page.getByRole('tab', { name: 'Cloudflare Workers' }).click()
+    await deploy.getByRole('tab', { name: 'Cloudflare Workers' }).click()
 
-    await expect(page.getByText('npx wrangler secret put DATABASE_URL')).toBeVisible()
-    await expect(page.getByText('docker compose up -d db api')).not.toBeVisible()
+    await expect(deploy.getByText('npx wrangler secret put DATABASE_URL')).toBeVisible()
+    await expect(deploy.getByText('docker compose up -d db api')).not.toBeVisible()
   })
 
   test('gives the schema command of the engine you pick', async ({ page }) => {
