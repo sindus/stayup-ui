@@ -454,7 +454,8 @@ export const de: DocContent = {
     },
     existing: {
       heading: 'Beispiele zum Nachlesen',
-      body: 'Fünf Provider existieren schon als eigenständige Repos — changelog, youtube, rss, scrap, github-trending. Es ist, was die Referenzinstanz zufällig betreibt, keine Definition dessen, was StayUp abdeckt. Lies einen als funktionierendes Beispiel des Vertrags unten und richte ihn auf deine eigene Datenbank, wenn er passt. Der RSS-Provider ist der kürzeste; github-trending ist die Referenz für ein reiches Anzeige-Template.',
+      body: 'Fang mit stayup-cmd-template an: ein nacktes Gerüst zum Kopieren, mit den drei Stellen markiert, die du änderst. Lies dann die echten — changelog, youtube, rss, scrap, github-trending — die die Referenzinstanz zufällig betreibt, keine Definition dessen, was StayUp abdeckt. Der rss ist das kürzeste echte Beispiel des Vertrags unten; github-trending ist die Referenz für ein reiches Anzeige-Template. Richte einen beliebigen auf deine eigene Datenbank, wenn er passt.',
+      cta: 'stayup-cmd-template öffnen',
     },
     creating: {
       heading: 'Deinen eigenen schreiben',

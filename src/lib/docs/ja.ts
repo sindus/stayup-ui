@@ -452,7 +452,8 @@ export const ja: DocContent = {
     },
     existing: {
       heading: '読める実例',
-      body: '5 つのプロバイダーがすでに独立したリポジトリとして存在します — changelog、youtube、rss、scrap、github-trending。参照インスタンスがたまたま動かしているもので、StayUp が何をカバーするかの定義ではありません。1 つを下の契約の動く実例として読み、都合が合えば自分のデータベースに向けてください。RSS が最短、github-trending はリッチな表示テンプレートの参照です。',
+      body: 'まず stayup-cmd-template から始めます。コピーして使うための素の骨組みで、変更する 3 か所に印が付いています。次に本物を読みます — changelog、youtube、rss、scrap、github-trending — 参照インスタンスがたまたま動かしているもので、StayUp が何をカバーするかの定義ではありません。rss は下の契約の最短の実例、github-trending はリッチな表示テンプレートの参照です。都合が合えばどれでも自分のデータベースに向けてください。',
+      cta: 'stayup-cmd-template を開く',
     },
     creating: {
       heading: '自分のを書く',

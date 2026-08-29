@@ -455,7 +455,8 @@ export const it: DocContent = {
     },
     existing: {
       heading: 'Esempi concreti da leggere',
-      body: 'Cinque provider esistono già come repo autonomi — changelog, youtube, rss, scrap, github-trending. È ciò che l’istanza di riferimento si trova a far girare, non una definizione di ciò che StayUp copre. Leggine uno come esempio funzionante del contratto qui sotto, e puntalo sul tuo database se ti va bene. Quello RSS è il più corto; github-trending è il riferimento per un template di visualizzazione ricco.',
+      body: 'Parti da stayup-cmd-template: uno scheletro nudo fatto per essere copiato, con i tre punti da modificare segnati. Poi leggi quelli veri — changelog, youtube, rss, scrap, github-trending — che è ciò che l’istanza di riferimento si trova a far girare, non una definizione di ciò che StayUp copre. Il rss è l’esempio reale più corto del contratto qui sotto; github-trending è il riferimento per un template di visualizzazione ricco. Punta uno qualsiasi sul tuo database se ti va bene.',
+      cta: 'Apri stayup-cmd-template',
     },
     creating: {
       heading: 'Scrivere il tuo',

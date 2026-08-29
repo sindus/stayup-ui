@@ -444,7 +444,8 @@ export const zh: DocContent = {
     },
     existing: {
       heading: '可读的实例',
-      body: '已经有五个 provider 作为独立仓库存在 — changelog、youtube、rss、scrap、github-trending。这是参考实例恰好在运行的，并非 StayUp 所覆盖内容的定义。把其中一个当作下面契约的可运行示例来读，如果合适就把它指向你自己的数据库。RSS 那个最短；github-trending 是丰富展示模板的参考。',
+      body: '先从 stayup-cmd-template 开始：一个供复制的裸骨架，标出了你要改动的三处地方。然后读那些真实的 — changelog、youtube、rss、scrap、github-trending — 这是参考实例恰好在运行的，并非 StayUp 所覆盖内容的定义。rss 是下面契约最短的真实示例；github-trending 是丰富展示模板的参考。如果合适，把其中任何一个指向你自己的数据库。',
+      cta: '打开 stayup-cmd-template',
     },
     creating: {
       heading: '写你自己的',

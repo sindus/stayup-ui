@@ -497,7 +497,8 @@ export const en = {
 
     existing: {
       heading: 'Worked examples to read',
-      body: 'Five providers already exist as standalone repositories — changelog, youtube, rss, scrap, github-trending. They are what the reference instance happens to run, not a definition of what StayUp covers. Read one as a working example of the contract below, and point it at your own database if it suits you. The RSS one is the shortest; github-trending is the reference for a rich display template.',
+      body: 'Start from stayup-cmd-template: a bare skeleton built to be copied, with the three spots you change marked out. Then read the real ones — changelog, youtube, rss, scrap, github-trending — which are what the reference instance happens to run, not a definition of what StayUp covers. The rss one is the shortest real example of the contract below; github-trending is the reference for a rich display template. Point any of them at your own database if it suits you.',
+      cta: 'Open stayup-cmd-template',
     },
 
     creating: {

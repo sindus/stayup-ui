@@ -119,9 +119,19 @@ export default async function ProvidersPage() {
           </DocSection>
 
           <DocSection id={A.existing} title={d.existing.heading}>
-            <p className="text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+            <p className="mb-5 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
               {d.existing.body}
             </p>
+            <Link
+              href="https://github.com/stayup-app/stayup-cmd-template"
+              className="inline-flex items-center gap-1.5 text-[13.5px] font-medium"
+              style={{ color: 'var(--sky)' }}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {d.existing.cta}
+              <ArrowRight size={13} />
+            </Link>
           </DocSection>
 
           <DocSection id={A.creating} title={d.creating.heading}>
