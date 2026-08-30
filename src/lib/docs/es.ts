@@ -359,6 +359,19 @@ export const es: DocContent = {
         '/admin/flux-requests — la cola pendiente. Aprobar crea o reutiliza la fuente y suscribe al solicitante; rechazar la marca rechazada. Ambos son definitivos.',
       ],
     },
+    dataSources: {
+      heading: 'Bases de datos secundarias',
+      intro:
+        'La base de datos principal sostiene la instancia en sí — admins, usuarios, suscripciones, el registro de proveedores. Además, puedes apuntar la instancia a bases de datos secundarias de solo lectura que solo llevan datos de conectores, y dejar que los usuarios sigan los flux que viven allí. Se gestionan en /admin/data-sources.',
+      steps: [
+        'La base de datos principal aparece arriba de la página, solo a título informativo: su motor y su host, nada que cambiar.',
+        'Añadir una secundaria con un nombre y una cadena de conexión. Se admiten los mismos cuatro motores que para la principal.',
+        'Probar la conexión. La instancia comprueba que puede conectarse y que hay al menos una tabla de conector presente, y lista los proveedores que encontró.',
+        'Confirmar. La cadena de conexión se guarda cifrada en reposo y la fuente entra en la lista. Retírala cuando quieras — las suscripciones que apuntaban a ella se van con ella.',
+      ],
+      note: 'Los proveedores con el mismo nombre se fusionan en las apps: un usuario ve una sola pastilla «RSS» cuya lista de flux reúne los flux de todas las bases de datos, y una fila que vino de una secundaria lleva una pequeña insignia con el nombre de la base de datos. Nunca se escribe de vuelta en una secundaria — es una fuente de datos, no una segunda casa.',
+    },
+
     addingFlux: {
       heading: 'Cómo un usuario añade un flux, desde cualquier app',
       intro:

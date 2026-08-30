@@ -390,6 +390,19 @@ export const en = {
       ],
     },
 
+    dataSources: {
+      heading: 'Secondary databases',
+      intro:
+        'The primary database holds the instance itself — admins, users, subscriptions, the provider registry. Beyond it, you can point the instance at read-only secondary databases that carry only connector data, and let users follow fluxes that live there. Manage them at /admin/data-sources.',
+      steps: [
+        'The primary database sits at the top of the page for reference only: its engine and its host, nothing to change.',
+        'Add a secondary with a name and a connection string. The same four engines are supported as for the primary.',
+        'Test the connection. The instance checks that it can connect and that at least one connector table is present, and lists the providers it found.',
+        'Confirm. The connection string is stored encrypted at rest and the source joins the list. Remove one at any time — the subscriptions that pointed at it are dropped with it.',
+      ],
+      note: 'Providers of the same name are merged in the apps: a user sees a single “RSS” tile whose flux list gathers the fluxes from every database, and a row that came from a secondary carries a small badge with the database name. Nothing is ever written back to a secondary — it is a data feed, not a second home.',
+    },
+
     addingFlux: {
       heading: 'How a user adds a flux, from any app',
       intro:

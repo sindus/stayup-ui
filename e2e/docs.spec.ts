@@ -99,6 +99,12 @@ test.describe('Administration page', () => {
     const body = await page.locator('main').innerText()
     expect(body).toContain('/admin/flux-requests')
   })
+
+  test('documents secondary databases', async ({ page }) => {
+    await expect(page.locator('#secondary-databases')).toBeVisible()
+    const body = await page.locator('main').innerText()
+    expect(body).toContain('/admin/data-sources')
+  })
 })
 
 test.describe('Providers page', () => {

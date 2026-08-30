@@ -359,6 +359,19 @@ export const pt: DocContent = {
         '/admin/flux-requests — a fila pendente. Aprovar cria ou reutiliza a fonte e assina o solicitante; rejeitar a marca rejeitada. Ambos são definitivos.',
       ],
     },
+    dataSources: {
+      heading: 'Bancos de dados secundários',
+      intro:
+        'O banco de dados principal sustenta a própria instância — admins, usuários, assinaturas, o registro de provedores. Além dele, você pode apontar a instância para bancos de dados secundários somente leitura que carregam apenas dados de conectores, e deixar os usuários seguirem os flux que vivem lá. Eles são geridos em /admin/data-sources.',
+      steps: [
+        'O banco de dados principal fica no topo da página, apenas a título informativo: seu motor e seu host, nada a mudar.',
+        'Adicionar um secundário com um nome e uma string de conexão. São suportados os mesmos quatro motores que para o principal.',
+        'Testar a conexão. A instância verifica que consegue se conectar e que há pelo menos uma tabela de conector presente, e lista os provedores que encontrou.',
+        'Confirmar. A string de conexão é armazenada cifrada em repouso e a fonte entra na lista. Remova-a quando quiser — as assinaturas que apontavam para ela vão embora com ela.',
+      ],
+      note: 'Provedores de mesmo nome são fundidos nas apps: um usuário vê um único bloco «RSS» cuja lista de flux reúne os flux de cada banco de dados, e uma linha vinda de um secundário carrega um pequeno selo com o nome do banco de dados. Nunca se escreve de volta em um secundário — é uma alimentação de dados, não uma segunda casa.',
+    },
+
     addingFlux: {
       heading: 'Como um usuário adiciona um flux, de qualquer app',
       intro: 'O mesmo fluxo para todo provedor — não há mais caso especial por provedor nas apps:',

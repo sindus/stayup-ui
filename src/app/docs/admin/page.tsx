@@ -29,6 +29,7 @@ export default async function AdminDocsPage() {
             { id: A.managingAdmins, label: d.managingAdmins.heading },
             { id: A.fluxApproval, label: d.fluxApproval.heading },
             { id: A.usersAndFluxes, label: d.usersAndFluxes.heading },
+            { id: A.dataSources, label: d.dataSources.heading },
             { id: A.addingFlux, label: d.addingFlux.heading },
           ]}
         />
@@ -104,6 +105,14 @@ export default async function AdminDocsPage() {
               {d.usersAndFluxes.body}
             </p>
             <DocList items={d.usersAndFluxes.items} />
+          </DocSection>
+
+          <DocSection id={A.dataSources} title={d.dataSources.heading}>
+            <p className="mb-4 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.dataSources.intro}
+            </p>
+            <DocOrderedList items={d.dataSources.steps} />
+            <DocNote tone="sky">{d.dataSources.note}</DocNote>
           </DocSection>
 
           <DocSection id={A.addingFlux} title={d.addingFlux.heading}>

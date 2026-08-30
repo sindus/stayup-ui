@@ -359,6 +359,19 @@ export const de: DocContent = {
         '/admin/flux-requests — die offene Warteschlange. Freigeben legt die Quelle an oder wiederverwendet sie und abonniert den Anfragenden; Ablehnen markiert sie abgelehnt. Beides ist endgültig.',
       ],
     },
+    dataSources: {
+      heading: 'Sekundäre Datenbanken',
+      intro:
+        'Die Hauptdatenbank trägt die Instanz selbst — Admins, Nutzer, Abonnements, das Provider-Register. Daneben kannst du die Instanz auf schreibgeschützte sekundäre Datenbanken richten, die nur Connector-Daten führen, und Nutzer den dort liegenden Flux folgen lassen. Verwaltet werden sie unter /admin/data-sources.',
+      steps: [
+        'Die Hauptdatenbank steht oben auf der Seite, nur zur Information: ihr Motor und ihr Host, nichts zu ändern.',
+        'Eine sekundäre mit einem Namen und einer Verbindungszeichenfolge hinzufügen. Es werden dieselben vier Motoren unterstützt wie für die Hauptdatenbank.',
+        'Die Verbindung testen. Die Instanz prüft, dass sie sich verbinden kann und dass mindestens eine Connector-Tabelle vorhanden ist, und listet die gefundenen Provider auf.',
+        'Bestätigen. Die Verbindungszeichenfolge wird im Ruhezustand verschlüsselt gespeichert und die Quelle kommt in die Liste. Entferne sie jederzeit — die Abonnements, die auf sie zeigten, gehen mit ihr.',
+      ],
+      note: 'Provider gleichen Namens werden in den Apps zusammengeführt: Ein Nutzer sieht eine einzige „RSS“-Kachel, deren Flux-Liste die Flux aus jeder Datenbank sammelt, und eine Zeile aus einer sekundären trägt ein kleines Abzeichen mit dem Datenbanknamen. In eine sekundäre wird nie zurückgeschrieben — sie ist eine Datenzufuhr, kein zweites Zuhause.',
+    },
+
     addingFlux: {
       heading: 'Wie ein Nutzer einen Flux hinzufügt, aus jeder App',
       intro:

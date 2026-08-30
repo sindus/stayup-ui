@@ -30,6 +30,7 @@ export const ADMIN_ANCHORS = {
   managingAdmins: 'managing-admins',
   fluxApproval: 'flux-approval',
   usersAndFluxes: 'users-and-fluxes',
+  dataSources: 'secondary-databases',
   addingFlux: 'adding-a-flux-from-the-apps',
 } as const
 

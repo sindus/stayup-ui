@@ -383,6 +383,19 @@ export const fr: DocContent = {
       ],
     },
 
+    dataSources: {
+      heading: 'Bases de données secondaires',
+      intro:
+        'La base principale porte l’instance elle-même — admins, utilisateurs, abonnements, registre des providers. À côté, tu peux brancher l’instance sur des bases secondaires en lecture seule qui ne portent que des données de connecteurs, et laisser les utilisateurs suivre les flux qui y vivent. Elles se gèrent sur /admin/data-sources.',
+      steps: [
+        'La base principale est affichée en haut de la page, pour information seulement : son moteur et son hôte, rien à modifier.',
+        'Ajouter une secondaire avec un nom et une chaîne de connexion. Les quatre mêmes moteurs sont pris en charge que pour la principale.',
+        'Tester la connexion. L’instance vérifie qu’elle peut se connecter et qu’au moins une table de connecteur est présente, et liste les providers trouvés.',
+        'Confirmer. La chaîne de connexion est stockée chiffrée au repos et la source rejoint la liste. Retire-la quand tu veux — les abonnements qui pointaient dessus partent avec elle.',
+      ],
+      note: 'Les providers de même nom sont fusionnés dans les apps : l’utilisateur voit une seule tuile « RSS » dont la liste de flux rassemble les flux de toutes les bases, et une ligne venue d’une secondaire porte un petit badge avec le nom de la base. Rien n’est jamais réécrit vers une secondaire — c’est une source de données, pas une seconde maison.',
+    },
+
     addingFlux: {
       heading: 'Comment un utilisateur ajoute un flux, depuis n’importe quelle app',
       intro:

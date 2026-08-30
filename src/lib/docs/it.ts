@@ -359,6 +359,19 @@ export const it: DocContent = {
         '/admin/flux-requests — la coda in attesa. Approva crea o riusa la sorgente e iscrive il richiedente; rifiuta la segna rifiutata. Entrambe sono definitive.',
       ],
     },
+    dataSources: {
+      heading: 'Database secondari',
+      intro:
+        'Il database principale regge l’istanza stessa — admin, utenti, iscrizioni, il registro dei provider. Oltre a questo, puoi puntare l’istanza su database secondari in sola lettura che portano solo dati dei connettori, e lasciare che gli utenti seguano i flux che vivono lì. Si gestiscono su /admin/data-sources.',
+      steps: [
+        'Il database principale sta in cima alla pagina, solo a titolo informativo: il suo motore e il suo host, niente da modificare.',
+        'Aggiungere un secondario con un nome e una stringa di connessione. Sono supportati gli stessi quattro motori del principale.',
+        'Testare la connessione. L’istanza verifica di potersi connettere e che sia presente almeno una tabella di connettore, ed elenca i provider trovati.',
+        'Confermare. La stringa di connessione è memorizzata cifrata a riposo e la fonte entra nell’elenco. Rimuovila quando vuoi — le iscrizioni che puntavano ad essa se ne vanno con lei.',
+      ],
+      note: 'I provider con lo stesso nome sono uniti nelle app: un utente vede una sola scheda «RSS» la cui lista di flux raccoglie i flux di ogni database, e una riga arrivata da un secondario porta un piccolo badge con il nome del database. Non si scrive mai verso un secondario — è un’alimentazione di dati, non una seconda casa.',
+    },
+
     addingFlux: {
       heading: 'Come un utente aggiunge un flux, da qualsiasi app',
       intro:
