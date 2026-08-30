@@ -222,6 +222,7 @@ export const fr: Translations = {
     filterAll: 'Tous',
     filterUnread: 'Non lu',
     markAllRead: 'Tout marquer lu',
+    instanceUnreachable: 'Injoignable : {names}',
     providers: {
       changelog: 'GitHub',
       youtube: 'YouTube',
@@ -243,6 +244,7 @@ export const fr: Translations = {
     title: 'Ajouter un flux',
     description: "Choisis une source, on s'occupe du reste.",
     provider: 'Provider',
+    instance: 'Instance',
     identifierLabels: {
       changelog: 'Dépôt GitHub',
       youtube: 'Chaîne YouTube',
@@ -357,6 +359,29 @@ export const fr: Translations = {
     configJsonOptional: 'Config JSON (optionnel)',
   },
   // Messages renvoyés par le code serveur (server actions, route handlers).
+  instances: {
+    title: 'Serveurs',
+    subtitle: "Suis les flux de plusieurs instances d'API à la fois.",
+    primary: 'Primaire',
+    add: 'Ajouter un serveur',
+    urlLabel: "URL de l'API",
+    urlPlaceholder: 'https://ton-api.exemple.com',
+    next: 'Suivant',
+    cancel: 'Annuler',
+    email: 'E-mail',
+    password: 'Mot de passe',
+    connect: 'Connexion',
+    connecting: 'Connexion…',
+    makePrimary: 'Définir comme primaire',
+    reconnect: 'Reconnecter',
+    remove: 'Retirer',
+    save: 'Enregistrer',
+    expired: 'Session expirée',
+    removePrimaryWarning: 'Retirer le serveur primaire te déconnecte entièrement.',
+    alreadyAdded: 'Ce serveur est déjà dans ta liste.',
+    oauthHint:
+      "Ici, un serveur secondaire s'ajoute par e-mail et mot de passe. L'OAuth pour les serveurs secondaires fonctionne dans les apps desktop et mobile.",
+  },
   errors: {
     notAuthenticated: 'Non authentifié.',
     generic: 'Une erreur est survenue.',

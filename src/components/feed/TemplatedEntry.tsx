@@ -18,8 +18,12 @@ export function TemplatedEntry({ template, item, source, color }: TemplatedEntry
   const view = resolveItemView(template, item, source)
   const layout = template.list?.layout ?? 'row'
   const date = view.timestamp ? formatDate(view.timestamp) : ''
-  // Ligne venant d'une base secondaire : l'API la tague ; on montre la source.
-  const srcName = typeof item._data_source_name === 'string' ? item._data_source_name : ''
+  // Badge de source : nom d'instance (multi-API, posé seulement si >1 instance),
+  // sinon nom de la base secondaire (multi-base) — l'un ou l'autre, pas les deux.
+  const srcName =
+    (typeof item._instance_name === 'string' && item._instance_name) ||
+    (typeof item._data_source_name === 'string' && item._data_source_name) ||
+    ''
   const srcBadge = srcName ? (
     <span className="shrink-0 rounded bg-[var(--surface-2)] px-1.5 py-0.5 text-[11px] text-dim">
       {srcName}

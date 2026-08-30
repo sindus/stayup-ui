@@ -34,7 +34,8 @@ interface RouteOverrides {
 }
 
 function routeFetch(o: RouteOverrides = {}) {
-  mockFetch.mockImplementation((url: string, opts?: { method?: string }) => {
+  mockFetch.mockImplementation((rawUrl: string, opts?: { method?: string }) => {
+    const url = rawUrl.split('?')[0]
     if (url === '/api/providers') {
       return Promise.resolve(jsonRes({ providers: o.providers ?? DEFAULT_PROVIDERS }))
     }
@@ -223,6 +224,41 @@ describe('AddFluxDialog', () => {
     await screen.findByRole('button', { name: 'Changelog' })
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  describe('with several servers', () => {
+    const instances = [
+      { id: 'a', name: 'Alpha' },
+      { id: 'b', name: 'Beta' },
+    ]
+
+    it('has no server picker with a single instance', async () => {
+      renderDialog({ instances: [instances[0]] })
+      await screen.findByRole('button', { name: 'Changelog' })
+      expect(screen.queryByLabelText('Instance')).not.toBeInTheDocument()
+    })
+
+    it('targets the chosen server for provider discovery and flux creation', async () => {
+      const user = userEvent.setup()
+      renderDialog({ instances })
+
+      await user.selectOptions(await screen.findByLabelText('Instance'), 'b')
+
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/api/providers?instanceId=b'))
+
+      await chooseProvider(user, 'Changelog')
+      await user.click(screen.getByRole('button', { name: 'Add a new one' }))
+      await user.type(
+        await screen.findByLabelText('GitHub repo (owner/repo or URL)'),
+        'facebook/react',
+      )
+      await user.click(screen.getByRole('button', { name: 'Add' }))
+
+      await waitFor(() => {
+        const call = mockFetch.mock.calls.find((c) => c[0] === '/api/fluxes?instanceId=b')
+        expect(call).toBeDefined()
+      })
+    })
   })
 })
 

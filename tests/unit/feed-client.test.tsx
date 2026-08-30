@@ -35,11 +35,19 @@ function item(id: number): TaggedItem {
   } as TaggedItem
 }
 
-function renderView(items: TaggedItem[]) {
+function renderView(
+  items: TaggedItem[],
+  instanceErrors: { instanceId: string; instanceName: string }[] = [],
+) {
   return render(
     <LanguageProvider initialLang="en">
-      <ReadProvider>
-        <FeedClientView items={items} repositories={REPOS} templates={TEMPLATES} />
+      <ReadProvider primaryInstanceId="">
+        <FeedClientView
+          items={items}
+          repositories={REPOS}
+          templates={TEMPLATES}
+          instanceErrors={instanceErrors}
+        />
       </ReadProvider>
     </LanguageProvider>,
   )
@@ -64,6 +72,17 @@ describe('FeedClientView', () => {
   it('shows the total count on the All filter', () => {
     renderView([item(1), item(2)])
     expect(screen.getByRole('button', { name: /All 2/ })).toBeInTheDocument()
+  })
+
+  it('shows an unreachable-instance banner and still renders the feed', () => {
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta' }])
+    expect(screen.getByText('Unreachable: Beta')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /All 1/ })).toBeInTheDocument()
+  })
+
+  it('has no banner when every instance answered', () => {
+    renderView([item(1)])
+    expect(screen.queryByText(/Unreachable/)).not.toBeInTheDocument()
   })
 
   it('shows the unread count on the Unread filter', () => {
@@ -217,13 +236,21 @@ describe('FeedClientLayout', () => {
       identifier: 'facebook/react',
       config: {},
       createdAt: '2026-01-01T00:00:00Z',
+      instanceId: '',
+      instanceName: '',
     }
   }
 
   function renderLayout(items: TaggedItem[]) {
     return render(
       <LanguageProvider initialLang="en">
-        <FeedClientLayout fluxes={[flux()]} allItems={items} templates={TEMPLATES}>
+        <FeedClientLayout
+          fluxes={[flux()]}
+          allItems={items}
+          templates={TEMPLATES}
+          instances={[]}
+          primaryInstanceId=""
+        >
           <div>child content</div>
         </FeedClientLayout>
       </LanguageProvider>,
@@ -242,7 +269,7 @@ describe('FeedClientLayout', () => {
   })
 
   it('excludes already-read items from the counts', () => {
-    localStorage.setItem('STAYUP_READ_ITEMS', JSON.stringify(['changelog:1']))
+    localStorage.setItem('STAYUP_READ_ITEMS', JSON.stringify([':changelog:1']))
     renderLayout([item(1), item(2)])
     expect(screen.getByRole('link', { name: /facebook\/react 1/ })).toBeInTheDocument()
   })

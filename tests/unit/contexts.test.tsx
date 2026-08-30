@@ -70,8 +70,8 @@ describe('FeedReadContext', () => {
 
     await user.click(screen.getByText('read one'))
 
-    expect(screen.getByTestId('ids')).toHaveTextContent('changelog:1')
-    expect(JSON.parse(localStorage.getItem(LS_KEY)!)).toEqual(['changelog:1'])
+    expect(screen.getByTestId('ids')).toHaveTextContent(':changelog:1')
+    expect(JSON.parse(localStorage.getItem(LS_KEY)!)).toEqual([':changelog:1'])
   })
 
   it('keeps the same set when the item is already read', async () => {
@@ -85,7 +85,7 @@ describe('FeedReadContext', () => {
     await user.click(screen.getByText('read one'))
     await user.click(screen.getByText('read one'))
 
-    expect(JSON.parse(localStorage.getItem(LS_KEY)!)).toEqual(['changelog:1'])
+    expect(JSON.parse(localStorage.getItem(LS_KEY)!)).toEqual([':changelog:1'])
   })
 
   it('marks every item read at once', async () => {
@@ -98,8 +98,8 @@ describe('FeedReadContext', () => {
 
     await user.click(screen.getByText('read all'))
 
-    expect(screen.getByTestId('ids')).toHaveTextContent('changelog:1,youtube:2')
-    expect(JSON.parse(localStorage.getItem(LS_KEY)!).sort()).toEqual(['changelog:1', 'youtube:2'])
+    expect(screen.getByTestId('ids')).toHaveTextContent(':changelog:1,:youtube:2')
+    expect(JSON.parse(localStorage.getItem(LS_KEY)!).sort()).toEqual([':changelog:1', ':youtube:2'])
   })
 
   it('survives a failing localStorage.setItem', async () => {
@@ -116,7 +116,7 @@ describe('FeedReadContext', () => {
 
     await user.click(screen.getByText('read one'))
     await user.click(screen.getByText('read all'))
-    expect(screen.getByTestId('ids')).toHaveTextContent('changelog:1,changelog:3')
+    expect(screen.getByTestId('ids')).toHaveTextContent(':changelog:1,:changelog:3')
 
     setItem.mockRestore()
   })
@@ -124,6 +124,47 @@ describe('FeedReadContext', () => {
   it('exposes inert defaults outside a provider', () => {
     render(<Probe />)
     expect(screen.getByTestId('ids')).toHaveTextContent('')
+  })
+
+  it('keys an item by its instance when the row carries _instance_id', async () => {
+    const user = userEvent.setup()
+
+    function InstProbe() {
+      const { readIds, markRead } = useReadContext()
+      return (
+        <div>
+          <span data-testid="ids">{[...readIds].join(',')}</span>
+          <button
+            onClick={() =>
+              markRead({
+                provider: 'rss',
+                item: { id: 5, _instance_id: 'i7' },
+              } as unknown as TaggedItem)
+            }
+          >
+            read
+          </button>
+        </div>
+      )
+    }
+
+    render(
+      <ReadProvider>
+        <InstProbe />
+      </ReadProvider>,
+    )
+    await user.click(screen.getByText('read'))
+    expect(screen.getByTestId('ids')).toHaveTextContent('i7:rss:5')
+  })
+
+  it('migrates pre-multi-instance keys onto the primary on hydrate', () => {
+    localStorage.setItem(LS_KEY, JSON.stringify(['rss:1', 'prim:rss:2']))
+    render(
+      <ReadProvider primaryInstanceId="prim">
+        <Probe />
+      </ReadProvider>,
+    )
+    expect(screen.getByTestId('ids')).toHaveTextContent('prim:rss:1,prim:rss:2')
   })
 })
 

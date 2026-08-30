@@ -1,7 +1,5 @@
-import { cookies } from 'next/headers'
 import type { Metadata } from 'next'
-import { getCachedUserFeed, getCachedTemplates } from '@/lib/feed-cache'
-import { getSession } from '@/lib/session'
+import { fanoutFeed, toFeedRepositories } from '@/lib/feed-fanout'
 import { FeedClientView } from '@/components/feed/FeedClientView'
 import type { TaggedItem } from '@/types'
 
@@ -16,23 +14,20 @@ function getItemDate(tagged: TaggedItem): string {
 }
 
 export default async function FeedPage() {
-  const session = await getSession()
-  const cookieStore = await cookies()
-  const token = cookieStore.get('stayup_token')?.value ?? ''
+  const { connectors, repositories, templates, instanceErrors } = await fanoutFeed()
 
-  const [feedData, templates] = await Promise.all([
-    getCachedUserFeed(session!.userId, token).catch(() => ({
-      repositories: [],
-      connectors: {},
-    })),
-    getCachedTemplates(token),
-  ])
-
-  const items: TaggedItem[] = Object.entries(feedData.connectors ?? {})
+  const items: TaggedItem[] = Object.entries(connectors)
     .flatMap(([provider, providerItems]) => providerItems.map((item) => ({ provider, item })))
     .sort(
       (a, b) => new Date(getItemDate(b)).getTime() - new Date(getItemDate(a)).getTime(),
     ) as TaggedItem[]
 
-  return <FeedClientView items={items} repositories={feedData.repositories} templates={templates} />
+  return (
+    <FeedClientView
+      items={items}
+      repositories={toFeedRepositories(repositories)}
+      templates={templates}
+      instanceErrors={instanceErrors}
+    />
+  )
 }

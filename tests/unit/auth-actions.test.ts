@@ -35,7 +35,7 @@ beforeEach(() => {
 })
 
 describe('loginAction', () => {
-  it('sets the session cookie and redirects to /feed on success', async () => {
+  it('stores the session in the instances cookie and redirects to /feed on success', async () => {
     const token = makeToken()
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token }) })
 
@@ -43,8 +43,8 @@ describe('loginAction', () => {
     await expect(loginAction('ada@example.com', 'pw')).rejects.toThrow('NEXT_REDIRECT:/feed')
 
     expect(cookieSet).toHaveBeenCalledWith(
-      'stayup_token',
-      token,
+      'stayup_instances',
+      expect.stringContaining(token),
       expect.objectContaining({ httpOnly: true, sameSite: 'lax', path: '/' }),
     )
   })

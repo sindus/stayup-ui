@@ -211,6 +211,7 @@ export const ja: Translations = {
     filterAll: 'すべて',
     filterUnread: '未読',
     markAllRead: 'すべて既読にする',
+    instanceUnreachable: '接続できません: {names}',
     providers: {
       changelog: 'GitHub',
       youtube: 'YouTube',
@@ -232,6 +233,7 @@ export const ja: Translations = {
     title: '何をフォローする？',
     description: 'ソースを選べば、あとはおまかせ。',
     provider: 'プロバイダー',
+    instance: 'インスタンス',
     identifierLabels: {
       changelog: 'GitHubリポジトリ',
       youtube: 'YouTubeチャンネル',
@@ -345,6 +347,29 @@ export const ja: Translations = {
     configJsonOptional: 'JSON設定（任意）',
   },
   // Messages renvoyés par le code serveur (server actions, route handlers).
+  instances: {
+    title: 'サーバー',
+    subtitle: '複数の API インスタンスのフィードをまとめてフォローします。',
+    primary: 'プライマリ',
+    add: 'サーバーを追加',
+    urlLabel: 'API の URL',
+    urlPlaceholder: 'https://your-api.example.com',
+    next: '次へ',
+    cancel: 'キャンセル',
+    email: 'メールアドレス',
+    password: 'パスワード',
+    connect: '接続',
+    connecting: '接続中…',
+    makePrimary: 'プライマリにする',
+    reconnect: '再接続',
+    remove: '削除',
+    save: '保存',
+    expired: 'セッションの有効期限が切れました',
+    removePrimaryWarning: 'プライマリサーバーを削除すると完全にログアウトします。',
+    alreadyAdded: 'このサーバーはすでにリストにあります。',
+    oauthHint:
+      'ここでは副サーバーはメールアドレスとパスワードで追加します。副サーバーの OAuth はデスクトップアプリとモバイルアプリで利用できます。',
+  },
   errors: {
     notAuthenticated: 'ログインしていません。',
     generic: '問題が発生しました。',

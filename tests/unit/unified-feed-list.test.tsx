@@ -108,14 +108,35 @@ describe('UnifiedFeedList', () => {
   })
 
   it('dims items that are already read', () => {
-    renderList({ items: [changelog()], readIds: new Set(['changelog:1']) })
+    renderList({ items: [changelog()], readIds: new Set([':changelog:1']) })
     expect(screen.getByText('v19.1.0').closest('div.flex.gap-3')).toHaveStyle({ opacity: '0.45' })
+  })
+
+  it('badges an entry with the name of the instance it came from', () => {
+    renderList({ items: [changelog({ _instance_name: 'Beta' })] })
+    expect(screen.getByText('Beta')).toBeInTheDocument()
+  })
+
+  it('resolves the source per instance so ids do not collide across servers', () => {
+    renderList({
+      items: [changelog({ _instance_id: 'i2', repository_id: 1 })],
+      repositories: [
+        {
+          repository_id: 1,
+          url: 'https://other.example/repo',
+          provider: 'changelog',
+          instanceId: 'i2',
+        },
+      ],
+    })
+    // The templated entry pulls its subtitle from the matched source repo.
+    expect(screen.getByText('v19.1.0')).toBeInTheDocument()
   })
 
   it('keeps the selected item at full opacity even when read', () => {
     renderList({
       items: [changelog()],
-      readIds: new Set(['changelog:1']),
+      readIds: new Set([':changelog:1']),
       selectedIndex: 0,
     })
     expect(screen.getByText('v19.1.0').closest('div.flex.gap-3')).toHaveStyle({ opacity: '1' })

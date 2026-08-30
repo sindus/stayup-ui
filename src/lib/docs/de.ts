@@ -257,8 +257,9 @@ export const de: DocContent = {
       heading: 'Eine App auf deine Instanz richten',
       items: [
         'Web: setze STAYUP_API_URL in deiner Bereitstellung — oder lass sie und jeden Besucher sie im Profil überschreiben, wo sie pro Browser gespeichert wird.',
-        'Desktop und Mobil: die „Server“-Zeile auf dem Anmeldebildschirm, oder Profil → „API-URL“ nach der Anmeldung. „Zurücksetzen“ geht jederzeit zur eingebauten zurück.',
+        'Alle drei Apps: die „Server“-Zeile auf dem Anmeldebildschirm, oder Profil → „Server“ nach der Anmeldung, wo du jeden einstellst, umbenennst und zurücksetzt.',
         'Die Admin-Weboberfläche ist dieselbe Web-App: richte ihre STAYUP_API_URL auf deine API und öffne /admin.',
+        'Eine App, mehrere Instanzen: unter Profil → „Server“ kannst du sekundäre API-Instanzen hinzufügen; der Feed vereint dann alle Instanzen, jede Zeile mit dem Server-Herkunftsabzeichen. Das Hinzufügen oder Entfernen eines Flux geht an den gewählten Server. In der Web-App wird ein sekundärer Server mit E-Mail und Passwort hinzugefügt; die Desktop- und Mobil-Apps akzeptieren auch OAuth für sekundäre Server.',
       ],
       note: 'Sonst ändert sich nichts. Provider-Liste, Daten und Darstellung folgen alle der konfigurierten Instanz — einschließlich des schlichten Rückfalls für Provider, die die App nicht namentlich kennt.',
     },

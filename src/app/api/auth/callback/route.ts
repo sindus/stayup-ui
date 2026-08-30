@@ -1,7 +1,7 @@
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { NextRequest } from 'next/server'
-import { COOKIE_NAME } from '@/lib/constants'
+import { getApiUrl } from '@/lib/apiUrl'
+import { upsertPrimaryInstance } from '@/lib/instances'
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token')
@@ -20,15 +20,7 @@ export async function GET(request: NextRequest) {
       redirect('/login?error=oauth_failed')
     }
 
-    const maxAge = Math.max(payload.exp - Math.floor(Date.now() / 1000), 0)
-    const cookieStore = await cookies()
-    cookieStore.set(COOKIE_NAME, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge,
-    })
+    await upsertPrimaryInstance(await getApiUrl(), token)
   } catch {
     redirect('/login?error=oauth_failed')
   }

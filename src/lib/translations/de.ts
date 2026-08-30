@@ -220,6 +220,7 @@ export const de: Translations = {
     filterAll: 'Alle',
     filterUnread: 'Ungelesen',
     markAllRead: 'Alle als gelesen markieren',
+    instanceUnreachable: 'Nicht erreichbar: {names}',
     providers: {
       changelog: 'GitHub',
       youtube: 'YouTube',
@@ -241,6 +242,7 @@ export const de: Translations = {
     title: 'Was wollen wir verfolgen?',
     description: 'Wähle eine Quelle, wir kümmern uns um den Rest.',
     provider: 'Anbieter',
+    instance: 'Instanz',
     identifierLabels: {
       changelog: 'GitHub-Repository',
       youtube: 'YouTube-Kanal',
@@ -355,6 +357,29 @@ export const de: Translations = {
     configJsonOptional: 'JSON-Konfiguration (optional)',
   },
   // Messages renvoyés par le code serveur (server actions, route handlers).
+  instances: {
+    title: 'Server',
+    subtitle: 'Verfolge Feeds von mehreren API-Instanzen gleichzeitig.',
+    primary: 'Primär',
+    add: 'Server hinzufügen',
+    urlLabel: 'API-URL',
+    urlPlaceholder: 'https://deine-api.beispiel.com',
+    next: 'Weiter',
+    cancel: 'Abbrechen',
+    email: 'E-Mail',
+    password: 'Passwort',
+    connect: 'Verbinden',
+    connecting: 'Verbinden…',
+    makePrimary: 'Als primär festlegen',
+    reconnect: 'Neu verbinden',
+    remove: 'Entfernen',
+    save: 'Speichern',
+    expired: 'Sitzung abgelaufen',
+    removePrimaryWarning: 'Das Entfernen des primären Servers meldet dich vollständig ab.',
+    alreadyAdded: 'Dieser Server ist bereits in deiner Liste.',
+    oauthHint:
+      'Sekundäre Server werden hier mit E-Mail und Passwort hinzugefügt. OAuth für sekundäre Server funktioniert in den Desktop- und Mobil-Apps.',
+  },
   errors: {
     notAuthenticated: 'Nicht angemeldet.',
     generic: 'Etwas ist schiefgelaufen.',

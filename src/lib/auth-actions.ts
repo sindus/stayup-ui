@@ -4,7 +4,8 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { getApiUrl } from './apiUrl'
 import { getServerTranslations } from './serverLang'
-import { COOKIE_NAME, ADMIN_COOKIE_NAME, decodeToken, getToken } from './session'
+import { clearInstances, upsertPrimaryInstance } from './instances'
+import { ADMIN_COOKIE_NAME, decodeToken, getToken } from './session'
 
 // Admin sessions use their own cookie (ADMIN_COOKIE_NAME) so a browser can
 // hold a regular user session and an admin session at the same time.
@@ -40,7 +41,7 @@ export async function loginAction(email: string, password: string): Promise<{ er
   }
 
   const { token } = (await res.json()) as { token: string }
-  await setTokenCookie(COOKIE_NAME, token)
+  await upsertPrimaryInstance(apiUrl, token)
   redirect('/feed')
 }
 
@@ -64,7 +65,7 @@ export async function registerAction(
   }
 
   const { token } = (await res.json()) as { token: string }
-  await setTokenCookie(COOKIE_NAME, token)
+  await upsertPrimaryInstance(apiUrl, token)
   redirect('/feed')
 }
 
@@ -91,8 +92,7 @@ export async function adminLoginAction(
 }
 
 export async function logoutAction(): Promise<void> {
-  const cookieStore = await cookies()
-  cookieStore.delete(COOKIE_NAME)
+  await clearInstances()
   redirect('/')
 }
 

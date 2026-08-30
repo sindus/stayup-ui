@@ -257,8 +257,9 @@ export const pt: DocContent = {
       heading: 'Apontar uma app para a sua instância',
       items: [
         'Web: defina STAYUP_API_URL na sua implantação — ou deixe-a e deixe cada visitante sobrescrevê-la no perfil, onde é guardada por navegador.',
-        'Desktop e mobile: a linha «Servidor» na tela de entrada, ou Perfil → «URL da API» depois de entrar. «Redefinir» volta para a embutida a qualquer momento.',
+        'As três apps: a linha «Servidor» na tela de entrada, ou Perfil → «Servidores» depois de entrar, onde você define, renomeia e redefine cada um.',
         'A interface web de administração é a mesma app web: aponte o STAYUP_API_URL dela para a sua API e abra /admin.',
+        'Uma app, várias instâncias: em Perfil → «Servidores» você pode adicionar instâncias de API secundárias; o feed então combina todas as instâncias, com cada linha marcada com o servidor de origem. Adicionar ou remover um fluxo é roteado para o servidor escolhido. Na app web um servidor secundário é adicionado com e-mail e senha; as apps de desktop e celular também aceitam OAuth para servidores secundários.',
       ],
       note: 'Nada mais muda. A lista de provedores, os dados e a renderização seguem todos a instância configurada — inclusive o recurso simples para provedores que a app não conhece pelo nome.',
     },

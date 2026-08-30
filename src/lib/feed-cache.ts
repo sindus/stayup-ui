@@ -9,9 +9,9 @@ export const getCachedUserFeed = cache(getUserFeed)
  * Un échec ne casse pas le feed : on renvoie une map vide (rendu générique).
  */
 export const getCachedTemplates = cache(
-  async (token: string): Promise<Record<string, ProviderMeta>> => {
+  async (token: string, baseUrl?: string): Promise<Record<string, ProviderMeta>> => {
     try {
-      return buildTemplateMap(await getConnectorProviders(token))
+      return buildTemplateMap(await getConnectorProviders(token, baseUrl))
     } catch {
       return {}
     }

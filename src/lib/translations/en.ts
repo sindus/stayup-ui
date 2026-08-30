@@ -208,6 +208,7 @@ export const en = {
     filterAll: 'All',
     filterUnread: 'Unread',
     markAllRead: 'Mark all read',
+    instanceUnreachable: 'Unreachable: {names}',
     providers: {
       changelog: 'GitHub',
       youtube: 'YouTube',
@@ -229,6 +230,7 @@ export const en = {
     title: 'What are we tracking?',
     description: "Pick a source, we'll handle the rest.",
     provider: 'Provider',
+    instance: 'Instance',
     identifierLabels: {
       changelog: 'GitHub repository',
       youtube: 'YouTube channel',
@@ -342,6 +344,29 @@ export const en = {
     configJsonOptional: 'Config JSON (optional)',
   },
   // Messages renvoyés par le code serveur (server actions, route handlers).
+  instances: {
+    title: 'Servers',
+    subtitle: 'Follow feeds from several API instances at once.',
+    primary: 'Primary',
+    add: 'Add a server',
+    urlLabel: 'API URL',
+    urlPlaceholder: 'https://your-api.example.com',
+    next: 'Next',
+    cancel: 'Cancel',
+    email: 'Email',
+    password: 'Password',
+    connect: 'Connect',
+    connecting: 'Connecting…',
+    makePrimary: 'Make primary',
+    reconnect: 'Reconnect',
+    remove: 'Remove',
+    save: 'Save',
+    expired: 'Session expired',
+    removePrimaryWarning: 'Removing the primary server signs you out completely.',
+    alreadyAdded: 'This server is already in your list.',
+    oauthHint:
+      'Secondary servers are added with email and password here. OAuth for secondary servers works in the desktop and mobile apps.',
+  },
   errors: {
     notAuthenticated: 'Not signed in.',
     generic: 'Something went wrong.',

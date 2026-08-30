@@ -279,8 +279,9 @@ export const en = {
       heading: 'Point an app at your instance',
       items: [
         'Web: set STAYUP_API_URL on your deployment — or leave it and let each visitor override it from their profile, where it is stored per browser.',
-        'Desktop and mobile: the “Server” line on the sign-in screen, or Profile → “API URL” once signed in. “Reset to default” goes back to the built-in one at any time.',
+        'All three apps: the “Server” line on the sign-in screen, or Profile → “Servers” once signed in, where you set, rename, and reset each one.',
         'The admin web UI is the same web app: point its STAYUP_API_URL at your API and open /admin.',
+        'One app, several instances: from Profile → “Servers” you can add secondary API instances and the feed then combines every one of them, each row badged with the server it came from. Adding or removing a flux routes to the server you picked. On the web app a secondary server is added with email and password; the desktop and mobile apps also accept OAuth for secondary servers.',
       ],
       note: 'Nothing else changes. The provider list, the data and the rendering all follow whichever instance is configured — including the plain fallback for providers the app does not know by name.',
     },

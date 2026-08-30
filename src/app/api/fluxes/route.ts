@@ -1,26 +1,27 @@
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { ApiError, addUserRepository } from '@/lib/api-client'
 import { getServerTranslations } from '@/lib/serverLang'
-import { COOKIE_NAME, decodeToken } from '@/lib/session'
+import { resolveInstance } from '@/lib/instances'
+import { decodeToken } from '@/lib/session'
 import { stripUrlScheme } from '@/lib/utils'
 import { z } from 'zod'
 
 // Un seul chemin d'ajout, quel que soit le provider : le client envoie une URL
 // déjà construite (à partir du `form` du template du connecteur). Si le provider
 // est en mode `manual`, l'API répond 202 et le flux part en file d'approbation.
+// `?instanceId=` cible une instance d'API précise (multi-API) — défaut : primaire.
 const createFluxSchema = z.object({
   provider: z.string().min(1),
   url: z.string().url().max(2000),
 })
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(COOKIE_NAME)?.value
   const t = await getServerTranslations()
-  if (!token) return NextResponse.json({ error: t.errors.notAuthenticated }, { status: 401 })
+  const instanceId = new URL(request.url).searchParams.get('instanceId')
+  const instance = await resolveInstance(instanceId)
+  if (!instance) return NextResponse.json({ error: t.errors.notAuthenticated }, { status: 401 })
 
-  const session = decodeToken(token)
+  const session = decodeToken(instance.token)
 
   const body = await request.json()
   const parsed = createFluxSchema.safeParse(body)
@@ -35,7 +36,12 @@ export async function POST(request: Request) {
   const config = { max_scraps: 5, retention_days: 15 }
 
   try {
-    const result = await addUserRepository(session.userId, token, { provider, url, config })
+    const result = await addUserRepository(
+      session.userId,
+      instance.token,
+      { provider, url, config },
+      instance.url,
+    )
     if (result.status === 'pending') {
       return NextResponse.json({ status: 'pending' }, { status: 202 })
     }

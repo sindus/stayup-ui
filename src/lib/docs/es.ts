@@ -257,8 +257,9 @@ export const es: DocContent = {
       heading: 'Apuntar una app a tu instancia',
       items: [
         'Web: fija STAYUP_API_URL en tu despliegue — o déjala y deja que cada visitante la sobrescriba desde su perfil, donde se guarda por navegador.',
-        'Escritorio y móvil: la línea «Servidor» en la pantalla de acceso, o Perfil → «URL de la API» una vez dentro. «Restablecer» vuelve a la integrada en cualquier momento.',
+        'Las tres apps: la línea «Servidor» en la pantalla de acceso, o Perfil → «Servidores» una vez dentro, donde defines, renombras y restableces cada uno.',
         'La interfaz web de administración es la misma app web: apunta su STAYUP_API_URL a tu API y abre /admin.',
+        'Una app, varias instancias: desde Perfil → «Servidores» puedes añadir instancias de API secundarias; el feed combina entonces todas las instancias, con cada fila marcada con el servidor de origen. Añadir o quitar un flujo se dirige al servidor elegido. En la app web un servidor secundario se añade con correo y contraseña; las apps de escritorio y móvil también aceptan OAuth para servidores secundarios.',
       ],
       note: 'Nada más cambia. La lista de proveedores, los datos y el renderizado siguen todos a la instancia configurada — incluido el respaldo simple para proveedores que la app no conoce por su nombre.',
     },

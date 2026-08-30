@@ -257,8 +257,9 @@ export const it: DocContent = {
       heading: 'Puntare un’app sulla tua istanza',
       items: [
         'Web: imposta STAYUP_API_URL sul tuo deploy — oppure lasciala e lascia che ogni visitatore la sovrascriva dal proprio profilo, dove è salvata per browser.',
-        'Desktop e mobile: la riga «Server» sulla schermata di accesso, o Profilo → «URL dell’API» una volta dentro. «Ripristina» torna a quella integrata in qualsiasi momento.',
+        'Tutte e tre le app: la riga «Server» sulla schermata di accesso, o Profilo → «Server» una volta dentro, dove imposti, rinomini e ripristini ciascuno.',
         'L’interfaccia web di amministrazione è la stessa app web: punta il suo STAYUP_API_URL sulla tua API e apri /admin.',
+        'Un’app, più istanze: da Profilo → «Server» puoi aggiungere istanze API secondarie; il feed unisce allora tutte le istanze, con ogni riga contrassegnata dal server di origine. Aggiungere o rimuovere un flusso viene instradato al server scelto. Nell’app web un server secondario si aggiunge con email e password; le app desktop e mobile accettano anche l’OAuth per i server secondari.',
       ],
       note: 'Nient’altro cambia. L’elenco dei provider, i dati e il rendering seguono tutti l’istanza configurata — incluso il ripiego semplice per i provider che l’app non conosce per nome.',
     },

@@ -273,8 +273,9 @@ export const fr: DocContent = {
       heading: 'Faire pointer une app sur ton instance',
       items: [
         'Web : règle STAYUP_API_URL sur ton déploiement — ou laisse-la et laisse chaque visiteur la surcharger depuis son profil, où elle est stockée par navigateur.',
-        'Desktop et mobile : la ligne « Serveur » sur l’écran de connexion, ou Profil → « URL de l’API » une fois connecté. « Réinitialiser » revient à celle par défaut à tout moment.',
+        'Les trois apps : la ligne « Serveur » sur l’écran de connexion, ou Profil → « Serveurs » une fois connecté, où tu règles, renommes et réinitialises chacun.',
         'Le web d’admin, c’est la même app web : pointe son STAYUP_API_URL sur ton API et ouvre /admin.',
+        'Une app, plusieurs instances : depuis Profil → « Serveurs » tu peux ajouter des instances d’API secondaires ; le feed combine alors toutes les instances, chaque ligne portant un badge du serveur d’origine. L’ajout ou la suppression d’un flux est routé vers le serveur choisi. Sur l’app web, un serveur secondaire s’ajoute par e-mail et mot de passe ; les apps desktop et mobile acceptent aussi l’OAuth pour les serveurs secondaires.',
       ],
       note: 'Rien d’autre ne change. La liste des providers, les données et le rendu suivent tous l’instance configurée — y compris le repli générique pour les providers que l’app ne connaît pas par leur nom.',
     },

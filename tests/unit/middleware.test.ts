@@ -12,12 +12,17 @@ vi.mock('next/server', () => ({
 }))
 
 /** Minimal NextRequest stand-in: only cookies and nextUrl are read. */
-function makeRequest(pathname: string, cookies: { user?: string; admin?: string } = {}) {
+function makeRequest(
+  pathname: string,
+  cookies: { user?: string; admin?: string; jar?: Record<string, string> } = {},
+) {
+  const jar = cookies.jar ?? {}
   return {
     cookies: {
       get: (name: string) => {
         if (name === 'stayup_token' && cookies.user) return { value: cookies.user }
         if (name === 'stayup_admin_token' && cookies.admin) return { value: cookies.admin }
+        if (name in jar) return { value: jar[name] }
         return undefined
       },
     },
@@ -29,6 +34,14 @@ function makeRequest(pathname: string, cookies: { user?: string; admin?: string 
 /** Unsigned JWT-shaped token carrying the given role. */
 function tokenWithRole(role: string) {
   const body = Buffer.from(JSON.stringify({ sub: 'u1', role })).toString('base64url')
+  return `header.${body}.sig`
+}
+
+/** A token that is live (exp in the future) or dead (exp in the past). */
+function tokenWithExp(offset: number) {
+  const body = Buffer.from(
+    JSON.stringify({ sub: 'u1', exp: Math.floor(Date.now() / 1000) + offset }),
+  ).toString('base64url')
   return `header.${body}.sig`
 }
 
@@ -107,6 +120,44 @@ describe('protected routes', () => {
 
   it('is unaffected by an admin session in the other cookie', () => {
     middleware(makeRequest('/feed', { admin: tokenWithRole('admin') }))
+    expect(redirectPath()).toBe('/login')
+  })
+
+  it('lets a user through on a live token in the instances cookie', () => {
+    const jar = {
+      stayup_instances: JSON.stringify([
+        { id: 'a', url: 'https://a.dev', name: 'A', token: tokenWithExp(3600) },
+      ]),
+    }
+    middleware(makeRequest('/feed', { jar }))
+    expect(next).toHaveBeenCalled()
+    expect(redirectTo).not.toHaveBeenCalled()
+  })
+
+  it('redirects when every instance token has expired', () => {
+    const jar = {
+      stayup_instances: JSON.stringify([
+        { id: 'a', url: 'https://a.dev', name: 'A', token: tokenWithExp(-60) },
+      ]),
+    }
+    middleware(makeRequest('/feed', { jar }))
+    expect(redirectPath()).toBe('/login')
+  })
+
+  it('reassembles a chunked instances cookie', () => {
+    const json = JSON.stringify([
+      { id: 'a', url: 'https://a.dev', name: 'A', token: tokenWithExp(3600) },
+    ])
+    const jar = {
+      stayup_instances_0: json.slice(0, 12),
+      stayup_instances_1: json.slice(12),
+    }
+    middleware(makeRequest('/feed', { jar }))
+    expect(next).toHaveBeenCalled()
+  })
+
+  it('treats a malformed instances cookie as no session', () => {
+    middleware(makeRequest('/feed', { jar: { stayup_instances: 'not json' } }))
     expect(redirectPath()).toBe('/login')
   })
 })

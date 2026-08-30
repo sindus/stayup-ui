@@ -12,6 +12,9 @@ export interface UserRepository {
   identifier: string // short form derived from url (e.g. "vercel/next.js", "melvynxdev")
   config: Record<string, unknown> // from repository.config (JSONB)
   createdAt: string
+  /** Instance d'API dont ce flux provient (multi-API). */
+  instanceId: string
+  instanceName: string
 }
 
 // ─── Contenu d'un connecteur ─────────────────────────────────────────────────
@@ -46,6 +49,8 @@ export interface FeedRepository {
   url: string
   provider?: string
   config?: Record<string, unknown>
+  /** Instance d'API dont ce repository provient (multi-API). */
+  instanceId?: string
 }
 
 export interface ConnectorData {

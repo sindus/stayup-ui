@@ -6,7 +6,7 @@ import type { TaggedItem, FeedRepository } from '@/types'
 import type { ProviderMeta } from '@/lib/providerTemplate'
 import { UnifiedFeedList } from './UnifiedFeedList'
 import { FeedContentViewer } from './FeedContentViewer'
-import { useReadContext } from '@/context/FeedReadContext'
+import { useReadContext, taggedItemId } from '@/context/FeedReadContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { cn } from '@/lib/utils'
 
@@ -39,19 +39,23 @@ function useDragResize(initial: number, min: number, max: number) {
   return { width, handleMouseDown }
 }
 
-function getItemId(item: TaggedItem): string {
-  return `${item.provider}:${item.item.id}`
-}
+const getItemId = taggedItemId
 
 interface FeedClientViewProps {
   items: TaggedItem[]
   repositories: FeedRepository[]
   templates: Record<string, ProviderMeta>
+  instanceErrors?: { instanceId: string; instanceName: string }[]
 }
 
 type FilterMode = 'all' | 'unread'
 
-export function FeedClientView({ items, repositories, templates }: FeedClientViewProps) {
+export function FeedClientView({
+  items,
+  repositories,
+  templates,
+  instanceErrors = [],
+}: FeedClientViewProps) {
   const { readIds, markRead, markAllRead } = useReadContext()
   const { t } = useLanguage()
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
@@ -140,6 +144,17 @@ export function FeedClientView({ items, repositories, templates }: FeedClientVie
   return (
     <div className="flex flex-1 min-h-0">
       <div className="shrink-0 flex flex-col" style={{ width: listWidth }}>
+        {instanceErrors.length > 0 && (
+          <div
+            className="px-3 py-2 text-[13px] shrink-0"
+            style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}
+          >
+            {t.feed.instanceUnreachable.replace(
+              '{names}',
+              instanceErrors.map((e) => e.instanceName).join(', '),
+            )}
+          </div>
+        )}
         {/* Filter bar */}
         <div
           className="flex items-center gap-1 px-3 py-2 shrink-0"

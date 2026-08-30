@@ -1,10 +1,15 @@
 'use client'
 
 import { useState, useCallback, useRef, type ReactNode } from 'react'
-import { ReadProvider, useReadContext } from '@/context/FeedReadContext'
+import { ReadProvider, useReadContext, taggedItemId } from '@/context/FeedReadContext'
 import { FeedSidebar } from './FeedSidebar'
 import type { UserRepository, TaggedItem } from '@/types'
 import type { ProviderMeta } from '@/lib/providerTemplate'
+
+export interface InstanceRef {
+  id: string
+  name: string
+}
 
 function useDragResize(initial: number, min: number, max: number) {
   const [width, setWidth] = useState(initial)
@@ -39,19 +44,35 @@ interface FeedClientLayoutProps {
   fluxes: UserRepository[]
   allItems: TaggedItem[]
   templates: Record<string, ProviderMeta>
+  instances: InstanceRef[]
+  primaryInstanceId: string
   children: ReactNode
 }
 
-function FeedClientLayoutInner({ fluxes, allItems, templates, children }: FeedClientLayoutProps) {
+/** Clé de comptage non-lus par flux : `<instanceId>:<repository_id>`.
+ *  `repository_id` n'est unique qu'au sein d'une instance. */
+export function unreadKey(instanceId: string | undefined, repositoryId: number | string): string {
+  return `${instanceId ?? ''}:${repositoryId}`
+}
+
+function FeedClientLayoutInner({
+  fluxes,
+  allItems,
+  templates,
+  instances,
+  children,
+}: Omit<FeedClientLayoutProps, 'primaryInstanceId'>) {
   const { readIds } = useReadContext()
   const { width: sidebarWidth, handleMouseDown: handleSidebarDrag } = useDragResize(220, 150, 420)
 
-  const unreadCountByRepoId: Record<number, number> = {}
+  const unreadCountByRepoId: Record<string, number> = {}
   for (const tagged of allItems) {
-    const id = `${tagged.provider}:${tagged.item.id}`
-    if (!readIds.has(id)) {
-      const repoId = tagged.item.repository_id
-      unreadCountByRepoId[repoId] = (unreadCountByRepoId[repoId] ?? 0) + 1
+    if (!readIds.has(taggedItemId(tagged))) {
+      const key = unreadKey(
+        typeof tagged.item._instance_id === 'string' ? tagged.item._instance_id : '',
+        tagged.item.repository_id,
+      )
+      unreadCountByRepoId[key] = (unreadCountByRepoId[key] ?? 0) + 1
     }
   }
 
@@ -60,6 +81,7 @@ function FeedClientLayoutInner({ fluxes, allItems, templates, children }: FeedCl
       <FeedSidebar
         fluxes={fluxes}
         templates={templates}
+        instances={instances}
         unreadCountByRepoId={unreadCountByRepoId}
         width={sidebarWidth}
       />
@@ -73,10 +95,22 @@ function FeedClientLayoutInner({ fluxes, allItems, templates, children }: FeedCl
   )
 }
 
-export function FeedClientLayout({ fluxes, allItems, templates, children }: FeedClientLayoutProps) {
+export function FeedClientLayout({
+  fluxes,
+  allItems,
+  templates,
+  instances,
+  primaryInstanceId,
+  children,
+}: FeedClientLayoutProps) {
   return (
-    <ReadProvider>
-      <FeedClientLayoutInner fluxes={fluxes} allItems={allItems} templates={templates}>
+    <ReadProvider primaryInstanceId={primaryInstanceId}>
+      <FeedClientLayoutInner
+        fluxes={fluxes}
+        allItems={allItems}
+        templates={templates}
+        instances={instances}
+      >
         {children}
       </FeedClientLayoutInner>
     </ReadProvider>

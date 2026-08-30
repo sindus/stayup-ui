@@ -3,8 +3,9 @@ import { en } from '@/lib/translations'
 
 const cookieGet = vi.fn()
 const cookieSet = vi.fn()
+const cookieDelete = vi.fn()
 vi.mock('next/headers', () => ({
-  cookies: async () => ({ get: cookieGet, set: cookieSet }),
+  cookies: async () => ({ get: cookieGet, set: cookieSet, delete: cookieDelete }),
 }))
 
 const redirect = vi.fn((url: string) => {
@@ -41,13 +42,29 @@ function makeToken(payload: Record<string, unknown> = {}) {
   return `header.${body}.sig`
 }
 
-function jsonRequest(body: unknown) {
-  return { json: async () => body } as Request
+const TOKEN = makeToken()
+
+function jsonRequest(body: unknown, url = 'http://localhost/api/x') {
+  return { url, json: async () => body } as Request
+}
+
+function bareRequest(url = 'http://localhost/api/x') {
+  return { url } as Request
+}
+
+/** Cookie jar backing `readInstances()` : la primaire legacy
+ *  (`stayup_token` + `stayup_api_url`) suffit à la résolution d'instance. */
+function signedIn() {
+  cookieGet.mockImplementation((name: string) => {
+    if (name === 'stayup_token') return { value: TOKEN }
+    if (name === 'stayup_api_url') return { value: 'https://api.test' }
+    return undefined
+  })
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
-  cookieGet.mockReturnValue({ value: makeToken() })
+  signedIn()
   api.addUserRepository.mockResolvedValue({ repository: { id: 'r1', repository_id: 1 } })
   api.deleteUserRepository.mockResolvedValue(undefined)
   api.getProviderFluxes.mockResolvedValue([])
@@ -80,11 +97,16 @@ describe('POST /api/fluxes', () => {
 
     expect(res.status).toBe(201)
     expect((await res.json()).flux.identifier).toBe('github.com/facebook/react/')
-    expect(api.addUserRepository).toHaveBeenCalledWith('u1', expect.any(String), {
-      provider: 'changelog',
-      url: 'https://github.com/facebook/react/',
-      config: { max_scraps: 5, retention_days: 15 },
-    })
+    expect(api.addUserRepository).toHaveBeenCalledWith(
+      'u1',
+      expect.any(String),
+      {
+        provider: 'changelog',
+        url: 'https://github.com/facebook/react/',
+        config: { max_scraps: 5, retention_days: 15 },
+      },
+      'https://api.test',
+    )
   })
 
   it('returns 400 when the url is missing', async () => {
@@ -136,22 +158,32 @@ describe('/api/providers/[provider]/fluxes', () => {
   it('GET lists the fluxes of the provider', async () => {
     api.getProviderFluxes.mockResolvedValue([{ id: 1, url: 'https://a.dev' }])
     const { GET } = await import('@/app/api/providers/[provider]/fluxes/route')
-    const res = await GET({} as Request, { params })
+    const res = await GET(bareRequest(), { params })
     expect(await res.json()).toEqual({ fluxes: [{ id: 1, url: 'https://a.dev' }] })
-    expect(api.getProviderFluxes).toHaveBeenCalledWith('rss', expect.any(String))
+    expect(api.getProviderFluxes).toHaveBeenCalledWith(
+      'rss',
+      expect.any(String),
+      'https://api.test',
+    )
   })
 
   it('GET degrades to an empty list on API failure', async () => {
     api.getProviderFluxes.mockRejectedValue(new Error('down'))
     const { GET } = await import('@/app/api/providers/[provider]/fluxes/route')
-    expect(await (await GET({} as Request, { params })).json()).toEqual({ fluxes: [] })
+    expect(await (await GET(bareRequest(), { params })).json()).toEqual({ fluxes: [] })
   })
 
   it('POST subscribes the user to an existing flux', async () => {
     const { POST } = await import('@/app/api/providers/[provider]/fluxes/route')
     const res = await POST(jsonRequest({ id: 7 }), { params })
     expect(res.status).toBe(201)
-    expect(api.subscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String), undefined)
+    expect(api.subscribeFlux).toHaveBeenCalledWith(
+      'rss',
+      7,
+      expect.any(String),
+      undefined,
+      'https://api.test',
+    )
   })
 
   it('POST returns 400 without an id', async () => {
@@ -169,7 +201,13 @@ describe('/api/providers/[provider]/fluxes', () => {
     const { DELETE } = await import('@/app/api/providers/[provider]/fluxes/route')
     const res = await DELETE(jsonRequest({ id: 7 }), { params })
     expect(res.status).toBe(200)
-    expect(api.unsubscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String), undefined)
+    expect(api.unsubscribeFlux).toHaveBeenCalledWith(
+      'rss',
+      7,
+      expect.any(String),
+      undefined,
+      'https://api.test',
+    )
   })
 })
 
@@ -179,28 +217,33 @@ describe('DELETE /api/fluxes/[id]', () => {
   it('returns 401 without a session cookie', async () => {
     cookieGet.mockReturnValue(undefined)
     const { DELETE } = await import('@/app/api/fluxes/[id]/route')
-    const res = await DELETE({} as Request, { params })
+    const res = await DELETE(bareRequest(), { params })
     expect(res.status).toBe(401)
   })
 
   it('deletes the link', async () => {
     const { DELETE } = await import('@/app/api/fluxes/[id]/route')
-    const res = await DELETE({} as Request, { params })
+    const res = await DELETE(bareRequest(), { params })
     expect(await res.json()).toEqual({ success: true })
-    expect(api.deleteUserRepository).toHaveBeenCalledWith('u1', 'link1', expect.any(String))
+    expect(api.deleteUserRepository).toHaveBeenCalledWith(
+      'u1',
+      'link1',
+      expect.any(String),
+      'https://api.test',
+    )
   })
 
   it('returns 404 when the link is unknown', async () => {
     api.deleteUserRepository.mockRejectedValue(new Error('Flux introuvable'))
     const { DELETE } = await import('@/app/api/fluxes/[id]/route')
-    const res = await DELETE({} as Request, { params })
+    const res = await DELETE(bareRequest(), { params })
     expect(res.status).toBe(404)
   })
 
   it('rethrows unexpected errors', async () => {
     api.deleteUserRepository.mockRejectedValue(new Error('database offline'))
     const { DELETE } = await import('@/app/api/fluxes/[id]/route')
-    await expect(DELETE({} as Request, { params })).rejects.toThrow('database offline')
+    await expect(DELETE(bareRequest(), { params })).rejects.toThrow('database offline')
   })
 })
 
@@ -208,21 +251,22 @@ describe('GET /api/providers', () => {
   it('returns 401 without a session cookie', async () => {
     cookieGet.mockReturnValue(undefined)
     const { GET } = await import('@/app/api/providers/route')
-    expect((await GET()).status).toBe(401)
+    expect((await GET(bareRequest())).status).toBe(401)
   })
 
   it('returns the discovered providers', async () => {
     api.getConnectorProviders.mockResolvedValue([{ name: 'youtube', displayName: 'YouTube' }])
     const { GET } = await import('@/app/api/providers/route')
-    expect(await (await GET()).json()).toEqual({
+    expect(await (await GET(bareRequest())).json()).toEqual({
       providers: [{ name: 'youtube', displayName: 'YouTube' }],
     })
+    expect(api.getConnectorProviders).toHaveBeenCalledWith(expect.any(String), 'https://api.test')
   })
 
   it('degrades to an empty list when the API fails', async () => {
     api.getConnectorProviders.mockRejectedValue(new Error('down'))
     const { GET } = await import('@/app/api/providers/route')
-    expect(await (await GET()).json()).toEqual({ providers: [] })
+    expect(await (await GET(bareRequest())).json()).toEqual({ providers: [] })
   })
 })
 
@@ -238,13 +282,13 @@ describe('GET /api/auth/callback', () => {
     expect(cookieSet).not.toHaveBeenCalled()
   })
 
-  it('sets the session cookie and redirects to the feed', async () => {
+  it('stores the session in the instances cookie and redirects to the feed', async () => {
     const token = makeToken()
     const { GET } = await import('@/app/api/auth/callback/route')
     await expect(GET(requestWithToken(token))).rejects.toThrow('NEXT_REDIRECT:/feed')
     expect(cookieSet).toHaveBeenCalledWith(
-      'stayup_token',
-      token,
+      'stayup_instances',
+      expect.stringContaining(token),
       expect.objectContaining({ httpOnly: true, path: '/' }),
     )
   })

@@ -18,9 +18,10 @@ async function apiFetch<T>(
   token: string,
   init?: RequestInit,
   attempt = 0,
+  baseUrlOverride?: string,
 ): Promise<T> {
   const isGet = !init?.method || init.method === 'GET'
-  const baseUrl = await getApiUrl()
+  const baseUrl = baseUrlOverride ?? (await getApiUrl())
 
   // `cache` et `next.revalidate` s'excluent : les poser tous les deux (ce que faisait
   // le spread de `init` avant celui du cache) laissait une réponse `no-store` être
@@ -47,13 +48,13 @@ async function apiFetch<T>(
   } catch (err) {
     // Un POST/DELETE peut avoir été traité avant la coupure : le rejouer créerait
     // un doublon. Seules les lectures sont réessayées.
-    if (isGet && attempt === 0) return apiFetch<T>(path, token, init, 1)
+    if (isGet && attempt === 0) return apiFetch<T>(path, token, init, 1, baseUrlOverride)
     throw err
   }
 
   if (!res.ok) {
     if (isGet && res.status >= 500 && attempt === 0) {
-      return apiFetch<T>(path, token, init, 1)
+      return apiFetch<T>(path, token, init, 1, baseUrlOverride)
     }
     const body = (await res.json().catch(() => ({}))) as { error?: string }
     throw new ApiError(res.status, body.error ?? `StayUp API error ${res.status}: ${path}`)
@@ -64,6 +65,8 @@ async function apiFetch<T>(
 // ─── Auth config ──────────────────────────────────────────────────────────────
 
 export interface AuthConfig {
+  /** Nom d'affichage de l'instance (INSTANCE_NAME côté API), sinon `null`. */
+  name?: string | null
   registrationMode: 'open' | 'approval'
   emailPassword: boolean
   oauth: { google: boolean; github: boolean }
@@ -71,10 +74,11 @@ export interface AuthConfig {
 
 /** Ce qu'un client doit savoir avant l'écran de connexion. `null` si l'API ne
  *  répond pas ou est trop ancienne pour exposer `/auth/config` — l'appelant
- *  retombe alors sur « tout est proposé ». Non authentifié. */
-export async function fetchAuthConfig(): Promise<AuthConfig | null> {
+ *  retombe alors sur « tout est proposé ». Non authentifié. `baseUrl` cible une
+ *  instance précise (ajout d'une instance secondaire). */
+export async function fetchAuthConfig(baseUrl?: string): Promise<AuthConfig | null> {
   try {
-    const res = await fetch(`${await getApiUrl()}/auth/config`, { cache: 'no-store' })
+    const res = await fetch(`${baseUrl ?? (await getApiUrl())}/auth/config`, { cache: 'no-store' })
     if (!res.ok) return null
     return (await res.json()) as AuthConfig
   } catch {
@@ -93,8 +97,17 @@ export interface ConnectorProvider {
   template?: unknown
 }
 
-export async function getConnectorProviders(token: string): Promise<ConnectorProvider[]> {
-  const data = await apiFetch<{ providers: ConnectorProvider[] }>('/connectors/providers', token)
+export async function getConnectorProviders(
+  token: string,
+  baseUrl?: string,
+): Promise<ConnectorProvider[]> {
+  const data = await apiFetch<{ providers: ConnectorProvider[] }>(
+    '/connectors/providers',
+    token,
+    undefined,
+    0,
+    baseUrl,
+  )
   return data.providers
 }
 
@@ -114,10 +127,18 @@ export interface UserFeedResponse {
   connectors: Record<string, ConnectorItem[]>
 }
 
-export async function getUserFeed(userId: string, token: string): Promise<UserFeedResponse> {
-  return apiFetch<UserFeedResponse>(`/ui/users/${userId}/feed`, token, {
-    cache: 'no-store',
-  })
+export async function getUserFeed(
+  userId: string,
+  token: string,
+  baseUrl?: string,
+): Promise<UserFeedResponse> {
+  return apiFetch<UserFeedResponse>(
+    `/ui/users/${userId}/feed`,
+    token,
+    { cache: 'no-store' },
+    0,
+    baseUrl,
+  )
 }
 
 /** L'API répond soit `{ repository }` (flux créé), soit `202 { status: 'pending' }`
@@ -130,21 +151,30 @@ export async function addUserRepository(
   userId: string,
   token: string,
   data: { provider: string; url: string; config: Record<string, unknown> },
+  baseUrl?: string,
 ): Promise<AddRepositoryResult> {
-  return apiFetch<AddRepositoryResult>(`/ui/users/${userId}/repositories`, token, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  })
+  return apiFetch<AddRepositoryResult>(
+    `/ui/users/${userId}/repositories`,
+    token,
+    { method: 'POST', body: JSON.stringify(data) },
+    0,
+    baseUrl,
+  )
 }
 
 export async function deleteUserRepository(
   userId: string,
   linkId: string,
   token: string,
+  baseUrl?: string,
 ): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/ui/users/${userId}/repositories/${linkId}`, token, {
-    method: 'DELETE',
-  })
+  await apiFetch<{ success: boolean }>(
+    `/ui/users/${userId}/repositories/${linkId}`,
+    token,
+    { method: 'DELETE' },
+    0,
+    baseUrl,
+  )
 }
 
 // ─── Admin ─────────────────────────────────────────────────────────────────────
@@ -336,10 +366,18 @@ export async function adminClearRepositoryData(repoId: number, token: string): P
 
 // ─── Provider fluxes (liste des flux existants + abonnement) ───────────────────
 
-export async function getProviderFluxes(provider: string, token: string): Promise<ProviderFlux[]> {
-  const data = await apiFetch<{ fluxes: ProviderFlux[] }>(`/providers/${provider}/fluxes`, token, {
-    cache: 'no-store',
-  })
+export async function getProviderFluxes(
+  provider: string,
+  token: string,
+  baseUrl?: string,
+): Promise<ProviderFlux[]> {
+  const data = await apiFetch<{ fluxes: ProviderFlux[] }>(
+    `/providers/${provider}/fluxes`,
+    token,
+    { cache: 'no-store' },
+    0,
+    baseUrl,
+  )
   return data.fluxes
 }
 
@@ -348,11 +386,18 @@ export async function subscribeFlux(
   id: number,
   token: string,
   dataSourceId?: number | null,
+  baseUrl?: string,
 ): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
-    method: 'POST',
-    ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
-  })
+  await apiFetch<{ success: boolean }>(
+    `/providers/${provider}/fluxes/${id}/subscribe`,
+    token,
+    {
+      method: 'POST',
+      ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
+    },
+    0,
+    baseUrl,
+  )
 }
 
 export async function unsubscribeFlux(
@@ -360,11 +405,18 @@ export async function unsubscribeFlux(
   id: number,
   token: string,
   dataSourceId?: number | null,
+  baseUrl?: string,
 ): Promise<void> {
-  await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
-    method: 'DELETE',
-    ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
-  })
+  await apiFetch<{ success: boolean }>(
+    `/providers/${provider}/fluxes/${id}/subscribe`,
+    token,
+    {
+      method: 'DELETE',
+      ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
+    },
+    0,
+    baseUrl,
+  )
 }
 
 // ─── Admin — providers & flux requests ────────────────────────────────────────

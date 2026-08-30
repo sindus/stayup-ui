@@ -1,18 +1,18 @@
-import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { deleteUserRepository } from '@/lib/api-client'
-import { COOKIE_NAME, decodeToken } from '@/lib/session'
+import { resolveInstance } from '@/lib/instances'
+import { decodeToken } from '@/lib/session'
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get(COOKIE_NAME)?.value
-  if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const instanceId = new URL(request.url).searchParams.get('instanceId')
+  const instance = await resolveInstance(instanceId)
+  if (!instance) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const session = decodeToken(token)
+  const session = decodeToken(instance.token)
   const { id } = await params
 
   try {
-    await deleteUserRepository(session.userId, id, token)
+    await deleteUserRepository(session.userId, id, instance.token, instance.url)
     return NextResponse.json({ success: true })
   } catch (err) {
     const message = (err as Error).message

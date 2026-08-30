@@ -24,6 +24,8 @@ function flux(overrides: Partial<UserRepository> = {}): UserRepository {
     identifier: 'facebook/react',
     config: {},
     createdAt: '2026-01-01T00:00:00Z',
+    instanceId: '',
+    instanceName: '',
     ...overrides,
   }
 }

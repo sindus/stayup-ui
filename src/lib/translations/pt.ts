@@ -217,6 +217,7 @@ export const pt: Translations = {
     filterAll: 'Todos',
     filterUnread: 'Não lidos',
     markAllRead: 'Marcar tudo como lido',
+    instanceUnreachable: 'Inacessível: {names}',
     providers: {
       changelog: 'GitHub',
       youtube: 'YouTube',
@@ -238,6 +239,7 @@ export const pt: Translations = {
     title: 'O que vamos seguir?',
     description: 'Escolhe uma fonte, tratamos do resto.',
     provider: 'Provedor',
+    instance: 'Instância',
     identifierLabels: {
       changelog: 'Repositório do GitHub',
       youtube: 'Canal do YouTube',
@@ -351,6 +353,29 @@ export const pt: Translations = {
     configJsonOptional: 'Config JSON (opcional)',
   },
   // Messages renvoyés par le code serveur (server actions, route handlers).
+  instances: {
+    title: 'Servidores',
+    subtitle: 'Acompanhe feeds de várias instâncias de API ao mesmo tempo.',
+    primary: 'Principal',
+    add: 'Adicionar um servidor',
+    urlLabel: 'URL da API',
+    urlPlaceholder: 'https://sua-api.exemplo.com',
+    next: 'Avançar',
+    cancel: 'Cancelar',
+    email: 'E-mail',
+    password: 'Senha',
+    connect: 'Conectar',
+    connecting: 'Conectando…',
+    makePrimary: 'Definir como principal',
+    reconnect: 'Reconectar',
+    remove: 'Remover',
+    save: 'Salvar',
+    expired: 'Sessão expirada',
+    removePrimaryWarning: 'Remover o servidor principal desconecta você por completo.',
+    alreadyAdded: 'Este servidor já está na sua lista.',
+    oauthHint:
+      'Aqui os servidores secundários são adicionados com e-mail e senha. O OAuth para servidores secundários funciona nos apps de desktop e celular.',
+  },
   errors: {
     notAuthenticated: 'Você não está autenticado.',
     generic: 'Algo deu errado.',

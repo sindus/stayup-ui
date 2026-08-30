@@ -25,6 +25,7 @@ import {
   type ProviderTemplate,
 } from '@/lib/providerTemplate'
 import { providerIcon, providerAccent } from './providerIcons'
+import type { InstanceRef } from './FeedClientLayout'
 import type { ProviderFlux } from '@/types'
 
 interface ProviderTile {
@@ -40,12 +41,19 @@ type FormData = { provider: string; identifier: string }
 interface AddFluxDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  instances?: InstanceRef[]
 }
 
-export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
+export function AddFluxDialog({ open, onOpenChange, instances = [] }: AddFluxDialogProps) {
   const router = useRouter()
   const { t } = useLanguage()
   const [serverError, setServerError] = useState<string | null>(null)
+  // Instance cible d'un nouveau flux : la primaire par défaut.
+  const [instanceId, setInstanceId] = useState('')
+  const activeInstanceId = instanceId || instances[0]?.id || ''
+  const instanceQuery = activeInstanceId
+    ? `?instanceId=${encodeURIComponent(activeInstanceId)}`
+    : ''
   const [tiles, setTiles] = useState<ProviderTile[]>([])
   const [tpls, setTpls] = useState<Record<string, ProviderTemplate | null>>({})
   const [approvals, setApprovals] = useState<Record<string, 'auto' | 'manual'>>({})
@@ -59,7 +67,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
 
   useEffect(() => {
     if (!open) return
-    fetch('/api/providers')
+    fetch(`/api/providers${instanceQuery}`)
       .then((r) => r.json())
       .then((data) => {
         const providers =
@@ -94,7 +102,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
         setTpls({})
         setApprovals({})
       })
-  }, [open, t])
+  }, [open, t, instanceQuery])
 
   const schema = z.object({
     provider: z.string().min(1),
@@ -131,7 +139,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   useEffect(() => {
     if (!open || !provider) return
     setFluxesLoading(true)
-    fetch(`/api/providers/${provider}/fluxes`)
+    fetch(`/api/providers/${provider}/fluxes${instanceQuery}`)
       .then((r) => r.json())
       .then((data) => {
         const list = (data.fluxes as ProviderFlux[]) ?? []
@@ -143,7 +151,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
         setPickMode('new')
       })
       .finally(() => setFluxesLoading(false))
-  }, [open, provider])
+  }, [open, provider, instanceQuery])
 
   const available = fluxes.filter((f) => !f.is_subscribed)
   const currentForm = tpls[provider]?.form
@@ -163,7 +171,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
         setServerError(t.addFlux.selectError)
         return
       }
-      const res = await fetch(`/api/providers/${data.provider}/fluxes`, {
+      const res = await fetch(`/api/providers/${data.provider}/fluxes${instanceQuery}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -193,7 +201,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     }
     const url = currentForm ? buildFluxUrl(currentForm, data.identifier) : data.identifier
 
-    const res = await fetch('/api/fluxes', {
+    const res = await fetch(`/api/fluxes${instanceQuery}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ provider: data.provider, url }),
@@ -220,6 +228,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
       setSelectedFlux(null)
       setPickMode('existing')
       setPending(false)
+      setInstanceId('')
     }
     onOpenChange(value)
   }
@@ -241,6 +250,28 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
               </div>
             ) : (
               <>
+                {instances.length > 1 && (
+                  <div className="space-y-2">
+                    <Label htmlFor="add-flux-instance">{t.addFlux.instance}</Label>
+                    <select
+                      id="add-flux-instance"
+                      value={activeInstanceId}
+                      onChange={(e) => {
+                        setInstanceId(e.target.value)
+                        setSelectedFlux(null)
+                      }}
+                      className="w-full rounded-[10px] border px-3 py-2 text-[13.5px]"
+                      style={{ background: 'var(--bg)', borderColor: 'var(--border-color)' }}
+                    >
+                      {instances.map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label>{t.addFlux.provider}</Label>
                   <div className="grid grid-cols-2 gap-2">

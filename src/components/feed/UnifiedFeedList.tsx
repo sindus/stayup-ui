@@ -4,8 +4,15 @@ import type { TaggedItem, FeedRepository } from '@/types'
 import type { ProviderMeta } from '@/lib/providerTemplate'
 import { formatDate } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
+import { taggedItemId } from '@/context/FeedReadContext'
 import { TemplatedEntry } from './TemplatedEntry'
 import { providerIcon, providerAccent, providerLabel } from './providerIcons'
+
+/** Clé de source par ligne : `<instanceId>:<repository_id>` — `repository_id`
+ *  n'est unique qu'au sein d'une instance. */
+function sourceKey(instanceId: string | undefined, repositoryId: number | string): string {
+  return `${instanceId ?? ''}:${repositoryId}`
+}
 
 interface UnifiedFeedListProps {
   items: TaggedItem[]
@@ -36,7 +43,7 @@ export function UnifiedFeedList({
 
   const sourceMap = Object.fromEntries(
     repositories.map((r) => [
-      r.repository_id,
+      sourceKey(r.instanceId, r.repository_id),
       { url: r.url, config: r.config ?? {}, type: r.provider ?? '' },
     ]),
   )
@@ -47,8 +54,14 @@ export function UnifiedFeedList({
         const meta = templates[tagged.provider]
         const color = providerAccent(meta)
         const isSelected = selectedIndex === i
-        const isRead = readIds?.has(`${tagged.provider}:${tagged.item.id}`) ?? false
-        const source = sourceMap[tagged.item.repository_id as number]
+        const isRead = readIds?.has(taggedItemId(tagged)) ?? false
+        const source =
+          sourceMap[
+            sourceKey(
+              typeof tagged.item._instance_id === 'string' ? tagged.item._instance_id : '',
+              tagged.item.repository_id,
+            )
+          ]
 
         return (
           <div

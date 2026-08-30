@@ -26,6 +26,8 @@ function flux(overrides: Partial<UserRepository> = {}): UserRepository {
     identifier: 'facebook/react',
     config: {},
     createdAt: '2026-01-01T00:00:00Z',
+    instanceId: '',
+    instanceName: '',
     ...overrides,
   }
 }
@@ -86,7 +88,7 @@ describe('FeedSidebar', () => {
     })
     expect(screen.getByRole('link', { name: 'example.com/feed.xml' })).toHaveAttribute(
       'href',
-      '/feed/flux/l1',
+      '/feed/flux/:l1',
     )
   })
 
@@ -97,7 +99,7 @@ describe('FeedSidebar', () => {
   })
 
   it('marks the active feed', () => {
-    pathname = '/feed/flux/l1'
+    pathname = '/feed/flux/:l1'
     renderSidebar({ fluxes: [flux()] })
     expect(screen.getByRole('link', { name: 'facebook/react' }).className).toContain('font-medium')
   })
@@ -105,7 +107,7 @@ describe('FeedSidebar', () => {
   it('shows unread counts per feed and summed per provider', () => {
     renderSidebar({
       fluxes: [flux(), flux({ id: 'l2', repositoryId: 2 })],
-      unreadCountByRepoId: { 1: 3, 2: 4 },
+      unreadCountByRepoId: { ':1': 3, ':2': 4 },
     })
 
     expect(screen.getByRole('link', { name: /Changelog 7/ })).toBeInTheDocument()
@@ -113,7 +115,7 @@ describe('FeedSidebar', () => {
   })
 
   it('omits the unread badge when everything is read', () => {
-    renderSidebar({ fluxes: [flux()], unreadCountByRepoId: { 1: 0 } })
+    renderSidebar({ fluxes: [flux()], unreadCountByRepoId: { ':1': 0 } })
     expect(screen.getByRole('link', { name: 'facebook/react' })).toBeInTheDocument()
   })
 
@@ -138,7 +140,7 @@ describe('FeedSidebar', () => {
     await user.click(screen.getByRole('button', { name: 'Delete this feed' }))
 
     await waitFor(() =>
-      expect(mockFetch).toHaveBeenCalledWith('/api/fluxes/l1', { method: 'DELETE' }),
+      expect(mockFetch).toHaveBeenCalledWith('/api/fluxes/l1?instanceId=', { method: 'DELETE' }),
     )
     expect(refresh).toHaveBeenCalled()
   })
@@ -184,5 +186,43 @@ describe('FeedSidebar', () => {
   it('applies the requested width', () => {
     renderSidebar({ width: 300 })
     expect(document.querySelector('aside')).toHaveStyle({ width: '300px' })
+  })
+
+  it('badges each feed with its instance name when several servers are connected', () => {
+    renderSidebar({
+      instances: [
+        { id: 'a', name: 'Alpha' },
+        { id: 'b', name: 'Beta' },
+      ],
+      fluxes: [
+        flux({ instanceId: 'a', instanceName: 'Alpha' }),
+        flux({ id: 'l2', instanceId: 'b', instanceName: 'Beta' }),
+      ],
+    })
+    expect(screen.getByText('Alpha')).toBeInTheDocument()
+    expect(screen.getByText('Beta')).toBeInTheDocument()
+  })
+
+  it('shows no instance badge with a single server', () => {
+    renderSidebar({
+      instances: [{ id: 'a', name: 'Alpha' }],
+      fluxes: [flux({ instanceId: 'a', instanceName: 'Alpha' })],
+    })
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument()
+  })
+
+  it('routes the delete to the flux instance', async () => {
+    const user = userEvent.setup()
+    renderSidebar({
+      instances: [
+        { id: 'a', name: 'Alpha' },
+        { id: 'b', name: 'Beta' },
+      ],
+      fluxes: [flux({ id: 'l9', instanceId: 'b', instanceName: 'Beta' })],
+    })
+    await user.click(screen.getByRole('button', { name: 'Delete this feed' }))
+    await waitFor(() =>
+      expect(mockFetch).toHaveBeenCalledWith('/api/fluxes/l9?instanceId=b', { method: 'DELETE' }),
+    )
   })
 })
