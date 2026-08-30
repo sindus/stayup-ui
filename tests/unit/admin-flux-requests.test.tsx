@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { ScrapCreateForm } from '@/components/admin/ScrapCreateForm'
 import { FluxRequestsTable } from '@/components/admin/FluxRequestsTable'
 import { FluxRequestApproveDialog } from '@/components/admin/FluxRequestApproveDialog'
 import { LanguageProvider } from '@/context/LanguageContext'
@@ -51,99 +50,20 @@ beforeEach(() => {
   for (const fn of Object.values(actions)) fn.mockResolvedValue({})
 })
 
-describe('ScrapCreateForm', () => {
-  it('hides the form until the add button is clicked', async () => {
+/**
+ * ScrapConfigFields is shared by the flux-request approval dialog (the scrap
+ * create form has moved to the scrap connector's own admin). A scrap request
+ * shows the fields straight away, so drive them through that dialog.
+ */
+describe('ScrapConfigFields (via the approve dialog)', () => {
+  function openDialog() {
     const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-
-    expect(screen.queryByText('New web scraping feed')).not.toBeInTheDocument()
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
-    expect(screen.getByText('New web scraping feed')).toBeInTheDocument()
-  })
-
-  it('collapses the form again via cancel', async () => {
-    const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
-    await user.click(screen.getByRole('button', { name: 'Cancel' }))
-    expect(screen.queryByText('New web scraping feed')).not.toBeInTheDocument()
-  })
-
-  it('creates a scrap repository with the entered config', async () => {
-    const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
-    await user.type(field('Page URL'), 'https://example.com/blog')
-    await user.type(field('Articles CSS selector'), 'h2 a')
-    await user.type(field('Content CSS selector'), 'article')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() =>
-      expect(actions.adminCreateRepositoryAction).toHaveBeenCalledWith({
-        url: 'https://example.com/blog',
-        type: 'scrap',
-        config: {
-          articles_selector: 'h2 a',
-          content_selector: 'article',
-          max_scraps: 5,
-          retention_days: 15,
-        },
-      }),
-    )
-    expect(refresh).toHaveBeenCalled()
-  })
-
-  it('includes DOM exclusions when some are added', async () => {
-    const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
-    await user.type(field('Page URL'), 'https://example.com/blog')
-    await user.type(field('Articles CSS selector'), 'h2 a')
-    await user.type(field('Content CSS selector'), 'article')
-
-    await user.type(field('DOM exclusions (optional)'), 'div.ads')
-    await user.click(screen.getByRole('button', { name: 'Add' }))
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() =>
-      expect(actions.adminCreateRepositoryAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          config: expect.objectContaining({ exclude: ['div.ads'] }),
-        }),
-      ),
-    )
-  })
-
-  it('surfaces the server error and keeps the form open', async () => {
-    actions.adminCreateRepositoryAction.mockResolvedValue({ error: 'Duplicate URL' })
-    const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
-    await user.type(field('Page URL'), 'https://example.com/blog')
-    await user.type(field('Articles CSS selector'), 'h2 a')
-    await user.type(field('Content CSS selector'), 'article')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
-
-    expect(await screen.findByText('Duplicate URL')).toBeInTheDocument()
-    expect(screen.getByText('New web scraping feed')).toBeInTheDocument()
-    expect(refresh).not.toHaveBeenCalled()
-  })
-})
-
-describe('ScrapConfigFields exclusions', () => {
-  async function openForm() {
-    const user = userEvent.setup()
-    withLang(<ScrapCreateForm />)
-    await user.click(screen.getByRole('button', { name: '+ Add scraping feed' }))
+    withLang(<FluxRequestApproveDialog request={request()} onClose={vi.fn()} />)
     return user
   }
 
   it('adds an exclusion with the Add button', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
     await user.type(field('DOM exclusions (optional)'), '.sidebar')
     await user.click(screen.getByRole('button', { name: 'Add' }))
@@ -153,32 +73,30 @@ describe('ScrapConfigFields exclusions', () => {
   })
 
   it('adds an exclusion with the Enter key', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
-    const input = field('DOM exclusions (optional)')
-    await user.type(input, '.ads{Enter}')
+    await user.type(field('DOM exclusions (optional)'), '.ads{Enter}')
 
     expect(screen.getByText('.ads')).toBeInTheDocument()
   })
 
   it('adds an exclusion with a comma', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
-    const input = field('DOM exclusions (optional)')
-    await user.type(input, '.promo,')
+    await user.type(field('DOM exclusions (optional)'), '.promo,')
 
     expect(screen.getByText('.promo')).toBeInTheDocument()
   })
 
   it('ignores a blank exclusion', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
     await user.click(screen.getByRole('button', { name: 'Add' }))
     expect(screen.queryByRole('button', { name: '×' })).not.toBeInTheDocument()
   })
 
   it('ignores a duplicate exclusion', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
     const input = field('DOM exclusions (optional)')
     await user.type(input, '.ads{Enter}')
@@ -188,7 +106,7 @@ describe('ScrapConfigFields exclusions', () => {
   })
 
   it('removes an exclusion', async () => {
-    const user = await openForm()
+    const user = openDialog()
 
     await user.type(field('DOM exclusions (optional)'), '.ads{Enter}')
     await user.click(screen.getByRole('button', { name: '×' }))
@@ -196,8 +114,8 @@ describe('ScrapConfigFields exclusions', () => {
     expect(screen.queryByText('.ads')).not.toBeInTheDocument()
   })
 
-  it('accepts custom max scraps and retention values', async () => {
-    const user = await openForm()
+  it('carries custom max scraps and retention values into the approval', async () => {
+    const user = openDialog()
 
     const maxScraps = field('Max scraps')
     await user.clear(maxScraps)
@@ -207,13 +125,13 @@ describe('ScrapConfigFields exclusions', () => {
     await user.clear(retention)
     await user.type(retention, '30')
 
-    await user.type(field('Page URL'), 'https://example.com/blog')
     await user.type(field('Articles CSS selector'), 'h2 a')
     await user.type(field('Content CSS selector'), 'article')
-    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await user.click(screen.getByRole('button', { name: 'Approve' }))
 
     await waitFor(() =>
-      expect(actions.adminCreateRepositoryAction).toHaveBeenCalledWith(
+      expect(actions.adminApproveFluxRequestAction).toHaveBeenCalledWith(
+        'r1',
         expect.objectContaining({
           config: expect.objectContaining({ max_scraps: 9, retention_days: 30 }),
         }),

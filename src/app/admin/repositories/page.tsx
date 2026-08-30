@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { getAdminSession, getAdminToken } from '@/lib/session'
 import { adminListRepositories } from '@/lib/api-client'
 import { RepositoriesTable } from '@/components/admin/RepositoriesTable'
-import { ScrapCreateForm } from '@/components/admin/ScrapCreateForm'
 
 export default async function AdminRepositoriesPage() {
   const session = await getAdminSession()
@@ -23,7 +22,6 @@ export default async function AdminRepositoriesPage() {
           </span>
         </p>
       </div>
-      <ScrapCreateForm />
       <RepositoriesTable repositories={repositories} />
     </div>
   )
