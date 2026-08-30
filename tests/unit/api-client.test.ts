@@ -471,6 +471,66 @@ describe('admin account API wrappers', () => {
   })
 })
 
+describe('data-source API wrappers', () => {
+  it('adminListDataSources reads /ui/data-sources', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ primary: { engine: 'postgres', host: 'db' }, sources: [] }),
+    })
+    const { adminListDataSources } = await import('@/lib/api-client')
+    const res = await adminListDataSources(TEST_TOKEN)
+    expect(res.primary.engine).toBe('postgres')
+    expect(mockFetch.mock.calls[0][0]).toContain('/ui/data-sources')
+  })
+
+  it('adminTestDataSource POSTs the url to /ui/data-sources/test', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ok: true, engine: 'postgres', connectors: ['rss'] }),
+    })
+    const { adminTestDataSource } = await import('@/lib/api-client')
+    await adminTestDataSource('postgres://x', TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/data-sources/test')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body)).toEqual({ url: 'postgres://x' })
+  })
+
+  it('adminAddDataSource POSTs name + url', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ dataSource: { id: 1 } }) })
+    const { adminAddDataSource } = await import('@/lib/api-client')
+    await adminAddDataSource({ name: 'A', url: 'postgres://x' }, TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/data-sources')
+    expect(init.method).toBe('POST')
+  })
+
+  it('adminDeleteDataSource DELETEs by id', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { adminDeleteDataSource } = await import('@/lib/api-client')
+    await adminDeleteDataSource(7, TEST_TOKEN)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/ui/data-sources/7')
+    expect(init.method).toBe('DELETE')
+  })
+
+  it('subscribeFlux carries a dataSourceId when given', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { subscribeFlux } = await import('@/lib/api-client')
+    await subscribeFlux('rss', 3, TEST_TOKEN, 5)
+    const [url, init] = mockFetch.mock.calls[0]
+    expect(url).toContain('/providers/rss/fluxes/3/subscribe')
+    expect(JSON.parse(init.body)).toEqual({ dataSourceId: 5 })
+  })
+
+  it('subscribeFlux sends no body for a local flux', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
+    const { subscribeFlux } = await import('@/lib/api-client')
+    await subscribeFlux('rss', 3, TEST_TOKEN)
+    expect(mockFetch.mock.calls[0][1].body).toBeUndefined()
+  })
+})
+
 describe('fetchAuthConfig', () => {
   it('returns the parsed config on success', async () => {
     const cfg = {

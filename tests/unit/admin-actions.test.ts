@@ -34,6 +34,10 @@ const api = {
   adminListPendingUsers: vi.fn(),
   adminApprovePendingUser: vi.fn(),
   adminRejectPendingUser: vi.fn(),
+  adminListDataSources: vi.fn(),
+  adminTestDataSource: vi.fn(),
+  adminAddDataSource: vi.fn(),
+  adminDeleteDataSource: vi.fn(),
 }
 vi.mock('@/lib/api-client', () => api)
 
@@ -273,6 +277,77 @@ describe('adminApproveFluxRequestAction', () => {
     api.adminApproveFluxRequest.mockRejectedValue(new Error('bad config'))
     const { adminApproveFluxRequestAction } = await import('@/lib/admin-actions')
     expect(await adminApproveFluxRequestAction('r1', payload)).toEqual({ error: 'bad config' })
+  })
+})
+
+describe('data-source actions', () => {
+  it('lists data sources, null when unauthenticated or on failure', async () => {
+    api.adminListDataSources.mockResolvedValue({ primary: { engine: 'postgres' }, sources: [] })
+    const { adminListDataSourcesAction } = await import('@/lib/admin-actions')
+    expect(await adminListDataSourcesAction()).toEqual({
+      primary: { engine: 'postgres' },
+      sources: [],
+    })
+
+    getAdminToken.mockResolvedValue(null)
+    expect(await adminListDataSourcesAction()).toBeNull()
+
+    getAdminToken.mockResolvedValue('token')
+    api.adminListDataSources.mockRejectedValue(new Error('boom'))
+    expect(await adminListDataSourcesAction()).toBeNull()
+  })
+
+  it('proxies a probe and its result', async () => {
+    api.adminTestDataSource.mockResolvedValue({ ok: true, engine: 'postgres', connectors: ['rss'] })
+    const { adminTestDataSourceAction } = await import('@/lib/admin-actions')
+    expect(await adminTestDataSourceAction('postgres://x')).toEqual({
+      ok: true,
+      engine: 'postgres',
+      connectors: ['rss'],
+    })
+    expect(api.adminTestDataSource).toHaveBeenCalledWith('postgres://x', 'token')
+  })
+
+  it('returns { ok: false } when the probe throws', async () => {
+    api.adminTestDataSource.mockRejectedValue(new Error('unreachable'))
+    const { adminTestDataSourceAction } = await import('@/lib/admin-actions')
+    expect(await adminTestDataSourceAction('postgres://x')).toEqual({
+      ok: false,
+      error: 'unreachable',
+    })
+  })
+
+  it('adds a data source and revalidates the page', async () => {
+    const { adminAddDataSourceAction } = await import('@/lib/admin-actions')
+    expect(await adminAddDataSourceAction({ name: 'A', url: 'postgres://x' })).toEqual({})
+    expect(api.adminAddDataSource).toHaveBeenCalledWith({ name: 'A', url: 'postgres://x' }, 'token')
+    expect(revalidatePath).toHaveBeenCalledWith('/admin/data-sources')
+  })
+
+  it('surfaces the add error', async () => {
+    api.adminAddDataSource.mockRejectedValue(new Error('No connector_* table'))
+    const { adminAddDataSourceAction } = await import('@/lib/admin-actions')
+    expect(await adminAddDataSourceAction({ name: 'A', url: 'x' })).toEqual({
+      error: 'No connector_* table',
+    })
+  })
+
+  it('deletes a data source', async () => {
+    const { adminDeleteDataSourceAction } = await import('@/lib/admin-actions')
+    expect(await adminDeleteDataSourceAction(3)).toEqual({})
+    expect(api.adminDeleteDataSource).toHaveBeenCalledWith(3, 'token')
+  })
+
+  it('returns an error when unauthenticated', async () => {
+    getAdminToken.mockResolvedValue(null)
+    const { adminAddDataSourceAction, adminDeleteDataSourceAction } =
+      await import('@/lib/admin-actions')
+    expect(await adminAddDataSourceAction({ name: 'A', url: 'x' })).toEqual({
+      error: en.errors.notAuthenticated,
+    })
+    expect(await adminDeleteDataSourceAction(1)).toEqual({
+      error: en.errors.notAuthenticated,
+    })
   })
 })
 

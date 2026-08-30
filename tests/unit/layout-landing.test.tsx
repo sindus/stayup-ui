@@ -286,6 +286,10 @@ describe('AdminSidebar', () => {
       'href',
       '/admin/flux-requests',
     )
+    expect(screen.getByRole('link', { name: 'Bases de données' })).toHaveAttribute(
+      'href',
+      '/admin/data-sources',
+    )
   })
 
   it('shows the Admins entry only for a super admin', () => {

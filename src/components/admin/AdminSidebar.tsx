@@ -2,7 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Users, GitBranch, Inbox, SlidersHorizontal, ShieldCheck, KeyRound } from 'lucide-react'
+import {
+  Users,
+  GitBranch,
+  Inbox,
+  SlidersHorizontal,
+  ShieldCheck,
+  KeyRound,
+  Database,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -10,6 +18,7 @@ const NAV_ITEMS = [
   { label: 'Flux', href: '/admin/repositories', icon: GitBranch },
   { label: 'Providers', href: '/admin/providers', icon: SlidersHorizontal },
   { label: 'Demandes de flux', href: '/admin/flux-requests', icon: Inbox },
+  { label: 'Bases de données', href: '/admin/data-sources', icon: Database },
 ]
 
 // Réservé au super admin : la gestion des autres administrateurs.

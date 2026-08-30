@@ -214,6 +214,53 @@ export async function adminRejectPendingUser(id: string, token: string): Promise
   })
 }
 
+// ─── Secondary data sources ──────────────────────────────────────────────────
+
+export interface DataSource {
+  id: number
+  name: string
+  engine: string
+  host: string
+  created_at: string
+}
+
+export interface DataSourcesResponse {
+  primary: { engine: string; host: string }
+  sources: DataSource[]
+}
+
+export type DataSourceProbe =
+  | { ok: true; engine: string; connectors: string[] }
+  | { ok: false; error: string }
+
+export async function adminListDataSources(token: string): Promise<DataSourcesResponse> {
+  return apiFetch<DataSourcesResponse>('/ui/data-sources', token, { cache: 'no-store' })
+}
+
+export async function adminTestDataSource(url: string, token: string): Promise<DataSourceProbe> {
+  return apiFetch<DataSourceProbe>('/ui/data-sources/test', token, {
+    method: 'POST',
+    body: JSON.stringify({ url }),
+  })
+}
+
+export async function adminAddDataSource(
+  input: { name: string; url: string },
+  token: string,
+): Promise<{ dataSource: DataSource & { connectors: string[] } }> {
+  return apiFetch<{ dataSource: DataSource & { connectors: string[] } }>(
+    '/ui/data-sources',
+    token,
+    { method: 'POST', body: JSON.stringify(input) },
+  )
+}
+
+export async function adminDeleteDataSource(id: number, token: string): Promise<void> {
+  await apiFetch<{ success: boolean }>(`/ui/data-sources/${id}`, token, {
+    method: 'DELETE',
+  })
+}
+
 // ─── Admin accounts (super-admin only) ─────────────────────────────────────────
 
 export interface AdminAccount {
@@ -296,15 +343,27 @@ export async function getProviderFluxes(provider: string, token: string): Promis
   return data.fluxes
 }
 
-export async function subscribeFlux(provider: string, id: number, token: string): Promise<void> {
+export async function subscribeFlux(
+  provider: string,
+  id: number,
+  token: string,
+  dataSourceId?: number | null,
+): Promise<void> {
   await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
     method: 'POST',
+    ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
   })
 }
 
-export async function unsubscribeFlux(provider: string, id: number, token: string): Promise<void> {
+export async function unsubscribeFlux(
+  provider: string,
+  id: number,
+  token: string,
+  dataSourceId?: number | null,
+): Promise<void> {
   await apiFetch<{ success: boolean }>(`/providers/${provider}/fluxes/${id}/subscribe`, token, {
     method: 'DELETE',
+    ...(dataSourceId != null ? { body: JSON.stringify({ dataSourceId }) } : {}),
   })
 }
 

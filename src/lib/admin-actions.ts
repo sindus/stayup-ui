@@ -5,6 +5,7 @@ import { getServerTranslations } from './serverLang'
 import { getApiUrl } from './apiUrl'
 import { getAdminToken } from './session'
 import {
+  adminAddDataSource,
   adminApproveFluxRequest,
   adminApprovePendingUser,
   adminChangeOwnPassword,
@@ -12,17 +13,22 @@ import {
   adminCreateAdmin,
   adminCreateRepository,
   adminDeleteAdmin,
+  adminDeleteDataSource,
   adminDeleteRepository,
   adminDeleteUser,
+  adminListDataSources,
   adminListFluxRequests,
   adminListPendingUsers,
   adminListProviders,
   adminRejectFluxRequest,
   adminRejectPendingUser,
   adminSetProviderApproval,
+  adminTestDataSource,
   adminUpdateAdmin,
   deleteUserRepository,
   type AdminPendingUser,
+  type DataSourceProbe,
+  type DataSourcesResponse,
 } from './api-client'
 import type { FluxRequest } from '@/types'
 
@@ -215,6 +221,53 @@ export async function adminRejectPendingUserAction(id: string): Promise<{ error?
   try {
     await adminRejectPendingUser(id, token)
     revalidatePath('/admin/users')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+// ─── Secondary data sources ──────────────────────────────────────────────────
+
+export async function adminListDataSourcesAction(): Promise<DataSourcesResponse | null> {
+  const token = await getAdminToken()
+  if (!token) return null
+  return adminListDataSources(token).catch(() => null)
+}
+
+export async function adminTestDataSourceAction(url: string): Promise<DataSourceProbe> {
+  const token = await getAdminToken()
+  if (!token) {
+    return { ok: false, error: (await getServerTranslations()).errors.notAuthenticated }
+  }
+  try {
+    return await adminTestDataSource(url, token)
+  } catch (err) {
+    return { ok: false, error: (err as Error).message }
+  }
+}
+
+export async function adminAddDataSourceAction(input: {
+  name: string
+  url: string
+}): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminAddDataSource(input, token)
+    revalidatePath('/admin/data-sources')
+    return {}
+  } catch (err) {
+    return { error: (err as Error).message }
+  }
+}
+
+export async function adminDeleteDataSourceAction(id: number): Promise<{ error?: string }> {
+  const token = await getAdminToken()
+  if (!token) return { error: (await getServerTranslations()).errors.notAuthenticated }
+  try {
+    await adminDeleteDataSource(id, token)
+    revalidatePath('/admin/data-sources')
     return {}
   } catch (err) {
     return { error: (err as Error).message }

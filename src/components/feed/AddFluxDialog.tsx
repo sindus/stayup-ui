@@ -52,7 +52,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
   // Flux existants du provider sélectionné — même flux d'ajout pour tous les providers.
   const [fluxes, setFluxes] = useState<ProviderFlux[]>([])
   const [fluxesLoading, setFluxesLoading] = useState(false)
-  const [selectedFluxId, setSelectedFluxId] = useState<number | null>(null)
+  const [selectedFlux, setSelectedFlux] = useState<ProviderFlux | null>(null)
   const [pickMode, setPickMode] = useState<'existing' | 'new'>('existing')
   // Écran « demande envoyée » (provider en mode `manual`).
   const [pending, setPending] = useState(false)
@@ -159,14 +159,17 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     setServerError(null)
 
     if (pickMode === 'existing') {
-      if (!selectedFluxId) {
+      if (!selectedFlux) {
         setServerError(t.addFlux.selectError)
         return
       }
       const res = await fetch(`/api/providers/${data.provider}/fluxes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: selectedFluxId }),
+        body: JSON.stringify({
+          id: selectedFlux.id,
+          ...(selectedFlux.dataSourceId != null ? { dataSourceId: selectedFlux.dataSourceId } : {}),
+        }),
       })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
@@ -214,7 +217,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
     if (!value) {
       reset()
       setServerError(null)
-      setSelectedFluxId(null)
+      setSelectedFlux(null)
       setPickMode('existing')
       setPending(false)
     }
@@ -250,7 +253,7 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                           onClick={() => {
                             setValue('provider', tile.id)
                             setValue('identifier', '')
-                            setSelectedFluxId(null)
+                            setSelectedFlux(null)
                           }}
                           className={cn(
                             'flex items-center gap-2 rounded-[10px] px-3 py-2.5 text-[13.5px] font-medium transition-colors border',
@@ -316,17 +319,23 @@ export function AddFluxDialog({ open, onOpenChange }: AddFluxDialogProps) {
                       <div className="max-h-48 space-y-1 overflow-y-auto">
                         {available.map((f) => (
                           <button
-                            key={f.id}
+                            key={`${f.dataSourceId ?? 'local'}:${f.id}`}
                             type="button"
-                            onClick={() => setSelectedFluxId(f.id)}
+                            onClick={() => setSelectedFlux(f)}
                             className={cn(
                               'block w-full truncate rounded-md border px-3 py-2 text-left text-sm transition-colors',
-                              selectedFluxId === f.id
+                              selectedFlux?.id === f.id &&
+                                selectedFlux?.dataSourceId === f.dataSourceId
                                 ? 'border-primary bg-primary/10'
                                 : 'border-border hover:bg-muted',
                             )}
                           >
                             {f.url}
+                            {f.dataSourceName && (
+                              <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                                {f.dataSourceName}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>

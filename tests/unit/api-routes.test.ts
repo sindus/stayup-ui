@@ -151,7 +151,7 @@ describe('/api/providers/[provider]/fluxes', () => {
     const { POST } = await import('@/app/api/providers/[provider]/fluxes/route')
     const res = await POST(jsonRequest({ id: 7 }), { params })
     expect(res.status).toBe(201)
-    expect(api.subscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String))
+    expect(api.subscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String), undefined)
   })
 
   it('POST returns 400 without an id', async () => {
@@ -169,7 +169,7 @@ describe('/api/providers/[provider]/fluxes', () => {
     const { DELETE } = await import('@/app/api/providers/[provider]/fluxes/route')
     const res = await DELETE(jsonRequest({ id: 7 }), { params })
     expect(res.status).toBe(200)
-    expect(api.unsubscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String))
+    expect(api.unsubscribeFlux).toHaveBeenCalledWith('rss', 7, expect.any(String), undefined)
   })
 })
 

@@ -21,10 +21,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ provide
   const token = (await cookies()).get(COOKIE_NAME)?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { provider } = await params
-  const { id } = (await req.json().catch(() => ({}))) as { id?: number }
+  const { id, dataSourceId } = (await req.json().catch(() => ({}))) as {
+    id?: number
+    dataSourceId?: number
+  }
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
   try {
-    await subscribeFlux(provider, id, token)
+    await subscribeFlux(provider, id, token, dataSourceId)
     return NextResponse.json({ success: true }, { status: 201 })
   } catch (err) {
     const message = (err as Error).message ?? 'Erreur'
@@ -39,10 +42,13 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ provi
   const token = (await cookies()).get(COOKIE_NAME)?.value
   if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const { provider } = await params
-  const { id } = (await req.json().catch(() => ({}))) as { id?: number }
+  const { id, dataSourceId } = (await req.json().catch(() => ({}))) as {
+    id?: number
+    dataSourceId?: number
+  }
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
   try {
-    await unsubscribeFlux(provider, id, token)
+    await unsubscribeFlux(provider, id, token, dataSourceId)
     return NextResponse.json({ success: true })
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 404 })

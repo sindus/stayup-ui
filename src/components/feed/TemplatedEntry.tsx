@@ -18,6 +18,13 @@ export function TemplatedEntry({ template, item, source, color }: TemplatedEntry
   const view = resolveItemView(template, item, source)
   const layout = template.list?.layout ?? 'row'
   const date = view.timestamp ? formatDate(view.timestamp) : ''
+  // Ligne venant d'une base secondaire : l'API la tague ; on montre la source.
+  const srcName = typeof item._data_source_name === 'string' ? item._data_source_name : ''
+  const srcBadge = srcName ? (
+    <span className="shrink-0 rounded bg-[var(--surface-2)] px-1.5 py-0.5 text-[11px] text-dim">
+      {srcName}
+    </span>
+  ) : null
 
   if (layout === 'media') {
     return (
@@ -62,6 +69,7 @@ export function TemplatedEntry({ template, item, source, color }: TemplatedEntry
               </span>
             )}
             {date && <span className="text-[13px] font-mono shrink-0 text-dim">{date}</span>}
+            {srcBadge}
           </div>
         </div>
       </div>
@@ -76,7 +84,10 @@ export function TemplatedEntry({ template, item, source, color }: TemplatedEntry
         <span className="text-[15px] font-medium line-clamp-1 text-foreground">
           {view.title || '—'}
         </span>
-        {date && <span className="text-[13px] font-mono shrink-0 text-dim">{date}</span>}
+        <div className="flex items-center gap-2 shrink-0">
+          {srcBadge}
+          {date && <span className="text-[13px] font-mono text-dim">{date}</span>}
+        </div>
       </div>
       {view.subtitle && (
         <p className="text-[13px] font-mono" style={{ color }}>
