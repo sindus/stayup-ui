@@ -371,6 +371,11 @@ export const de: Translations = {
     oauthHint:
       'Sekundäre Server werden hier mit E-Mail und Passwort hinzugefügt. OAuth für sekundäre Server funktioniert in den Desktop- und Mobil-Apps.',
   },
+  serverStatus: {
+    title: 'Serverstatus',
+    connected: 'Verbunden',
+    disconnected: 'Getrennt',
+  },
   errors: {
     notAuthenticated: 'Nicht angemeldet.',
     generic: 'Etwas ist schiefgelaufen.',

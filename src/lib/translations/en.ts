@@ -358,6 +358,11 @@ export const en = {
     oauthHint:
       'Secondary servers are added with email and password here. OAuth for secondary servers works in the desktop and mobile apps.',
   },
+  serverStatus: {
+    title: 'Server status',
+    connected: 'Connected',
+    disconnected: 'Disconnected',
+  },
   errors: {
     notAuthenticated: 'Not signed in.',
     generic: 'Something went wrong.',

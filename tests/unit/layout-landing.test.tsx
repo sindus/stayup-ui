@@ -71,6 +71,31 @@ describe('Navbar', () => {
     expect(screen.getByLabelText('Language')).toBeInTheDocument()
   })
 
+  it('shows no server status dots without a server list', () => {
+    renderWithLang(<Navbar user={USER} />)
+    expect(screen.queryByRole('group', { name: 'Server status' })).not.toBeInTheDocument()
+  })
+
+  it('shows one status dot per server, linking to the profile', () => {
+    renderWithLang(
+      <Navbar
+        user={USER}
+        servers={[
+          { id: 'a', name: 'Alpha', expired: false },
+          { id: 'b', name: 'Beta', expired: true },
+        ]}
+      />,
+    )
+    expect(screen.getByRole('link', { name: 'Alpha — Connected' })).toHaveAttribute(
+      'href',
+      '/profile',
+    )
+    expect(screen.getByRole('link', { name: 'Beta — Disconnected' })).toHaveAttribute(
+      'href',
+      '/profile',
+    )
+  })
+
   // Navbar's `?? '?'` initial fallback is unreachable in practice: UserMenu,
   // rendered alongside it, calls user.name.split() and throws first. An empty
   // name therefore renders an empty initial rather than '?'.

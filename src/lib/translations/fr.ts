@@ -373,6 +373,11 @@ export const fr: Translations = {
     oauthHint:
       "Ici, un serveur secondaire s'ajoute par e-mail et mot de passe. L'OAuth pour les serveurs secondaires fonctionne dans les apps desktop et mobile.",
   },
+  serverStatus: {
+    title: 'État des serveurs',
+    connected: 'Connecté',
+    disconnected: 'Déconnecté',
+  },
   errors: {
     notAuthenticated: 'Non authentifié.',
     generic: 'Une erreur est survenue.',

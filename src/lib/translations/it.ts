@@ -363,6 +363,11 @@ export const it: Translations = {
     oauthHint:
       'Qui i server secondari si aggiungono con email e password. L’OAuth per i server secondari funziona nelle app desktop e mobile.',
   },
+  serverStatus: {
+    title: 'Stato dei server',
+    connected: 'Connesso',
+    disconnected: 'Disconnesso',
+  },
   errors: {
     notAuthenticated: 'Non hai effettuato l’accesso.',
     generic: 'Qualcosa è andato storto.',

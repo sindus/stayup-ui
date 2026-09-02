@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AuroraWordmark } from '@/components/ui/aurora-mark'
 import { UserMenu } from './UserMenu'
+import { ServerStatusDots, type ServerStatus } from './ServerStatusDots'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
 import { useLanguage } from '@/context/LanguageContext'
@@ -16,9 +17,10 @@ interface NavbarProps {
     email: string
     image?: string | null
   }
+  servers?: ServerStatus[]
 }
 
-export function Navbar({ user }: NavbarProps) {
+export function Navbar({ user, servers = [] }: NavbarProps) {
   const { t } = useLanguage()
   const pathname = usePathname()
 
@@ -70,6 +72,7 @@ export function Navbar({ user }: NavbarProps) {
 
         <div className="flex items-center gap-2 shrink-0">
           <LanguageSwitcher />
+          <ServerStatusDots servers={servers} />
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold"
             style={{

@@ -361,6 +361,11 @@ export const ja: Translations = {
     oauthHint:
       'ここでは副サーバーはメールアドレスとパスワードで追加します。副サーバーの OAuth はデスクトップアプリとモバイルアプリで利用できます。',
   },
+  serverStatus: {
+    title: 'サーバーの状態',
+    connected: '接続済み',
+    disconnected: '切断',
+  },
   errors: {
     notAuthenticated: 'ログインしていません。',
     generic: '問題が発生しました。',

@@ -367,6 +367,11 @@ export const pt: Translations = {
     oauthHint:
       'Aqui os servidores secundários são adicionados com e-mail e senha. O OAuth para servidores secundários funciona nos apps de desktop e celular.',
   },
+  serverStatus: {
+    title: 'Estado dos servidores',
+    connected: 'Ligado',
+    disconnected: 'Desligado',
+  },
   errors: {
     notAuthenticated: 'Você não está autenticado.',
     generic: 'Algo deu errado.',

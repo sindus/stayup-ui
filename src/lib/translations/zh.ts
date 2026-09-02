@@ -352,6 +352,11 @@ export const zh: Translations = {
     alreadyAdded: '该服务器已在你的列表中。',
     oauthHint: '这里通过邮箱和密码添加次级服务器。次级服务器的 OAuth 登录可在桌面端和移动端使用。',
   },
+  serverStatus: {
+    title: '服务器状态',
+    connected: '已连接',
+    disconnected: '已断开',
+  },
   errors: {
     notAuthenticated: '尚未登录。',
     generic: '出了点问题。',
