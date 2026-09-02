@@ -156,6 +156,7 @@ export const zh: Translations = {
     noContent: '目前没有可用的抓取订阅源。',
   },
   auth: {
+    accountPending: '账户已创建。管理员批准后才能登录。',
     loginTitle: '欢迎回来。',
     loginSubtitle: '从你上次离开的地方继续。',
     registerTitle: '创建你的账户。',
@@ -351,6 +352,8 @@ export const zh: Translations = {
     removePrimaryWarning: '移除主服务器会让你完全退出登录。',
     alreadyAdded: '该服务器已在你的列表中。',
     oauthHint: '这里通过邮箱和密码添加次级服务器。次级服务器的 OAuth 登录可在桌面端和移动端使用。',
+    urlUnreachable: '无法连接到该服务器。',
+    urlIncompatible: '此网址不是 StayUp API。',
   },
   serverStatus: {
     title: '服务器状态',

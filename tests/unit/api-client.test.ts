@@ -558,6 +558,47 @@ describe('fetchAuthConfig', () => {
   })
 })
 
+describe('probeApiUrl', () => {
+  it('reports "unreachable" when nothing answers', async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'))
+    const { probeApiUrl } = await import('@/lib/api-client')
+    await expect(probeApiUrl('https://nope.example.com')).resolves.toEqual({
+      ok: false,
+      reason: 'unreachable',
+    })
+  })
+
+  it('reports "incompatible" on a non-2xx answer', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) })
+    const { probeApiUrl } = await import('@/lib/api-client')
+    await expect(probeApiUrl('https://example.com')).resolves.toEqual({
+      ok: false,
+      reason: 'incompatible',
+    })
+  })
+
+  it('reports "incompatible" when the JSON is not an auth config', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ hello: 'world' }) })
+    const { probeApiUrl } = await import('@/lib/api-client')
+    await expect(probeApiUrl('https://example.com')).resolves.toEqual({
+      ok: false,
+      reason: 'incompatible',
+    })
+  })
+
+  it('returns the config when the shape checks out', async () => {
+    const cfg = {
+      name: 'Mine',
+      registrationMode: 'open',
+      emailPassword: true,
+      oauth: { github: false, google: true },
+    }
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => cfg })
+    const { probeApiUrl } = await import('@/lib/api-client')
+    await expect(probeApiUrl('https://example.com')).resolves.toEqual({ ok: true, config: cfg })
+  })
+})
+
 describe('pending sign-up API wrappers', () => {
   it('adminListPendingUsers reads /ui/users/pending', async () => {
     mockFetch.mockResolvedValueOnce({

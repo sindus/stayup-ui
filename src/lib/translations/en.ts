@@ -160,6 +160,7 @@ export const en = {
     noContent: 'No scraping feeds are available yet.',
   },
   auth: {
+    accountPending: 'Account created. An administrator needs to approve it before you can sign in.',
     loginTitle: 'Good to see you again.',
     loginSubtitle: 'Pick up right where you left off.',
     registerTitle: 'Create your account.',
@@ -357,6 +358,8 @@ export const en = {
     alreadyAdded: 'This server is already in your list.',
     oauthHint:
       'Secondary servers are added with email and password here. OAuth for secondary servers works in the desktop and mobile apps.',
+    urlUnreachable: "Can't reach that server.",
+    urlIncompatible: 'This URL is not a StayUp API.',
   },
   serverStatus: {
     title: 'Server status',

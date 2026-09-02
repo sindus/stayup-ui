@@ -173,6 +173,8 @@ export const fr: Translations = {
     noContent: "Aucun flux scraping n'est disponible pour le moment.",
   },
   auth: {
+    accountPending:
+      'Compte créé. Un administrateur doit le valider avant que tu puisses te connecter.',
     loginTitle: 'Content de te revoir.',
     loginSubtitle: "Reprends ta lecture là où tu l'avais laissée.",
     registerTitle: 'Crée ton compte.',
@@ -372,6 +374,8 @@ export const fr: Translations = {
     alreadyAdded: 'Ce serveur est déjà dans ta liste.',
     oauthHint:
       "Ici, un serveur secondaire s'ajoute par e-mail et mot de passe. L'OAuth pour les serveurs secondaires fonctionne dans les apps desktop et mobile.",
+    urlUnreachable: 'Serveur injoignable.',
+    urlIncompatible: "Cette URL n'est pas une API StayUp.",
   },
   serverStatus: {
     title: 'État des serveurs',

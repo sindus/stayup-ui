@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { getServerTranslations } from './serverLang'
-import { fetchAuthConfig } from './api-client'
+import { fetchAuthConfig, probeApiUrl } from './api-client'
 import {
   addInstanceEntry,
   hostOf,
@@ -65,15 +65,66 @@ async function loginFor(url: string, email: string, password: string): Promise<s
   }
 }
 
-/** Sonde une instance avant l'écran de connexion : nom d'affichage + providers
- *  OAuth. Sur le web, l'ajout d'une instance secondaire se fait par e-mail /
- *  mot de passe (l'aller-retour OAuth ne peut pas revenir sur cette origine). */
-export async function probeInstanceAction(url: string): Promise<{ error?: string; name?: string }> {
+/** Sonde une instance avant l'écran de connexion : nom d'affichage + mode
+ *  d'inscription (pour proposer, ou non, « créer un compte »). Sur le web,
+ *  l'ajout d'une instance secondaire se fait par e-mail / mot de passe
+ *  (l'aller-retour OAuth ne peut pas revenir sur cette origine). */
+export async function probeInstanceAction(
+  url: string,
+): Promise<{ error?: string; name?: string; registrationMode?: 'open' | 'approval' }> {
   const t = await getServerTranslations()
   const clean = normalizeUrl(url)
   if (!clean) return { error: t.errors.privateApiUrl }
-  const config = await fetchAuthConfig(clean).catch(() => null)
-  return { name: config?.name?.trim() || hostOf(clean) }
+  const probe = await probeApiUrl(clean)
+  if (!probe.ok) {
+    return {
+      error:
+        probe.reason === 'unreachable' ? t.instances.urlUnreachable : t.instances.urlIncompatible,
+    }
+  }
+  return {
+    name: probe.config.name?.trim() || hostOf(clean),
+    registrationMode: probe.config.registrationMode,
+  }
+}
+
+/** Crée un compte sur une instance puis l'ajoute. `{ pending: true }` : l'instance
+ *  est en `REGISTRATION_MODE=approval`, le compte attend un admin — rien n'est
+ *  ajouté, l'utilisateur reviendra se connecter une fois validé. */
+export async function registerInstanceAction(
+  url: string,
+  name: string,
+  email: string,
+  password: string,
+): Promise<{ error?: string; pending?: boolean }> {
+  const t = await getServerTranslations()
+  const clean = normalizeUrl(url)
+  if (!clean) return { error: t.errors.privateApiUrl }
+  if ((await readInstances()).some((i) => i.url === clean)) {
+    return { error: t.instances.alreadyAdded }
+  }
+
+  let res: Response
+  try {
+    res = await fetch(`${clean}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+      cache: 'no-store',
+    })
+  } catch {
+    return { error: t.instances.urlUnreachable }
+  }
+
+  if (res.status === 202) return { pending: true }
+  if (!res.ok) {
+    return { error: res.status === 409 ? t.errors.emailTaken : t.errors.generic }
+  }
+
+  const { token } = (await res.json().catch(() => ({}))) as { token?: string }
+  if (!token) return { error: t.errors.generic }
+  await addInstanceEntry({ url: clean, name: await resolveName(clean), token })
+  return {}
 }
 
 export async function addInstanceAction(

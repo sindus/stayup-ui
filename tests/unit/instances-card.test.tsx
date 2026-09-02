@@ -3,10 +3,12 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InstancesCard } from '@/components/profile/InstancesCard'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
 
 const actions = vi.hoisted(() => ({
   addInstanceAction: vi.fn(),
   probeInstanceAction: vi.fn(),
+  registerInstanceAction: vi.fn(),
   reconnectInstanceAction: vi.fn(),
   removeInstanceAction: vi.fn(),
   renameInstanceAction: vi.fn(),
@@ -33,7 +35,7 @@ function renderCard(instances = list) {
 beforeEach(() => {
   vi.clearAllMocks()
   Object.values(actions).forEach((fn) => fn.mockResolvedValue({}))
-  actions.probeInstanceAction.mockResolvedValue({ name: 'Gamma' })
+  actions.probeInstanceAction.mockResolvedValue({ name: 'Gamma', registrationMode: 'open' })
   vi.stubGlobal(
     'confirm',
     vi.fn(() => true),
@@ -126,6 +128,49 @@ describe('InstancesCard', () => {
     await waitFor(() =>
       expect(actions.addInstanceAction).toHaveBeenCalledWith('https://gamma.dev', 'u@g.io', 'pw'),
     )
+  })
+
+  it('creates an account on the new server via the register form', async () => {
+    const user = userEvent.setup()
+    renderCard()
+    await user.click(screen.getByRole('button', { name: 'Add a server' }))
+    await user.type(screen.getByLabelText('API URL'), 'https://gamma.dev')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByLabelText('Email')
+
+    await user.click(screen.getByRole('button', { name: `${en.auth.noAccount} ${en.auth.signUp}` }))
+    await user.type(screen.getByLabelText(en.auth.name), 'Bea')
+    await user.type(screen.getByLabelText('Email'), 'bea@g.io')
+    await user.type(screen.getByLabelText('Password'), 'pass1234')
+    await user.click(screen.getByRole('button', { name: en.auth.signUp }))
+
+    await waitFor(() =>
+      expect(actions.registerInstanceAction).toHaveBeenCalledWith(
+        'https://gamma.dev',
+        'Bea',
+        'bea@g.io',
+        'pass1234',
+      ),
+    )
+  })
+
+  it('shows the pending-approval notice and closes the form when approval is required', async () => {
+    actions.registerInstanceAction.mockResolvedValue({ pending: true })
+    const user = userEvent.setup()
+    renderCard()
+    await user.click(screen.getByRole('button', { name: 'Add a server' }))
+    await user.type(screen.getByLabelText('API URL'), 'https://gamma.dev')
+    await user.click(screen.getByRole('button', { name: 'Next' }))
+    await screen.findByLabelText('Email')
+
+    await user.click(screen.getByRole('button', { name: `${en.auth.noAccount} ${en.auth.signUp}` }))
+    await user.type(screen.getByLabelText(en.auth.name), 'Bea')
+    await user.type(screen.getByLabelText('Email'), 'bea@g.io')
+    await user.type(screen.getByLabelText('Password'), 'pass1234')
+    await user.click(screen.getByRole('button', { name: en.auth.signUp }))
+
+    expect(await screen.findByText(en.auth.accountPending)).toBeInTheDocument()
+    expect(screen.queryByLabelText('API URL')).not.toBeInTheDocument()
   })
 
   it('shows the probe error and no credential form', async () => {

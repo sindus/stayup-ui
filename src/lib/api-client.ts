@@ -76,14 +76,48 @@ export interface AuthConfig {
  *  répond pas ou est trop ancienne pour exposer `/auth/config` — l'appelant
  *  retombe alors sur « tout est proposé ». Non authentifié. `baseUrl` cible une
  *  instance précise (ajout d'une instance secondaire). */
-export async function fetchAuthConfig(baseUrl?: string): Promise<AuthConfig | null> {
+function isAuthConfig(v: unknown): v is AuthConfig {
+  if (!v || typeof v !== 'object') return false
+  const c = v as Record<string, unknown>
+  const o = c.oauth as Record<string, unknown> | null | undefined
+  return (
+    typeof c.emailPassword === 'boolean' &&
+    !!o &&
+    typeof o === 'object' &&
+    typeof o.github === 'boolean' &&
+    typeof o.google === 'boolean'
+  )
+}
+
+/** Résultat d'une sonde d'URL d'API : `unreachable` = rien ne répond ;
+ *  `incompatible` = ça répond mais ce n'est pas une API StayUp. */
+export type ApiProbe =
+  | { ok: true; config: AuthConfig }
+  | { ok: false; reason: 'unreachable' | 'incompatible' }
+
+/** Vérifie qu'une URL pointe sur une API StayUp joignable : `GET /auth/config`
+ *  doit répondre 2xx avec la forme attendue. */
+export async function probeApiUrl(baseUrl?: string): Promise<ApiProbe> {
+  const base = (baseUrl ?? (await getApiUrl())).replace(/\/$/, '')
+  let res: Response
   try {
-    const res = await fetch(`${baseUrl ?? (await getApiUrl())}/auth/config`, { cache: 'no-store' })
-    if (!res.ok) return null
-    return (await res.json()) as AuthConfig
+    res = await fetch(`${base}/auth/config`, { cache: 'no-store' })
   } catch {
-    return null
+    return { ok: false, reason: 'unreachable' }
   }
+  if (!res.ok) return { ok: false, reason: 'incompatible' }
+  let body: unknown
+  try {
+    body = await res.json()
+  } catch {
+    return { ok: false, reason: 'incompatible' }
+  }
+  return isAuthConfig(body) ? { ok: true, config: body } : { ok: false, reason: 'incompatible' }
+}
+
+export async function fetchAuthConfig(baseUrl?: string): Promise<AuthConfig | null> {
+  const probe = await probeApiUrl(baseUrl)
+  return probe.ok ? probe.config : null
 }
 
 // ─── Connectors ────────────────────────────────────────────────────────────────

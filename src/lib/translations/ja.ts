@@ -164,6 +164,7 @@ export const ja: Translations = {
     noContent: '現在利用可能なスクレイピングフィードはありません。',
   },
   auth: {
+    accountPending: 'アカウントを作成しました。ログインするには管理者の承認が必要です。',
     loginTitle: 'おかえりなさい。',
     loginSubtitle: '前回の続きから始めよう。',
     registerTitle: 'アカウントを作成しよう。',
@@ -360,6 +361,8 @@ export const ja: Translations = {
     alreadyAdded: 'このサーバーはすでにリストにあります。',
     oauthHint:
       'ここでは副サーバーはメールアドレスとパスワードで追加します。副サーバーの OAuth はデスクトップアプリとモバイルアプリで利用できます。',
+    urlUnreachable: 'そのサーバーに接続できません。',
+    urlIncompatible: 'この URL は StayUp API ではありません。',
   },
   serverStatus: {
     title: 'サーバーの状態',

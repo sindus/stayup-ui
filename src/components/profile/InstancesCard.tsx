@@ -11,6 +11,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import {
   addInstanceAction,
   probeInstanceAction,
+  registerInstanceAction,
   reconnectInstanceAction,
   removeInstanceAction,
   renameInstanceAction,
@@ -24,26 +25,49 @@ export interface InstanceView {
   expired: boolean
 }
 
-/** Sous-formulaire e-mail / mot de passe partagé par « ajouter » et « reconnecter ». */
+/** Sous-formulaire e-mail / mot de passe partagé par « ajouter » et « reconnecter ».
+ *  `onRegister` (ajout seulement) active le basculement « se connecter / créer un
+ *  compte » : en mode inscription, un champ nom s'ajoute et `onRegister` remplace
+ *  `onSubmit`. */
 function CredForm({
   idPrefix,
   submitLabel,
   onSubmit,
   onCancel,
+  onRegister,
+  registrationMode,
 }: {
   idPrefix: string
   submitLabel: string
   onSubmit: (email: string, password: string) => Promise<string | null>
   onCancel: () => void
+  onRegister?: (name: string, email: string, password: string) => Promise<string | null>
+  registrationMode?: 'open' | 'approval'
 }) {
   const { t } = useLanguage()
+  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
 
+  const isRegister = !!onRegister && mode === 'register'
+
   return (
     <div className="space-y-3">
+      {isRegister && (
+        <div className="space-y-1.5">
+          <Label htmlFor={`${idPrefix}-name`}>{t.auth.name}</Label>
+          <Input
+            id={`${idPrefix}-name`}
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+      )}
       <div className="space-y-1.5">
         <Label htmlFor={`${idPrefix}-email`}>{t.instances.email}</Label>
         <Input
@@ -59,12 +83,15 @@ function CredForm({
         <Input
           id={`${idPrefix}-password`}
           type="password"
-          autoComplete="current-password"
+          autoComplete={isRegister ? 'new-password' : 'current-password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {isRegister && registrationMode === 'approval' && (
+        <p className="text-[13px] text-muted-foreground">{t.auth.pendingApprovalHint}</p>
+      )}
       <div className="flex gap-2">
         <Button
           type="button"
@@ -72,17 +99,31 @@ function CredForm({
           onClick={() =>
             startTransition(async () => {
               setError(null)
-              const err = await onSubmit(email, password)
+              const err = isRegister
+                ? await onRegister!(name, email, password)
+                : await onSubmit(email, password)
               if (err) setError(err)
             })
           }
         >
-          {pending ? t.instances.connecting : submitLabel}
+          {pending ? t.instances.connecting : isRegister ? t.auth.signUp : submitLabel}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           {t.instances.cancel}
         </Button>
       </div>
+      {onRegister && (
+        <button
+          type="button"
+          onClick={() => {
+            setError(null)
+            setMode(mode === 'login' ? 'register' : 'login')
+          }}
+          className="text-[13px] text-muted-foreground underline"
+        >
+          {mode === 'login' ? t.auth.noAccount + ' ' + t.auth.signUp : t.auth.alreadyAccount}
+        </button>
+      )}
     </div>
   )
 }
@@ -94,10 +135,16 @@ export function InstancesCard({ instances }: { instances: InstanceView[] }) {
 
   const [adding, setAdding] = useState(false)
   const [url, setUrl] = useState('')
-  const [probe, setProbe] = useState<{ name: string } | null>(null)
+  const [probe, setProbe] = useState<{
+    name: string
+    registrationMode?: 'open' | 'approval'
+  } | null>(null)
   const [probeError, setProbeError] = useState<string | null>(null)
   const [probing, startProbe] = useTransition()
   const [reconnectId, setReconnectId] = useState<string | null>(null)
+  // Confirmation « compte créé, en attente d'un admin » : survit à la fermeture
+  // du formulaire d'ajout.
+  const [notice, setNotice] = useState<string | null>(null)
 
   const multi = instances.length > 1
 
@@ -209,10 +256,22 @@ export function InstancesCard({ instances }: { instances: InstanceView[] }) {
 
         {multi && <p className="text-[12px] text-muted-foreground">{t.instances.oauthHint}</p>}
 
+        {notice && (
+          <p
+            className="rounded-md px-3 py-2 text-[13px]"
+            style={{ background: 'var(--sage-dim)', color: 'var(--sage)' }}
+          >
+            {notice}
+          </p>
+        )}
+
         {!adding ? (
           <button
             type="button"
-            onClick={() => setAdding(true)}
+            onClick={() => {
+              setNotice(null)
+              setAdding(true)
+            }}
             className="flex items-center gap-1.5 rounded-md border px-3 py-2 text-[13px]"
             style={{ borderColor: 'var(--border-color)' }}
           >
@@ -242,7 +301,8 @@ export function InstancesCard({ instances }: { instances: InstanceView[] }) {
                       setProbeError(null)
                       const res = await probeInstanceAction(url)
                       if (res.error) setProbeError(res.error)
-                      else setProbe({ name: res.name ?? url })
+                      else
+                        setProbe({ name: res.name ?? url, registrationMode: res.registrationMode })
                     })
                   }
                 >
@@ -258,9 +318,22 @@ export function InstancesCard({ instances }: { instances: InstanceView[] }) {
                   idPrefix="add-instance"
                   submitLabel={t.instances.connect}
                   onCancel={resetAdd}
+                  registrationMode={probe.registrationMode}
                   onSubmit={async (email, password) => {
                     const res = await addInstanceAction(url, email, password)
                     if (res.error) return res.error
+                    resetAdd()
+                    router.refresh()
+                    return null
+                  }}
+                  onRegister={async (name, email, password) => {
+                    const res = await registerInstanceAction(url, name, email, password)
+                    if (res.error) return res.error
+                    if (res.pending) {
+                      setNotice(t.auth.accountPending)
+                      resetAdd()
+                      return null
+                    }
                     resetAdd()
                     router.refresh()
                     return null

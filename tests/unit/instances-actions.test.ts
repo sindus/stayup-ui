@@ -11,8 +11,9 @@ vi.mock('next/navigation', () => ({ redirect: (u: string) => redirect(u) }))
 
 vi.mock('@/lib/serverLang', () => ({ getServerTranslations: async () => en }))
 
-const { fetchAuthConfig, store } = vi.hoisted(() => ({
+const { fetchAuthConfig, probeApiUrl, store } = vi.hoisted(() => ({
   fetchAuthConfig: vi.fn(),
+  probeApiUrl: vi.fn(),
   store: {
     readInstances: vi.fn(),
     addInstanceEntry: vi.fn(),
@@ -29,12 +30,13 @@ const { fetchAuthConfig, store } = vi.hoisted(() => ({
     },
   },
 }))
-vi.mock('@/lib/api-client', () => ({ fetchAuthConfig }))
+vi.mock('@/lib/api-client', () => ({ fetchAuthConfig, probeApiUrl }))
 vi.mock('@/lib/instances', () => store)
 
 import {
   addInstanceAction,
   probeInstanceAction,
+  registerInstanceAction,
   reconnectInstanceAction,
   removeInstanceAction,
   renameInstanceAction,
@@ -45,6 +47,10 @@ beforeEach(() => {
   vi.clearAllMocks()
   store.readInstances.mockResolvedValue([])
   fetchAuthConfig.mockResolvedValue({ name: 'Beta' })
+  probeApiUrl.mockResolvedValue({
+    ok: true,
+    config: { name: 'Beta', registrationMode: 'open' },
+  })
   mockFetch.mockResolvedValue({ ok: true, json: async () => ({ token: 'tok-b' }) })
 })
 
@@ -59,13 +65,33 @@ describe('probeInstanceAction', () => {
     expect(await probeInstanceAction('not-a-url')).toEqual({ error: en.errors.privateApiUrl })
   })
 
-  it('returns the resolved display name', async () => {
-    expect(await probeInstanceAction('https://b.example.com')).toEqual({ name: 'Beta' })
+  it('returns the resolved display name and registration mode', async () => {
+    expect(await probeInstanceAction('https://b.example.com')).toEqual({
+      name: 'Beta',
+      registrationMode: 'open',
+    })
   })
 
   it('falls back to the host when the API exposes no name', async () => {
-    fetchAuthConfig.mockResolvedValue(null)
-    expect(await probeInstanceAction('https://b.example.com')).toEqual({ name: 'b.example.com' })
+    probeApiUrl.mockResolvedValue({ ok: true, config: {} })
+    expect(await probeInstanceAction('https://b.example.com')).toEqual({
+      name: 'b.example.com',
+      registrationMode: undefined,
+    })
+  })
+
+  it('rejects an unreachable server', async () => {
+    probeApiUrl.mockResolvedValue({ ok: false, reason: 'unreachable' })
+    expect(await probeInstanceAction('https://b.example.com')).toEqual({
+      error: en.instances.urlUnreachable,
+    })
+  })
+
+  it('rejects a URL that is not a StayUp API', async () => {
+    probeApiUrl.mockResolvedValue({ ok: false, reason: 'incompatible' })
+    expect(await probeInstanceAction('https://b.example.com')).toEqual({
+      error: en.instances.urlIncompatible,
+    })
   })
 })
 
@@ -107,6 +133,59 @@ describe('addInstanceAction', () => {
 
   it('rejects a private address', async () => {
     expect(await addInstanceAction('http://10.0.0.1', 'u@b.io', 'pw')).toEqual({
+      error: en.errors.privateApiUrl,
+    })
+  })
+})
+
+describe('registerInstanceAction', () => {
+  it('creates the account then stores the instance', async () => {
+    expect(
+      await registerInstanceAction('https://b.example.com/', 'Bea', 'bea@b.io', 'pass1234'),
+    ).toEqual({})
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://b.example.com/auth/register',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    expect(store.addInstanceEntry).toHaveBeenCalledWith({
+      url: 'https://b.example.com',
+      name: 'Beta',
+      token: 'tok-b',
+    })
+  })
+
+  it('returns { pending } and stores nothing when the instance needs approval', async () => {
+    mockFetch.mockResolvedValue({ ok: true, status: 202, json: async () => ({}) })
+    expect(
+      await registerInstanceAction('https://b.example.com', 'Bea', 'bea@b.io', 'pass1234'),
+    ).toEqual({ pending: true })
+    expect(store.addInstanceEntry).not.toHaveBeenCalled()
+  })
+
+  it('maps a 409 to the taken-email message', async () => {
+    mockFetch.mockResolvedValue({ ok: false, status: 409, json: async () => ({}) })
+    expect(
+      await registerInstanceAction('https://b.example.com', 'Bea', 'taken@b.io', 'pass1234'),
+    ).toEqual({ error: en.errors.emailTaken })
+  })
+
+  it('reports an unreachable server when the request throws', async () => {
+    mockFetch.mockRejectedValue(new Error('offline'))
+    expect(
+      await registerInstanceAction('https://b.example.com', 'Bea', 'bea@b.io', 'pass1234'),
+    ).toEqual({ error: en.instances.urlUnreachable })
+  })
+
+  it('rejects an address already in the list', async () => {
+    store.readInstances.mockResolvedValue([{ url: 'https://b.example.com' }])
+    expect(
+      await registerInstanceAction('https://b.example.com', 'Bea', 'bea@b.io', 'pass1234'),
+    ).toEqual({ error: en.instances.alreadyAdded })
+    expect(store.addInstanceEntry).not.toHaveBeenCalled()
+  })
+
+  it('rejects a private address', async () => {
+    expect(await registerInstanceAction('http://10.0.0.1', 'Bea', 'bea@b.io', 'pass1234')).toEqual({
       error: en.errors.privateApiUrl,
     })
   })

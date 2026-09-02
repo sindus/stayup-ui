@@ -172,6 +172,8 @@ export const de: Translations = {
     noContent: 'Derzeit sind keine Scraping-Feeds verfügbar.',
   },
   auth: {
+    accountPending:
+      'Konto erstellt. Ein Administrator muss es freigeben, bevor du dich anmelden kannst.',
     loginTitle: 'Schön, dich wiederzusehen.',
     loginSubtitle: 'Mach da weiter, wo du aufgehört hast.',
     registerTitle: 'Erstelle dein Konto.',
@@ -370,6 +372,8 @@ export const de: Translations = {
     alreadyAdded: 'Dieser Server ist bereits in deiner Liste.',
     oauthHint:
       'Sekundäre Server werden hier mit E-Mail und Passwort hinzugefügt. OAuth für sekundäre Server funktioniert in den Desktop- und Mobil-Apps.',
+    urlUnreachable: 'Server nicht erreichbar.',
+    urlIncompatible: 'Diese URL ist keine StayUp-API.',
   },
   serverStatus: {
     title: 'Serverstatus',
