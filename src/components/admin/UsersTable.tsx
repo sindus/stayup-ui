@@ -19,7 +19,7 @@ import { EditUserDialog } from './EditUserDialog'
 
 export function UsersTable({ users }: { users: AdminUser[] }) {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +55,7 @@ export function UsersTable({ users }: { users: AdminUser[] }) {
               <TableCell className="font-medium">{user.name}</TableCell>
               <TableCell className="text-muted-foreground">{user.email}</TableCell>
               <TableCell className="text-muted-foreground text-sm">
-                {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                {new Date(user.created_at).toLocaleDateString(lang)}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">

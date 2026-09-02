@@ -15,7 +15,7 @@ type FormData = { currentPassword: string; password: string }
 export function AdminPasswordForm() {
   const { t } = useLanguage()
   const schema = z.object({
-    currentPassword: z.string().min(1, 'Mot de passe requis'),
+    currentPassword: z.string().min(1, t.admin.login.passwordRequired),
     password: z.string().min(8, t.auth.passwordTooShort),
   })
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +42,7 @@ export function AdminPasswordForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+        <Label htmlFor="currentPassword">{t.admin.currentPassword}</Label>
         <Input
           id="currentPassword"
           type="password"
@@ -54,7 +54,7 @@ export function AdminPasswordForm() {
         )}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">Nouveau mot de passe</Label>
+        <Label htmlFor="password">{t.admin.newPassword}</Label>
         <Input
           id="password"
           type="password"
@@ -64,7 +64,7 @@ export function AdminPasswordForm() {
         {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {done && <p className="text-sm text-emerald-600">Mot de passe mis à jour.</p>}
+      {done && <p className="text-sm text-emerald-600">{t.admin.passwordUpdated}</p>}
       <Button type="submit" disabled={isSubmitting}>
         {isSubmitting ? t.admin.saving : t.admin.save}
       </Button>

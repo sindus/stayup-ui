@@ -32,7 +32,7 @@ export function UserFluxesTable({
   repositories: UserRepositoryItem[]
 }) {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -74,7 +74,7 @@ export function UserFluxesTable({
                 {repo.url}
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {new Date(repo.created_at).toLocaleDateString('fr-FR')}
+                {new Date(repo.created_at).toLocaleDateString(lang)}
               </TableCell>
               <TableCell className="text-right">
                 {confirmId === repo.id ? (

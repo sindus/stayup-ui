@@ -24,7 +24,7 @@ export function AdminsTable({
   currentAdminId: string
 }) {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const [pending, setPending] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -47,7 +47,7 @@ export function AdminsTable({
           <TableRow>
             <TableHead>{t.admin.name}</TableHead>
             <TableHead>{t.admin.email}</TableHead>
-            <TableHead>Rôle</TableHead>
+            <TableHead>{t.admin.role}</TableHead>
             <TableHead>{t.admin.createdOn}</TableHead>
             <TableHead className="text-right">{t.admin.actions}</TableHead>
           </TableRow>
@@ -62,10 +62,10 @@ export function AdminsTable({
                 <TableCell className="font-medium">{admin.name}</TableCell>
                 <TableCell className="text-muted-foreground">{admin.email}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {admin.is_super ? 'Super admin' : 'Admin'}
+                  {admin.is_super ? t.admin.roleSuper : t.admin.roleAdmin}
                 </TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {new Date(admin.created_at).toLocaleDateString('fr-FR')}
+                  {new Date(admin.created_at).toLocaleDateString(lang)}
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
@@ -106,7 +106,7 @@ export function AdminsTable({
           {admins.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                Aucun administrateur
+                {t.admin.noAdmins}
               </TableCell>
             </TableRow>
           )}

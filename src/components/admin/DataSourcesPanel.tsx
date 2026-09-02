@@ -25,6 +25,7 @@ import {
   adminDeleteDataSourceAction,
   adminTestDataSourceAction,
 } from '@/lib/admin-actions'
+import { useLanguage } from '@/context/LanguageContext'
 import type { DataSource, DataSourceProbe, DataSourcesResponse } from '@/lib/api-client'
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -37,6 +38,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function AddDialog({ onDone }: { onDone: () => void }) {
+  const { t } = useLanguage()
+  const d = t.admin.dataSources
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
   const [url, setUrl] = useState('')
@@ -84,24 +87,24 @@ function AddDialog({ onDone }: { onDone: () => void }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm">+ Ajouter une base secondaire</Button>
+        <Button size="sm">{d.addSecondary}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nouvelle base secondaire</DialogTitle>
+          <DialogTitle>{d.newSecondary}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="ds-name">Nom</Label>
+            <Label htmlFor="ds-name">{d.name}</Label>
             <Input
               id="ds-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Cluster équipe data"
+              placeholder={d.namePlaceholder}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="ds-url">URL de connexion</Label>
+            <Label htmlFor="ds-url">{d.connectionUrl}</Label>
             <Input
               id="ds-url"
               value={url}
@@ -111,24 +114,22 @@ function AddDialog({ onDone }: { onDone: () => void }) {
               }}
               placeholder="postgres://user:pass@host:5432/db"
             />
-            <p className="text-[12px] text-muted-foreground">
-              Lecture seule. Stockée chiffrée — jamais réaffichée.
-            </p>
+            <p className="text-[12px] text-muted-foreground">{d.connectionHint}</p>
           </div>
 
           {probe?.ok === false && <p className="text-sm text-destructive">{probe.error}</p>}
           {probe?.ok === true && (
             <div className="rounded-md border border-border p-3 text-[13px]">
               <p>
-                Moteur <span className="font-mono">{probe.engine}</span>
+                {d.engine} <span className="font-mono">{probe.engine}</span>
               </p>
               {probe.connectors.length > 0 ? (
                 <p className="mt-1">
-                  Connecteurs trouvés :{' '}
+                  {d.connectorsFound}{' '}
                   <span className="font-mono">{probe.connectors.join(', ')}</span>
                 </p>
               ) : (
-                <p className="mt-1 text-destructive">Aucune table connector_* — rien à agréger.</p>
+                <p className="mt-1 text-destructive">{d.noConnectors}</p>
               )}
             </div>
           )}
@@ -141,10 +142,10 @@ function AddDialog({ onDone }: { onDone: () => void }) {
               onClick={test}
               disabled={pending !== null || url.trim() === ''}
             >
-              {pending === 'test' ? 'Test…' : 'Tester'}
+              {pending === 'test' ? d.testing : d.test}
             </Button>
             <Button type="button" onClick={confirm} disabled={pending !== null || !canConfirm}>
-              {pending === 'add' ? 'Ajout…' : 'Confirmer'}
+              {pending === 'add' ? d.adding : d.confirm}
             </Button>
           </div>
         </div>
@@ -154,13 +155,13 @@ function AddDialog({ onDone }: { onDone: () => void }) {
 }
 
 function SourceRow({ source, onDone }: { source: DataSource; onDone: () => void }) {
+  const { t } = useLanguage()
+  const d = t.admin.dataSources
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   async function remove() {
-    if (
-      !window.confirm(`Retirer « ${source.name} » ? Les abonnements à ses flux seront supprimés.`)
-    ) {
+    if (!window.confirm(d.removeConfirm.replace('{name}', source.name))) {
       return
     }
     setPending(true)
@@ -188,7 +189,7 @@ function SourceRow({ source, onDone }: { source: DataSource; onDone: () => void 
           disabled={pending}
           onClick={remove}
         >
-          {pending ? '…' : 'Retirer'}
+          {pending ? '…' : d.remove}
         </Button>
       </TableCell>
     </TableRow>
@@ -197,10 +198,12 @@ function SourceRow({ source, onDone }: { source: DataSource; onDone: () => void 
 
 export function DataSourcesPanel({ data }: { data: DataSourcesResponse | null }) {
   const router = useRouter()
+  const { t } = useLanguage()
+  const d = t.admin.dataSources
   const refresh = () => router.refresh()
 
   if (!data) {
-    return <p className="text-sm text-destructive">Impossible de charger les bases de données.</p>
+    return <p className="text-sm text-destructive">{d.loadError}</p>
   }
 
   return (
@@ -210,37 +213,32 @@ export function DataSourcesPanel({ data }: { data: DataSourcesResponse | null })
         style={{ borderColor: 'var(--border-color)', background: 'var(--surface)' }}
       >
         <p className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Base principale
+          {d.primary}
         </p>
-        <InfoRow label="Moteur" value={data.primary.engine} />
-        <InfoRow label="Hôte" value={data.primary.host} />
-        <p className="mt-3 text-[12px] text-muted-foreground">
-          Gère l&apos;API, l&apos;admin et les abonnements. Configurée par
-          <span className="font-mono"> DATABASE_URL</span>, non modifiable ici.
-        </p>
+        <InfoRow label={d.engine} value={data.primary.engine} />
+        <InfoRow label={d.host} value={data.primary.host} />
+        <p className="mt-3 text-[12px] text-muted-foreground">{d.primaryHint}</p>
       </div>
 
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Bases secondaires</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            En lecture seule : seul leur contenu connector_* est agrégé dans les feeds.
-          </p>
+          <h2 className="text-lg font-semibold">{d.secondaryTitle}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{d.secondaryDesc}</p>
         </div>
         <AddDialog onDone={refresh} />
       </div>
 
       {data.sources.length === 0 ? (
-        <p className="text-sm text-muted-foreground py-4">Aucune base secondaire.</p>
+        <p className="text-sm text-muted-foreground py-4">{d.noSecondary}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Moteur</TableHead>
-              <TableHead>Hôte</TableHead>
-              <TableHead>Ajoutée le</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>{d.name}</TableHead>
+              <TableHead>{d.engine}</TableHead>
+              <TableHead>{d.host}</TableHead>
+              <TableHead>{d.colAddedOn}</TableHead>
+              <TableHead className="text-right">{t.admin.providersTable.action}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

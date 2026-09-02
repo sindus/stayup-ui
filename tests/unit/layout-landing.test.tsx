@@ -10,6 +10,9 @@ import { CtaButtons } from '@/components/landing/CtaButtons'
 import { DownloadSection } from '@/components/landing/DownloadSection'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
+
+const nav = en.admin.nav
 
 const logoutAction = vi.fn()
 vi.mock('@/lib/auth-actions', () => ({ logoutAction: () => logoutAction() }))
@@ -294,42 +297,39 @@ describe('DownloadSection', () => {
 describe('AdminSidebar', () => {
   it('lists users, feeds, providers and flux requests', () => {
     pathname = '/admin/users'
-    render(<AdminSidebar />)
-    expect(screen.getByRole('link', { name: 'Utilisateurs' })).toHaveAttribute(
-      'href',
-      '/admin/users',
-    )
-    expect(screen.getByRole('link', { name: 'Flux' })).toHaveAttribute(
+    renderWithLang(<AdminSidebar />)
+    expect(screen.getByRole('link', { name: nav.users })).toHaveAttribute('href', '/admin/users')
+    expect(screen.getByRole('link', { name: nav.feeds })).toHaveAttribute(
       'href',
       '/admin/repositories',
     )
-    expect(screen.getByRole('link', { name: 'Providers' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: nav.providers })).toHaveAttribute(
       'href',
       '/admin/providers',
     )
-    expect(screen.getByRole('link', { name: 'Demandes de flux' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: nav.fluxRequests })).toHaveAttribute(
       'href',
       '/admin/flux-requests',
     )
-    expect(screen.getByRole('link', { name: 'Bases de données' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: nav.dataSources })).toHaveAttribute(
       'href',
       '/admin/data-sources',
     )
   })
 
   it('shows the Admins entry only for a super admin', () => {
-    render(<AdminSidebar isSuper />)
-    expect(screen.getByRole('link', { name: 'Admins' })).toHaveAttribute('href', '/admin/admins')
+    renderWithLang(<AdminSidebar isSuper />)
+    expect(screen.getByRole('link', { name: nav.admins })).toHaveAttribute('href', '/admin/admins')
   })
 
   it('no longer lists a documentation entry', () => {
-    render(<AdminSidebar />)
+    renderWithLang(<AdminSidebar />)
     expect(screen.queryByRole('link', { name: 'Documentation' })).not.toBeInTheDocument()
   })
 
   it('marks the active entry', () => {
     pathname = '/admin/users/u1'
-    render(<AdminSidebar />)
-    expect(screen.getByRole('link', { name: 'Utilisateurs' }).className).toContain('font-medium')
+    renderWithLang(<AdminSidebar />)
+    expect(screen.getByRole('link', { name: nav.users }).className).toContain('font-medium')
   })
 })

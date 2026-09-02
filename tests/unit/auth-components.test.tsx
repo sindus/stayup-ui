@@ -7,7 +7,11 @@ import { LoginPageContent } from '@/components/auth/LoginPageContent'
 import { RegisterPageContent } from '@/components/auth/RegisterPageContent'
 import { OAuthButtons } from '@/components/auth/OAuthButtons'
 import { AdminLoginForm } from '@/components/admin/AdminLoginForm'
+import { AdminLoginContent } from '@/components/admin/AdminLoginContent'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
+
+const al = en.admin.login
 
 const loginAction = vi.fn()
 const registerAction = vi.fn()
@@ -208,35 +212,49 @@ describe('RegisterPageContent', () => {
 describe('AdminLoginForm', () => {
   it('submits the admin credentials (e-mail carried in the username field)', async () => {
     const user = userEvent.setup()
-    render(<AdminLoginForm />)
+    renderWithLang(<AdminLoginForm />)
 
-    await user.type(screen.getByLabelText('Email'), 'root@example.com')
-    await user.type(screen.getByLabelText('Mot de passe'), 'secret')
-    await user.click(screen.getByRole('button', { name: 'Se connecter' }))
+    await user.type(screen.getByLabelText(en.admin.email), 'root@example.com')
+    await user.type(screen.getByLabelText(al.password), 'secret')
+    await user.click(screen.getByRole('button', { name: al.submit }))
 
     await waitFor(() => expect(adminLoginAction).toHaveBeenCalledWith('root@example.com', 'secret'))
   })
 
   it('requires both fields', async () => {
     const user = userEvent.setup()
-    render(<AdminLoginForm />)
+    renderWithLang(<AdminLoginForm />)
 
-    await user.click(screen.getByRole('button', { name: 'Se connecter' }))
+    await user.click(screen.getByRole('button', { name: al.submit }))
 
-    expect(await screen.findByText('Email invalide')).toBeInTheDocument()
-    expect(screen.getByText('Mot de passe requis')).toBeInTheDocument()
+    expect(await screen.findByText(al.emailInvalid)).toBeInTheDocument()
+    expect(screen.getByText(al.passwordRequired)).toBeInTheDocument()
     expect(adminLoginAction).not.toHaveBeenCalled()
   })
 
   it('surfaces the server error', async () => {
     adminLoginAction.mockResolvedValue({ error: 'Identifiants incorrects.' })
     const user = userEvent.setup()
-    render(<AdminLoginForm />)
+    renderWithLang(<AdminLoginForm />)
 
-    await user.type(screen.getByLabelText('Email'), 'root@example.com')
-    await user.type(screen.getByLabelText('Mot de passe'), 'bad')
-    await user.click(screen.getByRole('button', { name: 'Se connecter' }))
+    await user.type(screen.getByLabelText(en.admin.email), 'root@example.com')
+    await user.type(screen.getByLabelText(al.password), 'bad')
+    await user.click(screen.getByRole('button', { name: al.submit }))
 
     expect(await screen.findByText('Identifiants incorrects.')).toBeInTheDocument()
+  })
+})
+
+describe('AdminLoginContent', () => {
+  it('shows the login form, the language switcher, and reveals the API URL field behind the host line', async () => {
+    const user = userEvent.setup()
+    renderWithLang(<AdminLoginContent apiUrl="https://api.test" />)
+
+    expect(screen.getByRole('button', { name: al.submit })).toBeInTheDocument()
+    expect(screen.getByLabelText(en.common.language)).toBeInTheDocument()
+
+    expect(screen.queryByLabelText('API URL')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Server · api\.test/ }))
+    expect(screen.getByLabelText('API URL')).toBeInTheDocument()
   })
 })

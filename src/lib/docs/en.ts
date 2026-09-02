@@ -255,7 +255,7 @@ export const en = {
         'How people get accounts on your instance, and how to turn on sign-in with Google or GitHub.',
       registration: {
         heading: 'Registration modes',
-        body: 'REGISTRATION_MODE decides what a public sign-up does. open (the default): the account is created and the person is signed in at once — this is today’s behaviour. approval: the sign-up is parked instead. POST /auth/register answers 202 with no token, an OAuth sign-up bounces back with ?error=pending_approval, and a login attempt for a waiting e-mail answers 403. An admin then works the queue under /admin/users → “Comptes en attente”. Accounts an admin creates are always active, whatever the mode; so is an OAuth sign-up whose verified e-mail already matches an active account.',
+        body: 'REGISTRATION_MODE decides what a public sign-up does. open (the default): the account is created and the person is signed in at once — this is today’s behaviour. approval: the sign-up is parked instead. POST /auth/register answers 202 with no token, an OAuth sign-up bounces back with ?error=pending_approval, and a login attempt for a waiting e-mail answers 403. An admin then works the queue under /admin/users → “Pending accounts”. Accounts an admin creates are always active, whatever the mode; so is an OAuth sign-up whose verified e-mail already matches an active account.',
       },
       pointing: {
         heading: 'Where the apps sign in',
@@ -336,7 +336,7 @@ export const en = {
 
     webUi: {
       heading: 'The admin web UI',
-      body: 'It is the same web app as the public site, opened at /admin, pointed at your API. It is optional — everything it does has an API route behind it — but it is the practical way to operate an instance. Deploy it like any other copy of the web app, set STAYUP_API_URL to your API, and sign in at /admin/login.',
+      body: 'It is the same web app as the public site, opened at /admin, pointed at your API. It is optional — everything it does has an API route behind it — but it is the practical way to operate an instance. Deploy it like any other copy of the web app, set STAYUP_API_URL to your API, and sign in at /admin/login. That URL is only the default — the sign-in screen has a “Server” line to point it elsewhere, and a language picker; both also live under /admin/settings once signed in.',
       note: 'The admin session is a separate cookie from a user session. The same browser can hold both at once without one signing the other out.',
     },
 

@@ -73,7 +73,7 @@ export function EditAdminDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Modifier l&apos;administrateur</DialogTitle>
+          <DialogTitle>{t.admin.editAdmin}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <div className="space-y-2">

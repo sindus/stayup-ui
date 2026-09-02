@@ -12,11 +12,14 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { adminSetProviderApprovalAction } from '@/lib/admin-actions'
+import { useLanguage } from '@/context/LanguageContext'
 
 type Provider = { name: string; displayName: string; flux_approval: 'auto' | 'manual' }
 
 export function ProvidersTable({ providers }: { providers: Provider[] }) {
   const router = useRouter()
+  const { t } = useLanguage()
+  const pt = t.admin.providersTable
   const [pending, setPending] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,18 +39,16 @@ export function ProvidersTable({ providers }: { providers: Provider[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Provider</TableHead>
-            <TableHead>Ajout d&apos;un flux</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            <TableHead>{pt.provider}</TableHead>
+            <TableHead>{pt.addingFeed}</TableHead>
+            <TableHead className="text-right">{pt.action}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {providers.map((p) => (
             <TableRow key={p.name}>
               <TableCell className="font-medium">{p.displayName}</TableCell>
-              <TableCell>
-                {p.flux_approval === 'manual' ? 'Sur approbation d’un admin' : 'Automatique'}
-              </TableCell>
+              <TableCell>{p.flux_approval === 'manual' ? pt.onApproval : pt.auto}</TableCell>
               <TableCell className="text-right">
                 <Button
                   size="sm"
@@ -58,8 +59,8 @@ export function ProvidersTable({ providers }: { providers: Provider[] }) {
                   {pending === p.name
                     ? '…'
                     : p.flux_approval === 'auto'
-                      ? 'Passer sur approbation'
-                      : 'Passer en automatique'}
+                      ? pt.switchToApproval
+                      : pt.switchToAuto}
                 </Button>
               </TableCell>
             </TableRow>
@@ -67,7 +68,7 @@ export function ProvidersTable({ providers }: { providers: Provider[] }) {
           {providers.length === 0 && (
             <TableRow>
               <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                Aucun provider
+                {pt.none}
               </TableCell>
             </TableRow>
           )}

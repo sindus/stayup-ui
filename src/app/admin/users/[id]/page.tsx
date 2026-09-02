@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { getAdminSession, getAdminToken } from '@/lib/session'
+import { getServerLang, getServerTranslations } from '@/lib/serverLang'
 import { adminGetUser, getUserFeed } from '@/lib/api-client'
 import { UserFluxesTable } from '@/components/admin/UserFluxesTable'
 import { EditUserDialog } from '@/components/admin/EditUserDialog'
@@ -14,17 +15,20 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
   const token = await getAdminToken()
   const { id } = await params
 
-  const [user, feed] = await Promise.all([
+  const [user, feed, t, lang] = await Promise.all([
     adminGetUser(id, token as string).catch(() => null),
     getUserFeed(id, token as string).catch(() => ({ repositories: [], connectors: {} })),
+    getServerTranslations(),
+    getServerLang(),
   ])
+  const p = t.admin.pages
 
   if (!user) notFound()
 
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" asChild>
-        <Link href="/admin/users">← Utilisateurs</Link>
+        <Link href="/admin/users">← {p.backToUsers}</Link>
       </Button>
 
       <Card>
@@ -34,7 +38,7 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
               <CardTitle>{user.name}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Inscrit le {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                {p.joinedOn.replace('{date}', new Date(user.created_at).toLocaleDateString(lang))}
               </p>
             </div>
             <EditUserDialog user={user} onSuccess={() => {}} />
@@ -44,7 +48,9 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Flux ({feed.repositories.length})</CardTitle>
+          <CardTitle className="text-base">
+            {p.userFeeds.replace('{n}', String(feed.repositories.length))}
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <UserFluxesTable userId={id} repositories={feed.repositories} />

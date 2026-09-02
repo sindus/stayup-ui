@@ -12,23 +12,23 @@ import {
   Database,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-const NAV_ITEMS = [
-  { label: 'Utilisateurs', href: '/admin/users', icon: Users },
-  { label: 'Flux', href: '/admin/repositories', icon: GitBranch },
-  { label: 'Providers', href: '/admin/providers', icon: SlidersHorizontal },
-  { label: 'Demandes de flux', href: '/admin/flux-requests', icon: Inbox },
-  { label: 'Bases de données', href: '/admin/data-sources', icon: Database },
-]
-
-// Réservé au super admin : la gestion des autres administrateurs.
-const SUPER_ITEMS = [{ label: 'Admins', href: '/admin/admins', icon: ShieldCheck }]
-
-const ACCOUNT_ITEM = { label: 'Mon compte', href: '/admin/settings', icon: KeyRound }
+import { useLanguage } from '@/context/LanguageContext'
 
 export function AdminSidebar({ isSuper = false }: { isSuper?: boolean }) {
   const pathname = usePathname()
-  const items = [...NAV_ITEMS, ...(isSuper ? SUPER_ITEMS : []), ACCOUNT_ITEM]
+  const { t } = useLanguage()
+  const nav = t.admin.nav
+
+  const items = [
+    { label: nav.users, href: '/admin/users', icon: Users },
+    { label: nav.feeds, href: '/admin/repositories', icon: GitBranch },
+    { label: nav.providers, href: '/admin/providers', icon: SlidersHorizontal },
+    { label: nav.fluxRequests, href: '/admin/flux-requests', icon: Inbox },
+    { label: nav.dataSources, href: '/admin/data-sources', icon: Database },
+    // Réservé au super admin : la gestion des autres administrateurs.
+    ...(isSuper ? [{ label: nav.admins, href: '/admin/admins', icon: ShieldCheck }] : []),
+    { label: nav.account, href: '/admin/settings', icon: KeyRound },
+  ]
 
   return (
     <>

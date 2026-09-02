@@ -7,6 +7,7 @@ import { RepositoriesTable } from '@/components/admin/RepositoriesTable'
 import { UserFluxesTable } from '@/components/admin/UserFluxesTable'
 import { AdminsTable } from '@/components/admin/AdminsTable'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
 import type { AdminUser, AdminRepository, UserRepositoryItem, AdminAccount } from '@/lib/api-client'
 
 const refresh = vi.fn()
@@ -343,14 +344,14 @@ const ADMINS: AdminAccount[] = [
 describe('AdminsTable', () => {
   it('shows the empty state', () => {
     withLang(<AdminsTable admins={[]} currentAdminId="x" />)
-    expect(screen.getByText('Aucun administrateur')).toBeInTheDocument()
+    expect(screen.getByText(en.admin.noAdmins)).toBeInTheDocument()
   })
 
   it('locks the super admin and the current admin against deletion', () => {
     withLang(<AdminsTable admins={ADMINS} currentAdminId="a-ops" />)
     // Neither row exposes a Delete button: a-super is super, a-ops is "me".
     expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
-    expect(screen.getByText('Super admin')).toBeInTheDocument()
+    expect(screen.getByText(en.admin.roleSuper)).toBeInTheDocument()
   })
 
   it('deletes a plain admin after confirmation', async () => {

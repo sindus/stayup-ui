@@ -2,7 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DataSourcesPanel } from '@/components/admin/DataSourcesPanel'
+import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
 import type { DataSourcesResponse } from '@/lib/api-client'
+
+const d = en.admin.dataSources
+const renderDS = (ui: React.ReactElement) =>
+  render(<LanguageProvider initialLang="en">{ui}</LanguageProvider>)
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
@@ -40,31 +46,31 @@ beforeEach(() => {
 
 describe('DataSourcesPanel', () => {
   it('renders the primary info read-only and the secondary list', () => {
-    render(<DataSourcesPanel data={DATA} />)
-    expect(screen.getByText('Base principale')).toBeInTheDocument()
+    renderDS(<DataSourcesPanel data={DATA} />)
+    expect(screen.getByText(d.primary)).toBeInTheDocument()
     expect(screen.getByText('db:5432')).toBeInTheDocument()
     expect(screen.getByText('Team feeds')).toBeInTheDocument()
     expect(screen.getByText('mysql.internal')).toBeInTheDocument()
   })
 
   it('shows an error when the payload could not be loaded', () => {
-    render(<DataSourcesPanel data={null} />)
-    expect(screen.getByText(/Impossible de charger/)).toBeInTheDocument()
+    renderDS(<DataSourcesPanel data={null} />)
+    expect(screen.getByText(d.loadError)).toBeInTheDocument()
   })
 
   it('tests a URL then confirms, only enabling confirm once a connector is found', async () => {
     const user = userEvent.setup()
-    render(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
+    renderDS(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
 
-    await user.click(screen.getByRole('button', { name: /Ajouter une base secondaire/ }))
-    await user.type(screen.getByLabelText('Nom'), 'New cluster')
-    await user.type(screen.getByLabelText('URL de connexion'), 'postgres://u:p@h/db')
+    await user.click(screen.getByRole('button', { name: /Add a secondary database/ }))
+    await user.type(screen.getByLabelText(d.name), 'New cluster')
+    await user.type(screen.getByLabelText(d.connectionUrl), 'postgres://u:p@h/db')
 
-    const confirm = screen.getByRole('button', { name: 'Confirmer' })
+    const confirm = screen.getByRole('button', { name: d.confirm })
     expect(confirm).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: 'Tester' }))
-    await waitFor(() => expect(screen.getByText(/Connecteurs trouvés/)).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: d.test }))
+    await waitFor(() => expect(screen.getByText(/Connectors found/)).toBeInTheDocument())
     expect(confirm).toBeEnabled()
 
     await user.click(confirm)
@@ -84,25 +90,25 @@ describe('DataSourcesPanel', () => {
       connectors: [],
     })
     const user = userEvent.setup()
-    render(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
+    renderDS(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
 
-    await user.click(screen.getByRole('button', { name: /Ajouter une base secondaire/ }))
-    await user.type(screen.getByLabelText('Nom'), 'Empty')
-    await user.type(screen.getByLabelText('URL de connexion'), 'postgres://u:p@h/db')
-    await user.click(screen.getByRole('button', { name: 'Tester' }))
+    await user.click(screen.getByRole('button', { name: /Add a secondary database/ }))
+    await user.type(screen.getByLabelText(d.name), 'Empty')
+    await user.type(screen.getByLabelText(d.connectionUrl), 'postgres://u:p@h/db')
+    await user.click(screen.getByRole('button', { name: d.test }))
 
-    await waitFor(() => expect(screen.getByText(/Aucune table connector_\*/)).toBeInTheDocument())
-    expect(screen.getByRole('button', { name: 'Confirmer' })).toBeDisabled()
+    await waitFor(() => expect(screen.getByText(/No connector_\* table/)).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: d.confirm })).toBeDisabled()
   })
 
   it('surfaces a failed probe', async () => {
     actions.adminTestDataSourceAction.mockResolvedValue({ ok: false, error: 'unreachable' })
     const user = userEvent.setup()
-    render(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
+    renderDS(<DataSourcesPanel data={{ ...DATA, sources: [] }} />)
 
-    await user.click(screen.getByRole('button', { name: /Ajouter une base secondaire/ }))
-    await user.type(screen.getByLabelText('URL de connexion'), 'postgres://nope')
-    await user.click(screen.getByRole('button', { name: 'Tester' }))
+    await user.click(screen.getByRole('button', { name: /Add a secondary database/ }))
+    await user.type(screen.getByLabelText(d.connectionUrl), 'postgres://nope')
+    await user.click(screen.getByRole('button', { name: d.test }))
 
     expect(await screen.findByText('unreachable')).toBeInTheDocument()
   })
@@ -110,9 +116,9 @@ describe('DataSourcesPanel', () => {
   it('removes a secondary source after confirmation', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
-    render(<DataSourcesPanel data={DATA} />)
+    renderDS(<DataSourcesPanel data={DATA} />)
 
-    await user.click(screen.getByRole('button', { name: 'Retirer' }))
+    await user.click(screen.getByRole('button', { name: d.remove }))
     await waitFor(() => expect(actions.adminDeleteDataSourceAction).toHaveBeenCalledWith(1))
     await waitFor(() => expect(refresh).toHaveBeenCalled())
     confirmSpy.mockRestore()
@@ -121,9 +127,9 @@ describe('DataSourcesPanel', () => {
   it('does not remove when the confirmation is dismissed', async () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
     const user = userEvent.setup()
-    render(<DataSourcesPanel data={DATA} />)
+    renderDS(<DataSourcesPanel data={DATA} />)
 
-    await user.click(screen.getByRole('button', { name: 'Retirer' }))
+    await user.click(screen.getByRole('button', { name: d.remove }))
     expect(actions.adminDeleteDataSourceAction).not.toHaveBeenCalled()
     confirmSpy.mockRestore()
   })

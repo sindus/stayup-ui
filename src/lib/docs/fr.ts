@@ -249,7 +249,7 @@ export const fr: DocContent = {
         'Comment les gens obtiennent un compte sur ton instance, et comment activer la connexion avec Google ou GitHub.',
       registration: {
         heading: 'Modes d’inscription',
-        body: 'REGISTRATION_MODE décide de ce que fait une inscription publique. open (par défaut) : le compte est créé et la personne est connectée aussitôt — c’est le comportement actuel. approval : l’inscription est mise en attente. POST /auth/register répond 202 sans token, une inscription OAuth revient avec ?error=pending_approval, et une tentative de connexion pour un e-mail en attente répond 403. Un admin traite ensuite la file dans /admin/users → « Comptes en attente ». Les comptes créés par un admin sont toujours actifs, quel que soit le mode ; de même pour une inscription OAuth dont l’e-mail vérifié correspond déjà à un compte actif.',
+        body: 'REGISTRATION_MODE décide de ce que fait une inscription publique. open (par défaut) : le compte est créé et la personne est connectée aussitôt — c’est le comportement actuel. approval : l’inscription est mise en attente. POST /auth/register répond 202 sans token, une inscription OAuth revient avec ?error=pending_approval, et une tentative de connexion pour un e-mail en attente répond 403. Un admin traite ensuite la file dans /admin/users → « Comptes en attente » (le libellé suit la langue choisie). Les comptes créés par un admin sont toujours actifs, quel que soit le mode ; de même pour une inscription OAuth dont l’e-mail vérifié correspond déjà à un compte actif.',
       },
       pointing: {
         heading: 'Où les apps se connectent',
@@ -329,7 +329,7 @@ export const fr: DocContent = {
 
     webUi: {
       heading: 'Le web d’admin',
-      body: 'C’est la même app web que le site public, ouverte sur /admin, pointée sur ton API. Il est optionnel — tout ce qu’il fait a une route d’API derrière — mais c’est la façon pratique d’exploiter une instance. Déploie-le comme n’importe quelle autre copie de l’app web, règle STAYUP_API_URL sur ton API, et connecte-toi sur /admin/login.',
+      body: 'C’est la même app web que le site public, ouverte sur /admin, pointée sur ton API. Il est optionnel — tout ce qu’il fait a une route d’API derrière — mais c’est la façon pratique d’exploiter une instance. Déploie-le comme n’importe quelle autre copie de l’app web, règle STAYUP_API_URL sur ton API, et connecte-toi sur /admin/login. Cette URL n’est qu’un défaut — l’écran de connexion a une ligne « Serveur » pour la changer, et un sélecteur de langue ; les deux sont aussi sous /admin/settings une fois connecté.',
       note: 'La session admin est un cookie distinct de la session utilisateur. Le même navigateur peut tenir les deux en même temps sans que l’une déconnecte l’autre.',
     },
 

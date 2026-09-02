@@ -53,11 +53,11 @@ export function CreateAdminDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">+ Nouvel admin</Button>
+        <Button size="sm">{t.admin.newAdminShort}</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nouvel administrateur</DialogTitle>
+          <DialogTitle>{t.admin.newAdmin}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
           <div className="space-y-2">
@@ -71,7 +71,7 @@ export function CreateAdminDialog() {
             {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <Label htmlFor="password">{t.admin.login.password}</Label>
             <Input id="password" type="password" {...register('password')} />
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>

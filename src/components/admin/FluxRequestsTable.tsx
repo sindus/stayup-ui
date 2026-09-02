@@ -18,16 +18,27 @@ import { adminRejectFluxRequestAction } from '@/lib/admin-actions'
 import type { FluxRequest } from '@/types'
 
 function StatusBadge({ status }: { status: FluxRequest['status'] }) {
+  const { t } = useLanguage()
   if (status === 'pending') {
     return (
-      <Badge style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}>En attente</Badge>
+      <Badge style={{ background: 'var(--peach-dim)', color: 'var(--peach)' }}>
+        {t.admin.statusPending}
+      </Badge>
     )
   }
   if (status === 'approved') {
-    return <Badge style={{ background: 'var(--sage-dim)', color: 'var(--sage)' }}>Approuvé</Badge>
+    return (
+      <Badge style={{ background: 'var(--sage-dim)', color: 'var(--sage)' }}>
+        {t.admin.statusApproved}
+      </Badge>
+    )
   }
   if (status === 'rejected') {
-    return <Badge style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}>Refusé</Badge>
+    return (
+      <Badge style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}>
+        {t.admin.statusRejected}
+      </Badge>
+    )
   }
   return <Badge variant="secondary">{status}</Badge>
 }
@@ -54,8 +65,8 @@ export function FluxRequestsTable({ requests }: { requests: FluxRequest[] }) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Statut</TableHead>
-            <TableHead>Provider</TableHead>
+            <TableHead>{t.admin.status}</TableHead>
+            <TableHead>{t.admin.providersTable.provider}</TableHead>
             <TableHead>{t.admin.url}</TableHead>
             <TableHead>{t.admin.email}</TableHead>
             <TableHead>{t.admin.createdOn}</TableHead>

@@ -6,6 +6,9 @@ import { CreateAdminDialog } from '@/components/admin/CreateAdminDialog'
 import { EditAdminDialog } from '@/components/admin/EditAdminDialog'
 import { ProvidersTable } from '@/components/admin/ProvidersTable'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { en } from '@/lib/translations'
+
+const pt = en.admin.providersTable
 
 const refresh = vi.fn()
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
@@ -32,8 +35,8 @@ describe('AdminPasswordForm', () => {
     const user = userEvent.setup()
     withLang(<AdminPasswordForm />)
 
-    await user.type(screen.getByLabelText('Mot de passe actuel'), 'old-secret')
-    await user.type(screen.getByLabelText('Nouveau mot de passe'), 'longenough1')
+    await user.type(screen.getByLabelText(en.admin.currentPassword), 'old-secret')
+    await user.type(screen.getByLabelText(en.admin.newPassword), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() =>
@@ -42,16 +45,16 @@ describe('AdminPasswordForm', () => {
         password: 'longenough1',
       }),
     )
-    expect(await screen.findByText('Mot de passe mis à jour.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nouveau mot de passe')).toHaveValue('')
+    expect(await screen.findByText(en.admin.passwordUpdated)).toBeInTheDocument()
+    expect(screen.getByLabelText(en.admin.newPassword)).toHaveValue('')
   })
 
   it('rejects a short new password without calling the action', async () => {
     const user = userEvent.setup()
     withLang(<AdminPasswordForm />)
 
-    await user.type(screen.getByLabelText('Mot de passe actuel'), 'old-secret')
-    await user.type(screen.getByLabelText('Nouveau mot de passe'), 'short')
+    await user.type(screen.getByLabelText(en.admin.currentPassword), 'old-secret')
+    await user.type(screen.getByLabelText(en.admin.newPassword), 'short')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Password too short (min. 8 characters)')).toBeInTheDocument()
@@ -63,8 +66,8 @@ describe('AdminPasswordForm', () => {
     const user = userEvent.setup()
     withLang(<AdminPasswordForm />)
 
-    await user.type(screen.getByLabelText('Mot de passe actuel'), 'nope')
-    await user.type(screen.getByLabelText('Nouveau mot de passe'), 'longenough1')
+    await user.type(screen.getByLabelText(en.admin.currentPassword), 'nope')
+    await user.type(screen.getByLabelText(en.admin.newPassword), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Wrong current password')).toBeInTheDocument()
@@ -76,10 +79,10 @@ describe('CreateAdminDialog', () => {
     const user = userEvent.setup()
     withLang(<CreateAdminDialog />)
 
-    await user.click(screen.getByRole('button', { name: '+ Nouvel admin' }))
+    await user.click(screen.getByRole('button', { name: en.admin.newAdminShort }))
     await user.type(screen.getByLabelText('Name'), 'Grace Hopper')
     await user.type(screen.getByLabelText('Email'), 'grace@example.com')
-    await user.type(screen.getByLabelText('Mot de passe'), 'longenough1')
+    await user.type(screen.getByLabelText(en.admin.login.password), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() =>
@@ -90,7 +93,7 @@ describe('CreateAdminDialog', () => {
       }),
     )
     await waitFor(() => expect(refresh).toHaveBeenCalled())
-    await waitFor(() => expect(screen.queryByText('Nouvel administrateur')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText(en.admin.newAdmin)).not.toBeInTheDocument())
   })
 
   it('keeps the dialog open and shows the server error', async () => {
@@ -98,10 +101,10 @@ describe('CreateAdminDialog', () => {
     const user = userEvent.setup()
     withLang(<CreateAdminDialog />)
 
-    await user.click(screen.getByRole('button', { name: '+ Nouvel admin' }))
+    await user.click(screen.getByRole('button', { name: en.admin.newAdminShort }))
     await user.type(screen.getByLabelText('Name'), 'Grace Hopper')
     await user.type(screen.getByLabelText('Email'), 'grace@example.com')
-    await user.type(screen.getByLabelText('Mot de passe'), 'longenough1')
+    await user.type(screen.getByLabelText(en.admin.login.password), 'longenough1')
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Email already taken')).toBeInTheDocument()
@@ -112,7 +115,7 @@ describe('CreateAdminDialog', () => {
     const user = userEvent.setup()
     withLang(<CreateAdminDialog />)
 
-    await user.click(screen.getByRole('button', { name: '+ Nouvel admin' }))
+    await user.click(screen.getByRole('button', { name: en.admin.newAdminShort }))
     await user.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(await screen.findByText('Name too short (min. 2 characters)')).toBeInTheDocument()
@@ -123,11 +126,11 @@ describe('CreateAdminDialog', () => {
     const user = userEvent.setup()
     withLang(<CreateAdminDialog />)
 
-    await user.click(screen.getByRole('button', { name: '+ Nouvel admin' }))
-    expect(screen.getByText('Nouvel administrateur')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: en.admin.newAdminShort }))
+    expect(screen.getByText(en.admin.newAdmin)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    await waitFor(() => expect(screen.queryByText('Nouvel administrateur')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText(en.admin.newAdmin)).not.toBeInTheDocument())
   })
 })
 
@@ -212,12 +215,10 @@ describe('EditAdminDialog', () => {
     withLang(<EditAdminDialog admin={ADMIN} onSuccess={vi.fn()} />)
 
     await user.click(screen.getByRole('button', { name: 'Edit' }))
-    expect(screen.getByText("Modifier l'administrateur")).toBeInTheDocument()
+    expect(screen.getByText(en.admin.editAdmin)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
 
-    await waitFor(() =>
-      expect(screen.queryByText("Modifier l'administrateur")).not.toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.queryByText(en.admin.editAdmin)).not.toBeInTheDocument())
   })
 })
 
@@ -229,21 +230,21 @@ describe('ProvidersTable', () => {
 
   it('shows the empty state', () => {
     withLang(<ProvidersTable providers={[]} />)
-    expect(screen.getByText('Aucun provider')).toBeInTheDocument()
+    expect(screen.getByText(pt.none)).toBeInTheDocument()
   })
 
   it('renders each provider with its current approval mode', () => {
     withLang(<ProvidersTable providers={PROVIDERS} />)
     expect(screen.getByText('Changelog')).toBeInTheDocument()
-    expect(screen.getByText('Automatique')).toBeInTheDocument()
-    expect(screen.getByText('Sur approbation d’un admin')).toBeInTheDocument()
+    expect(screen.getByText(pt.auto)).toBeInTheDocument()
+    expect(screen.getByText(pt.onApproval)).toBeInTheDocument()
   })
 
   it('flips an auto provider to manual and refreshes', async () => {
     const user = userEvent.setup()
     withLang(<ProvidersTable providers={PROVIDERS} />)
 
-    await user.click(screen.getByRole('button', { name: 'Passer sur approbation' }))
+    await user.click(screen.getByRole('button', { name: pt.switchToApproval }))
 
     await waitFor(() =>
       expect(actions.adminSetProviderApprovalAction).toHaveBeenCalledWith('changelog', 'manual'),
@@ -255,7 +256,7 @@ describe('ProvidersTable', () => {
     const user = userEvent.setup()
     withLang(<ProvidersTable providers={PROVIDERS} />)
 
-    await user.click(screen.getByRole('button', { name: 'Passer en automatique' }))
+    await user.click(screen.getByRole('button', { name: pt.switchToAuto }))
 
     await waitFor(() =>
       expect(actions.adminSetProviderApprovalAction).toHaveBeenCalledWith('scrap', 'auto'),
@@ -267,7 +268,7 @@ describe('ProvidersTable', () => {
     const user = userEvent.setup()
     withLang(<ProvidersTable providers={PROVIDERS} />)
 
-    await user.click(screen.getByRole('button', { name: 'Passer sur approbation' }))
+    await user.click(screen.getByRole('button', { name: pt.switchToApproval }))
 
     expect(await screen.findByText('Nope')).toBeInTheDocument()
     expect(refresh).not.toHaveBeenCalled()
