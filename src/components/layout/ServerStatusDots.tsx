@@ -28,12 +28,13 @@ export function ServerStatusDots({ servers }: { servers: ServerStatus[] }) {
             href="/profile"
             title={`${s.name} — ${label}`}
             aria-label={`${s.name} — ${label}`}
-            className="grid h-6 w-6 place-items-center rounded-md transition-colors hover:bg-[var(--surface-2)]"
+            className="grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-[var(--surface-2)]"
           >
             <span
-              className="h-2 w-2"
+              className="h-[11px] w-[11px]"
               style={{
-                backgroundColor: s.expired ? 'var(--rose)' : 'var(--teal)',
+                // `--sage` = le vert du thème (--teal/--green y sont remappés).
+                backgroundColor: s.expired ? 'var(--rose)' : 'var(--sage)',
                 borderRadius: '9999px',
               }}
             />
