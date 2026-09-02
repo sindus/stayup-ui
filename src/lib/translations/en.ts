@@ -209,12 +209,6 @@ export const en = {
     filterUnread: 'Unread',
     markAllRead: 'Mark all read',
     instanceUnreachable: 'Unreachable: {names}',
-    providers: {
-      changelog: 'GitHub',
-      youtube: 'YouTube',
-      rss: 'RSS',
-      scrap: 'Web',
-    },
   },
   importExport: {
     export: 'Export feeds',
@@ -232,15 +226,9 @@ export const en = {
     provider: 'Provider',
     instance: 'Instance',
     identifierLabels: {
-      changelog: 'GitHub repository',
-      youtube: 'YouTube channel',
-      rss: 'RSS feed URL',
       generic: 'URL',
     },
     placeholders: {
-      changelog: 'e.g. facebook/react or https://github.com/facebook/react',
-      youtube: 'e.g. fireship or https://youtube.com/@fireship',
-      rss: 'e.g. https://example.com/feed.xml',
       generic: 'https://example.com',
     },
     scrapRepo: 'Available feed',

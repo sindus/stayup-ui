@@ -7,7 +7,7 @@ import { ChevronDown, ChevronRight, Plus, Trash2, LayoutGrid, RefreshCw } from '
 import { AddFluxDialog } from './AddFluxDialog'
 import { ImportExportButtons } from './ImportExportButtons'
 import { LinkPendingSpinner } from '@/components/ui/link-pending-spinner'
-import { cn, providerDisplayName, stripUrlScheme } from '@/lib/utils'
+import { cn, providerDisplayName } from '@/lib/utils'
 import { useLanguage } from '@/context/LanguageContext'
 import type { Provider, UserRepository } from '@/types'
 import type { ProviderMeta } from '@/lib/providerTemplate'
@@ -232,7 +232,7 @@ export function FeedSidebar({
                                   : 'text-muted-foreground hover:text-foreground',
                               )}
                             >
-                              <span className="truncate">{stripUrlScheme(flux.identifier)}</span>
+                              <span className="truncate">{flux.identifier}</span>
                               {multiInstance && flux.instanceName && (
                                 <span
                                   className="shrink-0 rounded bg-[var(--surface-2)] px-1 text-[11px] text-dim"

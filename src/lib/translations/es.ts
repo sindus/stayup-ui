@@ -219,12 +219,6 @@ export const es: Translations = {
     filterUnread: 'No leídos',
     markAllRead: 'Marcar todo como leído',
     instanceUnreachable: 'Inaccesible: {names}',
-    providers: {
-      changelog: 'GitHub',
-      youtube: 'YouTube',
-      rss: 'RSS',
-      scrap: 'Web',
-    },
   },
   importExport: {
     export: 'Exportar feeds',
@@ -242,15 +236,9 @@ export const es: Translations = {
     provider: 'Proveedor',
     instance: 'Instancia',
     identifierLabels: {
-      changelog: 'Repositorio de GitHub',
-      youtube: 'Canal de YouTube',
-      rss: 'URL del feed RSS',
       generic: 'URL',
     },
     placeholders: {
-      changelog: 'ej. facebook/react o https://github.com/facebook/react',
-      youtube: 'ej. fireship o https://youtube.com/@fireship',
-      rss: 'ej. https://example.com/feed.xml',
       generic: 'https://ejemplo.com',
     },
     scrapRepo: 'Feed disponible',

@@ -204,12 +204,6 @@ export const zh: Translations = {
     filterUnread: '未读',
     markAllRead: '全部标记为已读',
     instanceUnreachable: '无法连接：{names}',
-    providers: {
-      changelog: 'GitHub',
-      youtube: 'YouTube',
-      rss: 'RSS',
-      scrap: 'Web',
-    },
   },
   importExport: {
     export: '导出订阅源',
@@ -227,15 +221,9 @@ export const zh: Translations = {
     provider: '提供方',
     instance: '实例',
     identifierLabels: {
-      changelog: 'GitHub 仓库',
-      youtube: 'YouTube 频道',
-      rss: 'RSS 订阅源URL',
       generic: '网址',
     },
     placeholders: {
-      changelog: '例如：facebook/react 或 https://github.com/facebook/react',
-      youtube: '例如：fireship 或 https://youtube.com/@fireship',
-      rss: '例如：https://example.com/feed.xml',
       generic: 'https://example.com',
     },
     scrapRepo: '可用订阅源',

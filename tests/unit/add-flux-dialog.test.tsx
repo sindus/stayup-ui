@@ -153,12 +153,15 @@ describe('AddFluxDialog', () => {
 
   describe('subscribing to an existing flux', () => {
     it('lists the provider fluxes and subscribes to the chosen one', async () => {
-      routeFetch({ fluxes: [{ id: 7, url: 'https://a.dev/blog', is_subscribed: false }] })
+      routeFetch({
+        fluxes: [{ id: 7, url: 'https://news.example.com/rss', is_subscribed: false }],
+      })
       const user = userEvent.setup()
       renderDialog()
 
       await chooseProvider(user, 'RSS')
-      const fluxBtn = await screen.findByRole('button', { name: 'https://a.dev/blog' })
+      // Label comes from the rss template's feedLabel (domain), not the raw URL.
+      const fluxBtn = await screen.findByRole('button', { name: 'news.example' })
       await user.click(fluxBtn)
       await user.click(screen.getByRole('button', { name: 'Add' }))
 

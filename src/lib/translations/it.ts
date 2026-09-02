@@ -213,12 +213,6 @@ export const it: Translations = {
     filterUnread: 'Non letti',
     markAllRead: 'Segna tutti come letti',
     instanceUnreachable: 'Irraggiungibile: {names}',
-    providers: {
-      changelog: 'GitHub',
-      youtube: 'YouTube',
-      rss: 'RSS',
-      scrap: 'Web',
-    },
   },
   importExport: {
     export: 'Esporta feed',
@@ -236,15 +230,9 @@ export const it: Translations = {
     provider: 'Provider',
     instance: 'Istanza',
     identifierLabels: {
-      changelog: 'Repository GitHub',
-      youtube: 'Canale YouTube',
-      rss: 'URL del feed RSS',
       generic: 'URL',
     },
     placeholders: {
-      changelog: 'es. facebook/react o https://github.com/facebook/react',
-      youtube: 'es. fireship o https://youtube.com/@fireship',
-      rss: 'es. https://example.com/feed.xml',
       generic: 'https://esempio.com',
     },
     scrapRepo: 'Feed disponibile',

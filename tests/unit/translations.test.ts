@@ -39,17 +39,6 @@ describe('translation dictionaries', () => {
     }
   })
 
-  it('lists only the four supported feed providers', () => {
-    for (const dict of Object.values(dictionaries)) {
-      expect(Object.keys(dict.feed.providers).sort()).toEqual([
-        'changelog',
-        'rss',
-        'scrap',
-        'youtube',
-      ])
-    }
-  })
-
   it('keeps the nav entries free of a documentation tab', () => {
     for (const dict of Object.values(dictionaries)) {
       expect(Object.keys(dict.nav)).not.toContain('documentation')

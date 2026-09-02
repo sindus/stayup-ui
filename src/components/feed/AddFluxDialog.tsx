@@ -22,6 +22,7 @@ import {
   normalizeTemplate,
   buildFluxUrl,
   matchesFormPattern,
+  resolveFeedLabel,
   type ProviderTemplate,
 } from '@/lib/providerTemplate'
 import { providerIcon, providerAccent } from './providerIcons'
@@ -85,11 +86,7 @@ export function AddFluxDialog({ open, onOpenChange, instances = [] }: AddFluxDia
             const color = providerAccent({ name, displayName: displayName ?? name, template: tpl })
             return {
               id: name,
-              label:
-                tpl?.display?.name ??
-                t.feed.providers?.[name as keyof typeof t.feed.providers] ??
-                displayName ??
-                name,
+              label: tpl?.display?.name ?? displayName ?? name,
               color,
               dim: tpl?.display?.accent ? `${color}22` : 'var(--surface-2)',
               icon: providerIcon(tpl?.display ?? undefined),
@@ -102,23 +99,12 @@ export function AddFluxDialog({ open, onOpenChange, instances = [] }: AddFluxDia
         setTpls({})
         setApprovals({})
       })
-  }, [open, t, instanceQuery])
+  }, [open, instanceQuery])
 
   const schema = z.object({
     provider: z.string().min(1),
     identifier: z.string().max(200),
   })
-
-  const identifierLabels: Record<string, string> = {
-    changelog: t.addFlux.identifierLabels.changelog,
-    youtube: t.addFlux.identifierLabels.youtube,
-    rss: t.addFlux.identifierLabels.rss,
-  }
-  const placeholders: Record<string, string> = {
-    changelog: t.addFlux.placeholders.changelog,
-    youtube: t.addFlux.placeholders.youtube,
-    rss: t.addFlux.placeholders.rss,
-  }
 
   const {
     register,
@@ -155,13 +141,14 @@ export function AddFluxDialog({ open, onOpenChange, instances = [] }: AddFluxDia
 
   const available = fluxes.filter((f) => !f.is_subscribed)
   const currentForm = tpls[provider]?.form
-  const isKnownFeedProvider = provider in identifierLabels
-  const inputLabel =
-    currentForm?.label ??
-    (isKnownFeedProvider ? identifierLabels[provider] : t.addFlux.identifierLabels.generic)
-  const inputPlaceholder =
-    currentForm?.placeholder ??
-    (isKnownFeedProvider ? placeholders[provider] : t.addFlux.placeholders.generic)
+  // Libellé / placeholder du champ « ajouter » : ceux du connecteur (`form` du
+  // template), avec un repli générique. Aucun provider connu en dur côté app.
+  const inputLabel = currentForm?.label ?? t.addFlux.identifierLabels.generic
+  const inputPlaceholder = currentForm?.placeholder ?? t.addFlux.placeholders.generic
+  // Étiquette d'un flux existant : rendue par le template du connecteur, comme
+  // dans la sidebar (repli : URL sans schéma).
+  const fluxLabel = (f: ProviderFlux) =>
+    resolveFeedLabel(tpls[provider], { url: f.url, config: f.config })
 
   async function onSubmit(data: FormData) {
     setServerError(null)
@@ -361,7 +348,7 @@ export function AddFluxDialog({ open, onOpenChange, instances = [] }: AddFluxDia
                                 : 'border-border hover:bg-muted',
                             )}
                           >
-                            {f.url}
+                            {fluxLabel(f)}
                             {f.dataSourceName && (
                               <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
                                 {f.dataSourceName}

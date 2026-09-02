@@ -82,9 +82,11 @@ describe('FeedSidebar', () => {
     )
   })
 
-  it('renders one link per feed, stripped of its URL scheme', () => {
+  it('renders one link per feed, showing the connector-provided label verbatim', () => {
+    // `identifier` is already formatted upstream by the connector template
+    // (resolveFeedLabel) — the sidebar must not re-transform it.
     renderSidebar({
-      fluxes: [flux({ provider: 'rss', identifier: 'https://www.example.com/feed.xml' })],
+      fluxes: [flux({ provider: 'rss', identifier: 'example.com/feed.xml' })],
     })
     expect(screen.getByRole('link', { name: 'example.com/feed.xml' })).toHaveAttribute(
       'href',

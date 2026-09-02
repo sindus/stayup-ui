@@ -96,7 +96,6 @@ describe('POST /api/fluxes', () => {
     )
 
     expect(res.status).toBe(201)
-    expect((await res.json()).flux.identifier).toBe('github.com/facebook/react/')
     expect(api.addUserRepository).toHaveBeenCalledWith(
       'u1',
       expect.any(String),

@@ -3,7 +3,6 @@ import { ApiError, addUserRepository } from '@/lib/api-client'
 import { getServerTranslations } from '@/lib/serverLang'
 import { resolveInstance } from '@/lib/instances'
 import { decodeToken } from '@/lib/session'
-import { stripUrlScheme } from '@/lib/utils'
 import { z } from 'zod'
 
 // Un seul chemin d'ajout, quel que soit le provider : le client envoie une URL
@@ -45,10 +44,9 @@ export async function POST(request: Request) {
     if (result.status === 'pending') {
       return NextResponse.json({ status: 'pending' }, { status: 202 })
     }
-    return NextResponse.json(
-      { flux: { ...result.repository, identifier: stripUrlScheme(url) } },
-      { status: 201 },
-    )
+    // Le libellé d'affichage est calculé par le client depuis le template du
+    // connecteur (resolveFeedLabel) après revalidation — pas ici.
+    return NextResponse.json({ flux: result.repository }, { status: 201 })
   } catch (err) {
     return NextResponse.json(...toResponse(err, t))
   }
