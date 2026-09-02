@@ -51,6 +51,77 @@ export const GENERATE_ANCHORS = {
   form: 'build-your-script',
   run: 'run-it',
   after: 'after-setup',
+  production: 'going-to-production',
+} as const
+
+// Un déploiement de prod, bout à bout : Neon (Postgres) + Cloudflare Workers
+// (API) + GitHub Actions (planificateur des connecteurs). Commandes et YAML ici,
+// prose dans chaque locale.
+export const PROD_SNIPPETS = {
+  neonBootstrap: `git clone https://github.com/stayup-app/stayup-api.git
+cd stayup-api
+npm ci
+
+# the pooled Neon string — used by the API and by every connector
+export DATABASE_URL="postgres://user:pass@ep-xxx-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+
+# applies src/db/schema.sql, then inserts the first SUPER admin
+npm run create-admin -- root@example.com "Root" 'a-strong-password'`,
+
+  workersSecrets: `npx wrangler login
+npx wrangler secret put DATABASE_URL   # paste the pooled Neon string
+npx wrangler secret put JWT_SECRET     # e.g. the output of: openssl rand -hex 32
+
+# only if you use OAuth:
+npx wrangler secret put GOOGLE_CLIENT_ID
+npx wrangler secret put GOOGLE_CLIENT_SECRET
+npx wrangler secret put GITHUB_CLIENT_ID
+npx wrangler secret put GITHUB_CLIENT_SECRET`,
+
+  workersVars: `# wrangler.toml — public, non-secret config
+[vars]
+UI_URL = "https://your-ui.example.com"
+INSTANCE_NAME = "My StayUp"
+REGISTRATION_MODE = "approval"   # or "open"`,
+
+  workersDeploy: `npx wrangler deploy
+# → deployed to https://stayup-api.<your-subdomain>.workers.dev
+
+curl https://stayup-api.<your-subdomain>.workers.dev/           # {"status":"ok"}
+curl https://stayup-api.<your-subdomain>.workers.dev/auth/config`,
+
+  connectorWorkflow: `# .github/workflows/daily.yml — already in every stayup-cmd-* repo
+name: Daily RSS fetch
+
+on:
+  schedule:
+    - cron: "0 6 * * *"      # every day at 06:00 UTC — tune this
+  workflow_dispatch: {}       # adds a "Run workflow" button in the Actions tab
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - run: python fetch_rss.py
+        env:
+          DATABASE_URL: \${{ secrets.DATABASE_URL }}`,
+
+  cronExamples: `"0 0 * * *"      every day at 00:00 UTC
+"0 */6 * * *"    every 6 hours
+"*/30 * * * *"   every 30 minutes
+"0 8 * * 1"      Mondays at 08:00 UTC`,
+
+  prodVerify: `# 1. API + database
+curl https://stayup-api.<sub>.workers.dev/                     # {"status":"ok"}
+
+# 2. every connector that has run at least once
+curl https://stayup-api.<sub>.workers.dev/connectors/providers \\
+  -H "Authorization: Bearer $TOKEN"`,
 } as const
 
 // Les moteurs pris en charge par l'API. L'ordre est celui des onglets : le plus

@@ -463,6 +463,52 @@ export const de: DocContent = {
       ],
       note: 'Der Scheduler bindet den Docker-Socket ein, um Konnektoren planmäßig zu starten — root-äquivalent auf dem Host, für eine lokale Dev-Instanz in Ordnung.',
     },
+    production: {
+      heading: 'In Produktion gehen',
+      intro:
+        'Der Generator oben stellt das Ganze auf deinem Rechner bereit. Hier ist ein Weg, dieselbe Instanz gehostet zu betreiben, zu praktisch null Kosten: Neon für PostgreSQL, Cloudflare Workers für die API und GitHub Actions als Scheduler der Connectors. Jeder Befehl unten ist zum Kopieren.',
+      dbHeading: 'Die Datenbank — Neon',
+      dbSteps: [
+        'Erstelle ein Neon-Konto und dann ein Projekt. Wähle die Region, die der API am nächsten liegt.',
+        'Aktiviere im Projekt das Connection Pooling und kopiere den gepoolten Connection String — sein Host enthält „-pooler“. Workers öffnet pro Request eine neue Verbindung; der gepoolte Endpunkt verhindert, dass das PostgreSQL überlastet. Dieser eine String wird von der API und von jedem Connector genutzt.',
+        'Wende von deinem Rechner aus das Schema an und erstelle in einem Befehl den ersten Super-Admin. Das ist der einzige Schritt, der aus Node laufen muss — Workers wendet das Schema nie selbst an:',
+        'Der Befehl hat src/db/schema.sql ausgeführt und den Admin eingefügt. Die Connector-Tabellen (connector_*, provider_registry) gibt es noch nicht — der erste Connector-Lauf erstellt sie (Schritt 3).',
+      ],
+      dbNote:
+        'Neons kostenlose Stufe pausiert die Datenbank bei Inaktivität; der erste Request nach einer Pause braucht etwa eine Sekunde zum Aufwachen. Für eine persönliche Instanz in Ordnung.',
+      apiHeading: 'Die API — Cloudflare Workers',
+      apiSteps: [
+        'Forke stayup-app/stayup-api auf GitHub — forken, nicht nur klonen, wenn du später Deploy-on-Push willst.',
+        'Installiere Wrangler, melde dich mit deinem Cloudflare-Konto an und lade dann die Secrets hoch. Sie werden von Cloudflare gespeichert, nie ins Repo geschrieben:',
+        'Nicht geheime Einstellungen — UI_URL, INSTANCE_NAME, REGISTRATION_MODE — kommen in wrangler.toml unter [vars]:',
+        'Deploye. Wrangler gibt die URL aus:',
+        'Für Deploy-on-Push: unter Settings → Secrets and variables → Actions des Forks CLOUDFLARE_API_TOKEN hinzufügen (Cloudflare-Dashboard → My Profile → API Tokens → Vorlage „Edit Cloudflare Workers“). Die bereits im Repo liegende ci.yml testet und deployt dann bei jedem Push auf main neu.',
+      ],
+      apiNote:
+        'Nur der PostgreSQL-Treiber ist für Workers gebündelt — die Runtime kann keine MySQL- oder MongoDB-Sockets öffnen. Auf Workers ist die Datenbank PostgreSQL.',
+      connHeading: 'Die Connectors — GitHub Actions',
+      connIntro:
+        'Ein Connector ist ein Python-Skript, das DATABASE_URL liest, eine Runde macht und beendet. Es braucht etwas, das es planmäßig startet; GitHub Actions macht das gratis mit schedule: und workflow_dispatch:. Jedes stayup-cmd-*-Repo bringt bereits .github/workflows/daily.yml mit.',
+      connSteps: [
+        'Forke jeden gewünschten Connector: stayup-cmd-rss, stayup-cmd-youtube, stayup-cmd-changelog, stayup-cmd-github-trending, stayup-cmd-scrap.',
+        'In jedem Fork: Settings → Secrets and variables → Actions → New repository secret. Nenne es DATABASE_URL, Wert = derselbe gepoolte Neon-String wie bei der API.',
+        'Der Workflow ist schon da — das ist alles:',
+        'Stelle den Takt über die cron:-Zeile ein (UTC). Staffle die Connectors, damit sie die Datenbank nicht in derselben Minute treffen:',
+        'Zünde ihn: Tab Actions → der Workflow → Run workflow. Der erste Lauf erstellt connector_<name> und registriert den Provider in provider_registry; danach erscheint der Provider in den Apps und in GET /connectors/providers.',
+        'GitHub pausiert geplante Workflows in einem Repo ohne Aktivität nach 60 Tagen. Ein Commit oder ein manueller Lauf schärft sie wieder.',
+      ],
+      connNote:
+        'Geplante Läufe werden eingereiht, nicht exakt getaktet — GitHub kann einen Cron unter Last um mehrere Minuten verzögern. Für einen Feed-Reader ist das egal.',
+      checkHeading: 'Die ganze Kette prüfen',
+      checkSteps: [
+        'curl https://<api>/ gibt {"status":"ok"} zurück — die API erreicht Neon.',
+        'curl https://<api>/connectors/providers mit einem Admin-Bearer-Token listet jeden Connector, der mindestens einmal gelaufen ist.',
+        'Stelle in einer StayUp-App den Server auf deine Workers-URL, erstelle ein Konto, füge einen Feed hinzu. Das Abo landet in der Datenbank; der nächste Connector-Lauf holt es ab.',
+        'Für die Admin-UI: stayup-ui irgendwo deployen (Vercel mit einem Klick), STAYUP_API_URL auf deine Workers-URL setzen und /admin öffnen.',
+      ],
+      checkNote:
+        'Im Ruhezustand kostet das nichts: Neon-Gratisstufe, Workers-Gratisstufe (100k Requests/Tag), und GitHub Actions ist für öffentliche Repos gratis.',
+    },
   },
   providers: {
     meta: {

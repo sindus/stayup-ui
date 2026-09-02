@@ -2,10 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LandingHeader } from '@/components/landing/LandingHeader'
 import { DocNav } from '@/components/docs/DocShell'
-import { DocCode, DocList, DocNote, DocSection } from '@/components/docs/DocPieces'
+import {
+  DocCode,
+  DocList,
+  DocNote,
+  DocOrderedList,
+  DocSection,
+  DocSubheading,
+} from '@/components/docs/DocPieces'
 import { ProjectGenerator } from '@/components/generate/ProjectGenerator'
 import { getDoc } from '@/lib/docs'
-import { GENERATE_ANCHORS as A } from '@/lib/docs/shared'
+import { GENERATE_ANCHORS as A, PROD_SNIPPETS as P } from '@/lib/docs/shared'
 import { getServerLang } from '@/lib/serverLang'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,6 +37,7 @@ export default async function GeneratePage() {
             { id: A.form, label: d.title },
             { id: A.run, label: d.run.heading },
             { id: A.after, label: d.after.heading },
+            { id: A.production, label: d.production.heading },
           ]}
         />
 
@@ -84,6 +92,38 @@ export default async function GeneratePage() {
           <DocSection id={A.after} title={d.after.heading}>
             <DocList items={d.after.items} />
             <DocNote tone="sky">{d.after.note}</DocNote>
+          </DocSection>
+
+          <DocSection id={A.production} title={d.production.heading}>
+            <p className="mb-8 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.production.intro}
+            </p>
+
+            <DocSubheading>{d.production.dbHeading}</DocSubheading>
+            <DocOrderedList items={d.production.dbSteps} />
+            <DocCode>{P.neonBootstrap}</DocCode>
+            <DocNote>{d.production.dbNote}</DocNote>
+
+            <DocSubheading>{d.production.apiHeading}</DocSubheading>
+            <DocOrderedList items={d.production.apiSteps} />
+            <DocCode>{P.workersSecrets}</DocCode>
+            <DocCode>{P.workersVars}</DocCode>
+            <DocCode>{P.workersDeploy}</DocCode>
+            <DocNote>{d.production.apiNote}</DocNote>
+
+            <DocSubheading>{d.production.connHeading}</DocSubheading>
+            <p className="mb-6 text-[15px] leading-relaxed" style={{ color: 'var(--fg-soft)' }}>
+              {d.production.connIntro}
+            </p>
+            <DocOrderedList items={d.production.connSteps} />
+            <DocCode>{P.connectorWorkflow}</DocCode>
+            <DocCode>{P.cronExamples}</DocCode>
+            <DocNote>{d.production.connNote}</DocNote>
+
+            <DocSubheading>{d.production.checkHeading}</DocSubheading>
+            <DocOrderedList items={d.production.checkSteps} />
+            <DocCode>{P.prodVerify}</DocCode>
+            <DocNote tone="sky">{d.production.checkNote}</DocNote>
           </DocSection>
         </main>
       </div>

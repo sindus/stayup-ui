@@ -460,6 +460,52 @@ export const ja: DocContent = {
       ],
       note: 'スケジューラーはコネクターを定時起動するため Docker ソケットをマウントします — ホスト上では root 相当であり、ローカルの開発インスタンスでは許容範囲です。',
     },
+    production: {
+      heading: '本番環境へ',
+      intro:
+        '上のジェネレーターは全体を自分のマシン上に立ち上げます。ここでは同じインスタンスをほぼ無料でホスティング運用する一例を示します。PostgreSQL は Neon、API は Cloudflare Workers、コネクターのスケジューラーは GitHub Actions です。以下のコマンドはすべてコピー＆ペーストできます。',
+      dbHeading: 'データベース — Neon',
+      dbSteps: [
+        'Neon のアカウントを作り、プロジェクトを作成します。API を動かす場所に最も近いリージョンを選びます。',
+        'プロジェクトで connection pooling を有効にし、pooled 接続文字列（ホスト名に「-pooler」が入る）をコピーします。Workers はリクエストごとに新しい接続を開くため、pooled エンドポイントが PostgreSQL の枯渇を防ぎます。この 1 本の文字列を API とすべてのコネクターが使います。',
+        '自分のマシンから、スキーマの適用と最初のスーパー管理者の作成を 1 コマンドで行います。これは Node から実行しなければならない唯一の手順です。Workers 自身はスキーマを適用しません：',
+        'このコマンドで src/db/schema.sql が実行され、管理者が挿入されました。コネクター用テーブル（connector_*、provider_registry）はまだありません。最初のコネクター実行で作成されます（手順 3）。',
+      ],
+      dbNote:
+        'Neon の無料プランはアイドル時にデータベースを休止します。休止後の最初のリクエストは復帰に約 1 秒かかります。個人インスタンスなら問題ありません。',
+      apiHeading: 'API — Cloudflare Workers',
+      apiSteps: [
+        'GitHub で stayup-app/stayup-api を fork します。後で push デプロイを使うなら、clone ではなく fork にします。',
+        'Wrangler をインストールし Cloudflare アカウントでログインしてから、シークレットを登録します。Cloudflare が保管し、リポジトリには書き込まれません：',
+        '秘密でない設定（UI_URL、INSTANCE_NAME、REGISTRATION_MODE）は wrangler.toml の [vars] に置きます：',
+        'デプロイします。Wrangler が URL を表示します：',
+        'push デプロイの場合：fork の Settings → Secrets and variables → Actions で CLOUDFLARE_API_TOKEN を追加します（Cloudflare ダッシュボード → My Profile → API Tokens → 「Edit Cloudflare Workers」テンプレート）。リポジトリにある ci.yml が main への push ごとにテストして再デプロイします。',
+      ],
+      apiNote:
+        'Workers 向けにバンドルされるのは PostgreSQL ドライバーのみです。ランタイムは MySQL や MongoDB のソケットを開けません。Workers ではデータベースは PostgreSQL です。',
+      connHeading: 'コネクター — GitHub Actions',
+      connIntro:
+        'コネクターは DATABASE_URL を読み、一巡して終了する Python スクリプトです。定期実行する仕組みが必要で、GitHub Actions が schedule: と workflow_dispatch: で無料で行います。stayup-cmd-* の各リポジトリには .github/workflows/daily.yml が同梱済みです。',
+      connSteps: [
+        '欲しいコネクターを fork します：stayup-cmd-rss、stayup-cmd-youtube、stayup-cmd-changelog、stayup-cmd-github-trending、stayup-cmd-scrap。',
+        '各 fork で：Settings → Secrets and variables → Actions → New repository secret。名前を DATABASE_URL、値は API と同じ Neon の pooled 文字列にします。',
+        'ワークフローはすでにあります。全体は次のとおりです：',
+        'cron: 行（UTC）で頻度を設定します。コネクターが同じ分にデータベースへ集中しないようずらします：',
+        '起動します：Actions タブ → 該当ワークフロー → Run workflow。最初の実行で connector_<name> が作成され、provider_registry にプロバイダーが登録されます。その後、プロバイダーはアプリと GET /connectors/providers に現れます。',
+        'GitHub は 60 日間活動のないリポジトリのスケジュール実行を一時停止します。コミットまたは手動実行で再び有効になります。',
+      ],
+      connNote:
+        'スケジュール実行はキューに入り、正確な時刻ではありません。負荷時、GitHub は cron を数分遅らせることがあります。フィードリーダーなら問題ありません。',
+      checkHeading: '全体の経路を確認',
+      checkSteps: [
+        'curl https://<api>/ が {"status":"ok"} を返す — API が Neon に到達しています。',
+        '管理者ベアラートークン付きの curl https://<api>/connectors/providers が、少なくとも 1 回実行されたすべてのコネクターを一覧します。',
+        'StayUp アプリでサーバーを Workers の URL に設定し、アカウントを作成してフィードを追加します。購読がデータベースに入り、次のコネクター実行で取り込まれます。',
+        '管理 UI は、stayup-ui をどこかにデプロイし（Vercel なら 1 クリック）、STAYUP_API_URL を Workers の URL に設定して /admin を開きます。',
+      ],
+      checkNote:
+        'アイドル時のコストはゼロです：Neon 無料プラン、Workers 無料プラン（1 日 10 万リクエスト）、GitHub Actions は公開リポジトリで無料です。',
+    },
   },
   providers: {
     meta: {

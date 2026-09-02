@@ -462,6 +462,52 @@ export const it: DocContent = {
       ],
       note: 'Lo scheduler monta il socket Docker per avviare i connettori secondo il calendario — equivalente a root sull’host, va bene per un’istanza di sviluppo locale.',
     },
+    production: {
+      heading: 'Andare in produzione',
+      intro:
+        'Il generatore qui sopra mette in piedi tutto sulla tua macchina. Ecco un modo per far girare la stessa istanza in hosting, a costo quasi nullo: Neon per PostgreSQL, Cloudflare Workers per l’API e GitHub Actions come scheduler dei connettori. Ogni comando qui sotto è da copiare e incollare.',
+      dbHeading: 'Il database — Neon',
+      dbSteps: [
+        'Crea un account Neon, poi un progetto. Scegli la regione più vicina a dove girerà l’API.',
+        'Nel progetto, attiva il connection pooling e copia la stringa di connessione «pooled» — il suo host contiene «-pooler». Workers apre una nuova connessione per ogni richiesta; l’endpoint pooled è ciò che evita di esaurire PostgreSQL. Questa stessa stringa è usata dall’API e da ogni connettore.',
+        'Dalla tua macchina, applica lo schema e crea il primo super admin con un solo comando. È l’unico passo che deve girare da Node — Workers non applica mai lo schema da sé:',
+        'Quel comando ha eseguito src/db/schema.sql e inserito l’admin. Le tabelle dei connettori (connector_*, provider_registry) non ci sono ancora — le crea la prima esecuzione di un connettore (passo 3).',
+      ],
+      dbNote:
+        'Il piano gratuito di Neon sospende il database quando è inattivo; la prima richiesta dopo una pausa impiega circa un secondo per risvegliarlo. Va bene per un’istanza personale.',
+      apiHeading: 'L’API — Cloudflare Workers',
+      apiSteps: [
+        'Fai il fork di stayup-app/stayup-api su GitHub — fork, non solo clone, se in seguito vuoi il deploy al push.',
+        'Installa Wrangler e accedi con il tuo account Cloudflare, poi carica i secret. Li conserva Cloudflare, non finiscono mai nel repo:',
+        'Le impostazioni non segrete — UI_URL, INSTANCE_NAME, REGISTRATION_MODE — vanno in wrangler.toml sotto [vars]:',
+        'Fai il deploy. Wrangler stampa l’URL:',
+        'Per il deploy al push: in Settings → Secrets and variables → Actions del fork, aggiungi CLOUDFLARE_API_TOKEN (dashboard Cloudflare → My Profile → API Tokens → modello «Edit Cloudflare Workers»). Il ci.yml già presente nel repo testa e ridistribuisce a ogni push su main.',
+      ],
+      apiNote:
+        'Per Workers è incluso solo il driver PostgreSQL — il runtime non può aprire socket MySQL o MongoDB. Su Workers, il database è PostgreSQL.',
+      connHeading: 'I connettori — GitHub Actions',
+      connIntro:
+        'Un connettore è uno script Python che legge DATABASE_URL, fa un giro ed esce. Serve qualcosa che lo esegua a intervalli; GitHub Actions lo fa gratis con schedule: e workflow_dispatch:. Ogni repo stayup-cmd-* include già .github/workflows/daily.yml.',
+      connSteps: [
+        'Fai il fork di ogni connettore che vuoi: stayup-cmd-rss, stayup-cmd-youtube, stayup-cmd-changelog, stayup-cmd-github-trending, stayup-cmd-scrap.',
+        'In ogni fork: Settings → Secrets and variables → Actions → New repository secret. Chiamalo DATABASE_URL, valore = la stessa stringa pooled di Neon usata dall’API.',
+        'Il workflow è già lì — è tutto qui:',
+        'Imposta la cadenza con la riga cron: (in UTC). Sfalsa i connettori così non colpiscono il database nello stesso minuto:',
+        'Avvialo: scheda Actions → il workflow → Run workflow. La prima esecuzione crea connector_<name> e registra il provider in provider_registry; dopo, il provider compare nelle app e in GET /connectors/providers.',
+        'GitHub mette in pausa i workflow pianificati di un repo senza attività per 60 giorni. Un commit o un’esecuzione manuale li riarma.',
+      ],
+      connNote:
+        'Le esecuzioni pianificate vengono accodate, non sono esatte — sotto carico GitHub può ritardare un cron di diversi minuti. Per un lettore di feed va benissimo.',
+      checkHeading: 'Verificare l’intera catena',
+      checkSteps: [
+        'curl https://<api>/ restituisce {"status":"ok"} — l’API raggiunge Neon.',
+        'curl https://<api>/connectors/providers con un bearer token admin elenca ogni connettore eseguito almeno una volta.',
+        'In un’app StayUp, imposta il server sul tuo URL Workers, crea un account, aggiungi un feed. L’abbonamento arriva nel database; la successiva esecuzione del connettore lo raccoglie.',
+        'Per la UI di admin, distribuisci stayup-ui ovunque (Vercel con un clic), imposta STAYUP_API_URL sul tuo URL Workers e apri /admin.',
+      ],
+      checkNote:
+        'A riposo non costa nulla: piano gratuito Neon, piano gratuito Workers (100k richieste/giorno) e GitHub Actions è gratis per i repo pubblici.',
+    },
   },
   providers: {
     meta: {

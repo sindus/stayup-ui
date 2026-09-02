@@ -449,6 +449,52 @@ export const zh: DocContent = {
       ],
       note: '调度器挂载 Docker socket 以按计划启动连接器——在宿主机上等同于 root，对本地开发实例可以接受。',
     },
+    production: {
+      heading: '上生产环境',
+      intro:
+        '上面的生成器会在你的机器上把整套东西跑起来。这里给出一种把同一实例托管运行、成本几乎为零的做法：PostgreSQL 用 Neon，API 用 Cloudflare Workers，连接器的调度用 GitHub Actions。下面每条命令都可直接复制粘贴。',
+      dbHeading: '数据库 — Neon',
+      dbSteps: [
+        '注册 Neon 账户，然后创建一个项目。选择离 API 运行地最近的区域。',
+        '在项目中开启连接池（connection pooling），复制带池化的连接串——主机名里含「-pooler」。Workers 每个请求都会新开一个连接，池化端点能避免耗尽 PostgreSQL。这一条连接串同时供 API 和每个连接器使用。',
+        '在你的机器上，用一条命令应用 schema 并创建第一个超级管理员。这是唯一必须从 Node 运行的步骤——Workers 从不自行应用 schema：',
+        '该命令执行了 src/db/schema.sql 并插入了管理员。连接器相关的表（connector_*、provider_registry）还不存在——由第一次连接器运行创建（第 3 步）。',
+      ],
+      dbNote:
+        'Neon 免费套餐在空闲时会挂起数据库；暂停后第一次请求需要约一秒把它唤醒。个人实例完全够用。',
+      apiHeading: 'API — Cloudflare Workers',
+      apiSteps: [
+        '在 GitHub 上 fork stayup-app/stayup-api——如果之后想要推送即部署，就 fork 而不只是 clone。',
+        '安装 Wrangler 并用你的 Cloudflare 账户登录，然后推送 secret。它们由 Cloudflare 保存，绝不写入仓库：',
+        '非机密配置——UI_URL、INSTANCE_NAME、REGISTRATION_MODE——放在 wrangler.toml 的 [vars] 下：',
+        '部署。Wrangler 会打印出 URL：',
+        '推送即部署：在 fork 的 Settings → Secrets and variables → Actions 中添加 CLOUDFLARE_API_TOKEN（Cloudflare 控制台 → My Profile → API Tokens → 「Edit Cloudflare Workers」模板）。仓库里已有的 ci.yml 会在每次推送到 main 时测试并重新部署。',
+      ],
+      apiNote:
+        '为 Workers 打包的只有 PostgreSQL 驱动——运行时无法打开 MySQL 或 MongoDB 的 socket。在 Workers 上，数据库就是 PostgreSQL。',
+      connHeading: '连接器 — GitHub Actions',
+      connIntro:
+        '连接器是一个读取 DATABASE_URL、跑一轮然后退出的 Python 脚本。它需要有东西按计划运行它；GitHub Actions 用 schedule: 和 workflow_dispatch: 免费做到这点。每个 stayup-cmd-* 仓库都已自带 .github/workflows/daily.yml。',
+      connSteps: [
+        'fork 你想要的每个连接器：stayup-cmd-rss、stayup-cmd-youtube、stayup-cmd-changelog、stayup-cmd-github-trending、stayup-cmd-scrap。',
+        '在每个 fork 中：Settings → Secrets and variables → Actions → New repository secret。命名为 DATABASE_URL，值填 API 使用的那条 Neon 池化连接串。',
+        '工作流已经在那里——全部内容就是这些：',
+        '用 cron: 行（UTC）设置频率。错开各连接器，别让它们在同一分钟一起打数据库：',
+        '先手动跑一次：Actions 标签页 → 该工作流 → Run workflow。第一次运行会创建 connector_<name> 并把该 provider 注册进 provider_registry；之后 provider 就会出现在各 App 和 GET /connectors/providers 中。',
+        'GitHub 会暂停 60 天无活动仓库里的定时工作流。一次提交或手动运行即可重新启用。',
+      ],
+      connNote:
+        '定时运行是排队执行，并不精确——负载高时 GitHub 可能把 cron 推迟几分钟。对订阅阅读器来说无所谓。',
+      checkHeading: '检查整条链路',
+      checkSteps: [
+        'curl https://<api>/ 返回 {"status":"ok"}——API 能连到 Neon。',
+        '带管理员 bearer token 的 curl https://<api>/connectors/providers 会列出每个至少运行过一次的连接器。',
+        '在 StayUp App 里把服务器设为你的 Workers URL，创建账户，添加一个订阅源。订阅会落到数据库；下一次连接器运行会把它采集进来。',
+        '管理界面：把 stayup-ui 部署到任意地方（Vercel 一键），把 STAYUP_API_URL 设为你的 Workers URL，然后打开 /admin。',
+      ],
+      checkNote:
+        '空闲时零成本：Neon 免费套餐、Workers 免费套餐（每天 10 万请求），GitHub Actions 对公开仓库免费。',
+    },
   },
   providers: {
     meta: {
