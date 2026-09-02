@@ -367,6 +367,9 @@ export const it: Translations = {
     remove: 'Rimuovi',
     save: 'Salva',
     expired: 'Sessione scaduta',
+    reconnectTitle: 'Riconnettiti ai tuoi server',
+    reconnectPrompt: 'Questi server richiedono di accedere di nuovo:',
+    reconnectLater: 'Più tardi',
     removePrimaryWarning: 'Rimuovere il server primario ti disconnette completamente.',
     alreadyAdded: 'Questo server è già nella tua lista.',
     oauthHint:

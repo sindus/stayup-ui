@@ -1,9 +1,29 @@
 import { getCachedUserFeed, getCachedTemplates } from './feed-cache'
 import { readInstances, type Instance } from './instances'
-import { decodeToken } from './session'
+import { decodeToken, isTokenExpired } from './session'
+import { ApiError } from './api-client'
 import type { ProviderMeta } from './providerTemplate'
 import type { ConnectorItem, FeedRepository } from '@/types'
 import type { UserRepositoryItem } from './api-client'
+
+/** Pourquoi une instance manque au feed :
+ *  - `expired`     : le token porte un `exp` dépassé (constaté localement) ;
+ *  - `auth`        : l'API a refusé le token (401/403) ou il est illisible ;
+ *  - `unreachable` : réseau ou 5xx, probablement transitoire.
+ *  `expired` et `auth` demandent une reconnexion ; `unreachable` un simple retry. */
+export type InstanceErrorReason = 'expired' | 'auth' | 'unreachable'
+
+export interface InstanceError {
+  instanceId: string
+  instanceName: string
+  reason: InstanceErrorReason
+}
+
+/** Les instances dont la session est morte : reconnexion requise, un simple retry
+ *  n'y changera rien. */
+export function needsReconnect(errors: InstanceError[]): InstanceError[] {
+  return errors.filter((e) => e.reason === 'expired' || e.reason === 'auth')
+}
 
 /** Une ligne de flux, taguée avec l'instance dont elle provient. `_instance_name`
  *  n'est posé qu'en multi-instance (il ne sert qu'à l'affichage d'un badge). */
@@ -28,7 +48,7 @@ export interface FanoutFeed {
   /** Templates fusionnés à plat (premier gagnant), indexés par provider. */
   templates: Record<string, ProviderMeta>
   /** Instances dont la récupération a échoué — le feed rend quand même les autres. */
-  instanceErrors: { instanceId: string; instanceName: string }[]
+  instanceErrors: InstanceError[]
 }
 
 function userIdOf(token: string): string | null {
@@ -58,16 +78,22 @@ export async function fanoutFeed(): Promise<FanoutFeed> {
 
   const results = await Promise.all(
     instances.map(async (inst) => {
+      if (isTokenExpired(inst.token)) {
+        return { inst, failed: true as const, reason: 'expired' as const }
+      }
       const userId = userIdOf(inst.token)
-      if (!userId) return { inst, failed: true as const }
+      if (!userId) return { inst, failed: true as const, reason: 'auth' as const }
       try {
         const [feed, templates] = await Promise.all([
           getCachedUserFeed(userId, inst.token, inst.url),
           getCachedTemplates(inst.token, inst.url),
         ])
         return { inst, failed: false as const, feed, templates }
-      } catch {
-        return { inst, failed: true as const }
+      } catch (e) {
+        // 401/403 = token rejeté (à reconnecter) ; le reste = injoignable (à réessayer).
+        const reason: InstanceErrorReason =
+          e instanceof ApiError && (e.status === 401 || e.status === 403) ? 'auth' : 'unreachable'
+        return { inst, failed: true as const, reason }
       }
     }),
   )
@@ -75,12 +101,16 @@ export async function fanoutFeed(): Promise<FanoutFeed> {
   const repositories: TaggedRepository[] = []
   const connectors: Record<string, FanoutItem[]> = {}
   const templates: Record<string, ProviderMeta> = {}
-  const instanceErrors: { instanceId: string; instanceName: string }[] = []
+  const instanceErrors: InstanceError[] = []
   const multi = instances.length > 1
 
   for (const r of results) {
     if (r.failed) {
-      instanceErrors.push({ instanceId: r.inst.id, instanceName: r.inst.name })
+      instanceErrors.push({
+        instanceId: r.inst.id,
+        instanceName: r.inst.name,
+        reason: r.reason,
+      })
       continue
     }
     const tag = {

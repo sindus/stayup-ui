@@ -193,6 +193,28 @@ describe('decodeToken — expiration', () => {
   })
 })
 
+describe('isTokenExpired', () => {
+  it('is true for a token whose exp is in the past', async () => {
+    const { isTokenExpired } = await import('@/lib/session')
+    expect(isTokenExpired(makeToken({ sub: 'u', exp: Math.floor(Date.now() / 1000) - 10 }))).toBe(
+      true,
+    )
+  })
+
+  it('is false for a token that is still valid', async () => {
+    const { isTokenExpired } = await import('@/lib/session')
+    expect(isTokenExpired(makeToken({ sub: 'u', exp: Math.floor(Date.now() / 1000) + 3600 }))).toBe(
+      false,
+    )
+  })
+
+  it('is false when there is no exp claim, and for a malformed token', async () => {
+    const { isTokenExpired } = await import('@/lib/session')
+    expect(isTokenExpired(makeToken({ sub: 'u' }))).toBe(false)
+    expect(isTokenExpired('not-a-token')).toBe(false)
+  })
+})
+
 // Le payload d'un token n'est pas signé de ce côté : seule l'API peut dire si un
 // cookie « admin » est authentique. Sans ça, un payload fabriqué ouvrait /admin.
 describe('isAdminTokenValid', () => {

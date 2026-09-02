@@ -6,6 +6,7 @@ import type { TaggedItem, FeedRepository } from '@/types'
 import type { ProviderMeta } from '@/lib/providerTemplate'
 import { UnifiedFeedList } from './UnifiedFeedList'
 import { FeedContentViewer } from './FeedContentViewer'
+import { ReconnectModal } from './ReconnectModal'
 import { useReadContext, taggedItemId } from '@/context/FeedReadContext'
 import { useLanguage } from '@/context/LanguageContext'
 import { cn } from '@/lib/utils'
@@ -45,7 +46,11 @@ interface FeedClientViewProps {
   items: TaggedItem[]
   repositories: FeedRepository[]
   templates: Record<string, ProviderMeta>
-  instanceErrors?: { instanceId: string; instanceName: string }[]
+  instanceErrors?: {
+    instanceId: string
+    instanceName: string
+    reason: 'expired' | 'auth' | 'unreachable'
+  }[]
 }
 
 type FilterMode = 'all' | 'unread'
@@ -141,17 +146,23 @@ export function FeedClientView({
     [items, readIds],
   )
 
+  // Session morte (token expiré ou rejeté) → modale de reconnexion. Panne
+  // transitoire (réseau / 5xx) → simple bandeau à réessayer.
+  const unreachable = instanceErrors.filter((e) => e.reason === 'unreachable')
+  const dead = instanceErrors.filter((e) => e.reason === 'expired' || e.reason === 'auth')
+
   return (
     <div className="flex flex-1 min-h-0">
+      <ReconnectModal instances={dead} />
       <div className="shrink-0 flex flex-col" style={{ width: listWidth }}>
-        {instanceErrors.length > 0 && (
+        {unreachable.length > 0 && (
           <div
             className="px-3 py-2 text-[13px] shrink-0"
             style={{ background: 'var(--rose-dim)', color: 'var(--rose)' }}
           >
             {t.feed.instanceUnreachable.replace(
               '{names}',
-              instanceErrors.map((e) => e.instanceName).join(', '),
+              unreachable.map((e) => e.instanceName).join(', '),
             )}
           </div>
         )}

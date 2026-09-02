@@ -362,6 +362,9 @@ export const en = {
     remove: 'Remove',
     save: 'Save',
     expired: 'Session expired',
+    reconnectTitle: 'Reconnect to your servers',
+    reconnectPrompt: 'These servers need you to sign in again:',
+    reconnectLater: 'Later',
     removePrimaryWarning: 'Removing the primary server signs you out completely.',
     alreadyAdded: 'This server is already in your list.',
     oauthHint:

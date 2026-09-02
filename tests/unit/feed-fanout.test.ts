@@ -15,9 +15,11 @@ vi.mock('@/lib/session', () => ({
     if (t === 'bad') throw new Error('nope')
     return { userId: `user-${t}` }
   },
+  isTokenExpired: (t: string) => t === 'expired',
 }))
 
-import { fanoutFeed, mergeTemplates, toFeedRepositories } from '@/lib/feed-fanout'
+import { fanoutFeed, mergeTemplates, needsReconnect, toFeedRepositories } from '@/lib/feed-fanout'
+import { ApiError } from '@/lib/api-client'
 
 const inst = (id: string, token = id) => ({
   id,
@@ -57,6 +59,17 @@ describe('mergeTemplates', () => {
     mergeTemplates(into, { a: { name: 'a', displayName: 'a', template: null } } as never)
     mergeTemplates(into, { a: { name: 'a', displayName: 'a', template: { version: 1 } } } as never)
     expect((into as Record<string, { template: unknown }>).a.template).toEqual({ version: 1 })
+  })
+})
+
+describe('needsReconnect', () => {
+  it('keeps expired and auth, drops unreachable', () => {
+    const out = needsReconnect([
+      { instanceId: '1', instanceName: 'a', reason: 'expired' },
+      { instanceId: '2', instanceName: 'b', reason: 'auth' },
+      { instanceId: '3', instanceName: 'c', reason: 'unreachable' },
+    ])
+    expect(out.map((e) => e.instanceId)).toEqual(['1', '2'])
   })
 })
 
@@ -112,14 +125,44 @@ describe('fanoutFeed', () => {
     const res = await fanoutFeed()
 
     expect(res.repositories).toHaveLength(1)
-    expect(res.instanceErrors).toEqual([{ instanceId: 'b', instanceName: 'B' }])
+    expect(res.instanceErrors).toEqual([
+      { instanceId: 'b', instanceName: 'B', reason: 'unreachable' },
+    ])
   })
 
-  it('marks an instance whose token cannot be decoded as failed', async () => {
+  it('marks an instance whose token cannot be decoded as needing reconnection', async () => {
     readInstances.mockResolvedValue([inst('a', 'bad')])
     const res = await fanoutFeed()
-    expect(res.instanceErrors).toEqual([{ instanceId: 'a', instanceName: 'A' }])
+    expect(res.instanceErrors).toEqual([{ instanceId: 'a', instanceName: 'A', reason: 'auth' }])
     expect(res.repositories).toEqual([])
+  })
+
+  it('flags an expired token without fetching that instance', async () => {
+    readInstances.mockResolvedValue([inst('a', 'expired')])
+    const res = await fanoutFeed()
+    expect(getCachedUserFeed).not.toHaveBeenCalled()
+    expect(res.instanceErrors).toEqual([{ instanceId: 'a', instanceName: 'A', reason: 'expired' }])
+  })
+
+  it('classes a 401 as `auth` and any other failure as `unreachable`', async () => {
+    readInstances.mockResolvedValue([inst('a'), inst('b')])
+    getCachedUserFeed.mockImplementation((_u: string, _t: string, url: string) =>
+      url === 'https://a.dev'
+        ? Promise.reject(new ApiError(401, 'Unauthorized'))
+        : Promise.reject(new Error('boom')),
+    )
+    const res = await fanoutFeed()
+    expect(res.instanceErrors).toEqual([
+      { instanceId: 'a', instanceName: 'A', reason: 'auth' },
+      { instanceId: 'b', instanceName: 'B', reason: 'unreachable' },
+    ])
+  })
+
+  it('also treats a 403 as `auth`', async () => {
+    readInstances.mockResolvedValue([inst('a')])
+    getCachedUserFeed.mockRejectedValue(new ApiError(403, 'Forbidden'))
+    const res = await fanoutFeed()
+    expect(res.instanceErrors[0].reason).toBe('auth')
   })
 
   it('passes each instance its own url and token', async () => {

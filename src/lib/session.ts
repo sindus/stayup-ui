@@ -39,6 +39,20 @@ export function decodeToken(token: string): AppSession {
   }
 }
 
+/** `true` uniquement si le token porte un `exp` déjà dépassé. Un token illisible
+ *  n'est pas traité comme « expiré » ici : c'est un autre cas, que l'appelant
+ *  distingue (jeton rejeté / malformé → reconnexion). */
+export function isTokenExpired(token: string): boolean {
+  try {
+    const { exp } = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()) as {
+      exp?: number
+    }
+    return exp !== undefined && exp * 1000 <= Date.now()
+  } catch {
+    return false
+  }
+}
+
 /** Fait valider le token par l'API (GET /auth/me), qui vérifie sa signature et son
  *  expiration. C'est la seule façon pour ce déploiement — qui ne connaît pas
  *  JWT_SECRET — de savoir si un cookie « admin » est authentique : sans ça, un

@@ -13,6 +13,11 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/feed',
 }))
 
+const reconnectInstanceAction = vi.fn(async () => ({}) as { error?: string })
+vi.mock('@/lib/instances-actions', () => ({
+  reconnectInstanceAction: (...a: unknown[]) => reconnectInstanceAction(...(a as [])),
+}))
+
 vi.stubGlobal(
   'fetch',
   vi.fn(async () => ({ ok: true, json: async () => ({ repos: [] }) })),
@@ -35,10 +40,13 @@ function item(id: number): TaggedItem {
   } as TaggedItem
 }
 
-function renderView(
-  items: TaggedItem[],
-  instanceErrors: { instanceId: string; instanceName: string }[] = [],
-) {
+type Err = {
+  instanceId: string
+  instanceName: string
+  reason: 'expired' | 'auth' | 'unreachable'
+}
+
+function renderView(items: TaggedItem[], instanceErrors: Err[] = []) {
   return render(
     <LanguageProvider initialLang="en">
       <ReadProvider primaryInstanceId="">
@@ -75,14 +83,44 @@ describe('FeedClientView', () => {
   })
 
   it('shows an unreachable-instance banner and still renders the feed', () => {
-    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta' }])
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta', reason: 'unreachable' }])
     expect(screen.getByText('Unreachable: Beta')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /All 1/ })).toBeInTheDocument()
+    // A transient failure does not raise the reconnection dialog.
+    expect(screen.queryByText('Reconnect to your servers')).not.toBeInTheDocument()
   })
 
   it('has no banner when every instance answered', () => {
     renderView([item(1)])
     expect(screen.queryByText(/Unreachable/)).not.toBeInTheDocument()
+  })
+
+  it('raises the reconnect dialog for a dead session, not the unreachable strip', () => {
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta', reason: 'expired' }])
+    expect(screen.getByText('Reconnect to your servers')).toBeInTheDocument()
+    expect(screen.getByText(/These servers need you to sign in again:.*Beta/)).toBeInTheDocument()
+    expect(screen.queryByText(/Unreachable/)).not.toBeInTheDocument()
+  })
+
+  it('treats a rejected token (auth) as needing reconnection too', () => {
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta', reason: 'auth' }])
+    expect(screen.getByText('Reconnect to your servers')).toBeInTheDocument()
+  })
+
+  it('lets the reconnect dialog be dismissed', async () => {
+    const user = userEvent.setup()
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta', reason: 'expired' }])
+    await user.click(screen.getByRole('button', { name: 'Later' }))
+    expect(screen.queryByText('Reconnect to your servers')).not.toBeInTheDocument()
+  })
+
+  it('submits the reconnect form against the dead instance', async () => {
+    const user = userEvent.setup()
+    renderView([item(1)], [{ instanceId: 'b', instanceName: 'Beta', reason: 'expired' }])
+    await user.type(screen.getByLabelText('Email'), 'u@x.io')
+    await user.type(screen.getByLabelText('Password'), 'pw')
+    await user.click(screen.getByRole('button', { name: 'Reconnect' }))
+    expect(reconnectInstanceAction).toHaveBeenCalledWith('b', 'u@x.io', 'pw')
   })
 
   it('shows the unread count on the Unread filter', () => {

@@ -377,6 +377,9 @@ export const fr: Translations = {
     remove: 'Retirer',
     save: 'Enregistrer',
     expired: 'Session expirée',
+    reconnectTitle: 'Reconnecte-toi à tes serveurs',
+    reconnectPrompt: 'Ces serveurs demandent une reconnexion :',
+    reconnectLater: 'Plus tard',
     removePrimaryWarning: 'Retirer le serveur primaire te déconnecte entièrement.',
     alreadyAdded: 'Ce serveur est déjà dans ta liste.',
     oauthHint:

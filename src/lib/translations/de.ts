@@ -375,6 +375,9 @@ export const de: Translations = {
     remove: 'Entfernen',
     save: 'Speichern',
     expired: 'Sitzung abgelaufen',
+    reconnectTitle: 'Mit deinen Servern neu verbinden',
+    reconnectPrompt: 'Bei diesen Servern musst du dich neu anmelden:',
+    reconnectLater: 'Später',
     removePrimaryWarning: 'Das Entfernen des primären Servers meldet dich vollständig ab.',
     alreadyAdded: 'Dieser Server ist bereits in deiner Liste.',
     oauthHint:

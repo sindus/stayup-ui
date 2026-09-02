@@ -365,6 +365,9 @@ export const ja: Translations = {
     remove: '削除',
     save: '保存',
     expired: 'セッションの有効期限が切れました',
+    reconnectTitle: 'サーバーに再接続',
+    reconnectPrompt: '次のサーバーへの再ログインが必要です：',
+    reconnectLater: '後で',
     removePrimaryWarning: 'プライマリサーバーを削除すると完全にログアウトします。',
     alreadyAdded: 'このサーバーはすでにリストにあります。',
     oauthHint:

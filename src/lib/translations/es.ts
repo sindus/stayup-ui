@@ -372,6 +372,9 @@ export const es: Translations = {
     remove: 'Quitar',
     save: 'Guardar',
     expired: 'Sesión caducada',
+    reconnectTitle: 'Vuelve a conectarte a tus servidores',
+    reconnectPrompt: 'Estos servidores requieren que vuelvas a iniciar sesión:',
+    reconnectLater: 'Más tarde',
     removePrimaryWarning: 'Quitar el servidor principal cierra tu sesión por completo.',
     alreadyAdded: 'Este servidor ya está en tu lista.',
     oauthHint:
